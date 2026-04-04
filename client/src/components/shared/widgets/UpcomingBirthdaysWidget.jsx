@@ -15,6 +15,7 @@ import SendEmailModal from "../../shared/communication/SendEmailModal"
 
 // Birthday Badge Component
 import BirthdayBadge from "../../shared/BirthdayBadge"
+import { useTranslation } from "react-i18next"
 
 // Initials Avatar Component
 const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) => {
@@ -40,6 +41,8 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
 }
 
 export const UpcomingBirthdaysWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) => {
+  const { t, i18n } = useTranslation()
+
   // Contact Modal States
   const [messageTypeModal, setMessageTypeModal] = useState({
     isOpen: false,
@@ -177,8 +180,8 @@ export const UpcomingBirthdaysWidget = ({ isSidebarEditing, showHeader = true, m
       setSelectedMemberForEmail(messageTypeModal.member)
       setEmailData({
         to: messageTypeModal.member.email || "",
-        subject: "Happy Birthday!",
-        body: `Happy Birthday ${messageTypeModal.member.firstName}! 🎉 Wishing you a wonderful day filled with joy and celebration!`,
+        subject: t("myArea.birthdaysWidget.happyBirthday"),
+        body: t("myArea.birthdaysWidget.emailBody", { name: messageTypeModal.member.firstName }),
         recipientName: `${messageTypeModal.member.firstName} ${messageTypeModal.member.lastName}`
       })
       setShowEmailModal(true)
@@ -193,13 +196,13 @@ export const UpcomingBirthdaysWidget = ({ isSidebarEditing, showHeader = true, m
 
   const handleSendEmail = () => {
     console.log("Sending email:", emailData)
-    toast.success("Birthday message sent successfully!")
+    toast.success(t("myArea.birthdaysWidget.toast.messageSent"))
     handleCloseEmailModal()
   }
 
   const handleSaveEmailAsDraft = (draftData) => {
     console.log("Saving draft:", draftData)
-    toast.success("Draft saved!")
+    toast.success(t("myArea.birthdaysWidget.toast.draftSaved"))
   }
 
   const handleSearchMemberForEmail = (query) => {
@@ -212,10 +215,10 @@ export const UpcomingBirthdaysWidget = ({ isSidebarEditing, showHeader = true, m
   }
 
   // Format date for display (show month and day from dateOfBirth)
-  const formatBirthdayDate = (dateOfBirth) => {
+  const formatBirthdayDate = (dateOfBirth, locale) => {
     if (!dateOfBirth) return ""
     const date = new Date(dateOfBirth)
-    return date.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" })
+    return date.toLocaleDateString(locale, { day: "2-digit", month: "2-digit" })
   }
 
   return (
@@ -224,7 +227,7 @@ export const UpcomingBirthdaysWidget = ({ isSidebarEditing, showHeader = true, m
         {/* Header */}
         {showHeader && (
           <div className="flex justify-between items-center mb-3 flex-shrink-0">
-            <h2 className="text-base font-semibold text-content-primary">Upcoming Birthdays</h2>
+            <h2 className="text-base font-semibold text-content-primary">{t("myArea.birthdaysWidget.title")}</h2>
           </div>
         )}
 
@@ -286,11 +289,11 @@ export const UpcomingBirthdaysWidget = ({ isSidebarEditing, showHeader = true, m
                         <div className="flex items-center gap-1.5 mt-0.5">
                           <Calendar size={10} className="text-content-muted" />
                           <span className="text-xs text-content-muted">
-                            {formatBirthdayDate(member.dateOfBirth)}
+                            {formatBirthdayDate(member.dateOfBirth, i18n.language)}
                           </span>
                           {!isToday && daysUntil > 0 && (
                             <span className="text-[10px] text-content-faint">
-                              • in {daysUntil} days
+                              • {t("myArea.birthdaysWidget.inDays", { count: daysUntil })}
                             </span>
                           )}
                         </div>
@@ -298,9 +301,7 @@ export const UpcomingBirthdaysWidget = ({ isSidebarEditing, showHeader = true, m
 
                       {/* Today Badge - Only show if birthday is today */}
                       {isToday && (
-                        <span className="px-2 py-1 text-[10px] rounded-full font-medium whitespace-nowrap bg-primary/20 text-primary flex-shrink-0">
-                          Today
-                        </span>
+                        <span className="px-2 py-1 text-[10px] rounded-full font-medium whitespace-nowrap bg-primary/20 text-primary flex-shrink-0">{t("myArea.birthdaysWidget.today")}</span>
                       )}
 
                       {/* Contact Button - Orange, only show if notifications are NOT enabled */}
@@ -308,7 +309,7 @@ export const UpcomingBirthdaysWidget = ({ isSidebarEditing, showHeader = true, m
                         <button
                           onClick={(e) => handleContactClick(member, e)}
                           className="p-1.5 bg-primary hover:bg-primary-hover rounded-lg text-white transition-colors flex-shrink-0"
-                          title="Send Birthday Message"
+                          title={t("myArea.birthdaysWidget.sendMessage")}
                         >
                           <MessageCircle size={14} />
                         </button>
@@ -323,7 +324,7 @@ export const UpcomingBirthdaysWidget = ({ isSidebarEditing, showHeader = true, m
               <div className="w-12 h-12 rounded-full bg-surface-dark flex items-center justify-center mb-3">
                 <Cake size={20} className="text-content-faint" />
               </div>
-              <p className="text-sm">No upcoming birthdays</p>
+              <p className="text-sm">{t("myArea.birthdaysWidget.noBirthdays")}</p>
             </div>
           )}
         </div>
@@ -331,7 +332,7 @@ export const UpcomingBirthdaysWidget = ({ isSidebarEditing, showHeader = true, m
         {/* Footer Link */}
         <div className="flex justify-center pt-2 border-t border-border flex-shrink-0 mt-2">
           <Link to="/dashboard/members" className="text-xs text-content-muted hover:text-content-primary transition-colors">
-            View all members →
+            {t("myArea.birthdaysWidget.viewAll")}
           </Link>
         </div>
       </div>

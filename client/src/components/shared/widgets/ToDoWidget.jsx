@@ -26,27 +26,28 @@ import TaskModal from "../../shared/to-do/task-modal"
 import { useSelector, useDispatch } from "react-redux"
 import { fetchAllStaffThunk } from "../../../features/staff/staffSlice"
 import { getTagsThunk, getTaskThunk } from "../../../features/todos/todosSlice"
+import { useTranslation } from "react-i18next"
 
 // ============================================
 // Status Configuration
 // ============================================
 const STATUS_CONFIG = {
   ongoing: {
-    label: "Ongoing",
+    label: "ongoing",
     color: "#f59e0b",
     bgColor: "rgba(245, 158, 11, 0.15)",
     textColor: "text-amber-400",
     dotColor: "bg-amber-500",
   },
   completed: {
-    label: "Completed",
+    label: "completed",
     color: "#10b981",
     bgColor: "rgba(16, 185, 129, 0.15)",
     textColor: "text-accent-green",
     dotColor: "bg-accent-green",
   },
   canceled: {
-    label: "Canceled",
+    label: "canceled",
     color: "#ef4444",
     bgColor: "rgba(239, 68, 68, 0.15)",
     textColor: "text-accent-red",
@@ -68,9 +69,8 @@ const TaskCard = ({
   openDropdownId,
   setOpenDropdownId,
 }) => {
+  const { t, i18n } = useTranslation()
   const dropdownRef = useRef(null)
-
-  // Update getTagColor to handle both string tags and tag objects
   const getTagColor = (tag) => {
     // If tag is an object with name property
     if (typeof tag === 'object' && tag !== null) {
@@ -94,7 +94,7 @@ const TaskCard = ({
   const formatDateTime = () => {
     if (!task.dueDate) return null
     const date = new Date(task.dueDate)
-    let display = date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    let display = date.toLocaleDateString(i18n.language, { day: "numeric", month: "short" })
 
     if (task.dueTime) {
       const [hours, minutes] = task.dueTime.split(':')
@@ -137,7 +137,7 @@ const TaskCard = ({
           <button
             onClick={() => onStatusChange(task.id, "ongoing")}
             className="mt-0.5 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 bg-surface-button border border-border"
-            title="Canceled - Click to restore"
+            title={t("myArea.todoWidget.restore")}
           >
             <X size={12} className="text-content-muted" />
           </button>
@@ -196,7 +196,7 @@ const TaskCard = ({
                     className="w-full px-3 py-2 text-left text-xs hover:bg-surface-hover flex items-center gap-2"
                   >
                     <Edit size={12} />
-                    Edit
+                    {t("common.edit")}
                   </button>
                   {!isCanceled && !isCompleted && (
                     <button
@@ -207,7 +207,7 @@ const TaskCard = ({
                       className="w-full px-3 py-2 text-left text-xs hover:bg-surface-hover flex items-center gap-2"
                     >
                       <X size={12} />
-                      Cancel
+                      {t("myArea.todoWidget.cancel")}
                     </button>
                   )}
                   <button
@@ -218,7 +218,7 @@ const TaskCard = ({
                     className="w-full px-3 py-2 text-left text-xs hover:bg-surface-hover text-accent-red flex items-center gap-2"
                   >
                     <Trash2 size={12} />
-                    Delete
+                    {t("common.delete")}
                   </button>
                 </div>
               )}
@@ -282,6 +282,7 @@ const TaskCard = ({
 // Main To-Do Widget Component
 // ============================================
 export default function ToDoWidget({ isSidebarEditing = false, compactMode = false, showHeader = true, maxItems = null }) {
+  const { t, i18n } = useTranslation()
   // Use todosTaskData for consistency with main todo page
   const [todos, setTodos] = useState([])
   // const [configuredTags] = useState(configuredTagsData)
@@ -552,7 +553,7 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
                   ? "bg-secondary text-white"
                   : "bg-surface-base text-content-muted hover:text-content-primary"
                   } ${isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""}`}
-                title="Filter by staff"
+                title={t("myArea.todoWidget.filterByStaff")}
               >
                 <Filter size={14} />
               </button>
@@ -560,7 +561,7 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
               {isFilterDropdownOpen && (
                 <div className="absolute right-0 top-8 bg-surface-dark border border-border rounded-xl shadow-lg z-50 min-w-[180px] py-1">
                   <div className="px-3 py-2 border-b border-border">
-                    <p className="text-xs text-content-faint font-medium">Filter by Staff</p>
+                    <p className="text-xs text-content-faint font-medium">{t("myArea.todoWidget.filterByStaff")}</p>
                   </div>
                   <button
                     onClick={() => setSelectedStaffFilter([])}
@@ -569,7 +570,7 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
                       : "text-content-secondary hover:bg-surface-dark"
                       }`}
                   >
-                    All Tasks
+                    {t("myArea.todoWidget.allTasks")}
                   </button>
                   {availableAssignees.map((staff) => (
                     <button
@@ -595,7 +596,7 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
                 disabled={isSidebarEditing}
                 className={`p-1.5 bg-surface-base rounded-lg text-content-muted hover:text-content-primary transition-colors ${isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""
                   }`}
-                title="Sort tasks"
+                title={t("myArea.todoWidget.sortTasks")}
               >
                 <ArrowUpDown size={14} />
               </button>
@@ -603,13 +604,13 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
               {isSortDropdownOpen && (
                 <div className="absolute right-0 top-8 bg-surface-dark border border-border rounded-xl shadow-lg z-50 min-w-[160px] py-1">
                   <div className="px-3 py-2 border-b border-border">
-                    <p className="text-xs text-content-faint font-medium">Sort by</p>
+                    <p className="text-xs text-content-faint font-medium">{t("myArea.todoWidget.sort.sortBy")}</p>
                   </div>
                   {[
-                    { value: "custom", label: "Custom" },
-                    { value: "title", label: "Title" },
-                    { value: "dueDate", label: "Due Date" },
-                    { value: "recentlyAdded", label: "Recent" },
+                    { value: "custom", label: t("myArea.todoWidget.sort.custom") },
+                    { value: "title", label: t("myArea.todoWidget.sort.title") },
+                    { value: "dueDate", label: t("myArea.todoWidget.sort.dueDate") },
+                    { value: "recentlyAdded", label: t("myArea.todoWidget.sort.recent") },
                   ].map((option) => (
                     <div
                       key={option.value}
@@ -648,7 +649,7 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
                   setIsTaskModalOpen(true)
                 }}
                 className="p-2 bg-primary hover:bg-primary-hover rounded-lg transition-colors text-white"
-                title="Add task"
+                title={t("myArea.todoWidget.addTask")}
               >
                 <Plus size={18} />
               </button>
@@ -696,7 +697,7 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
                   ? "bg-secondary text-white"
                   : "bg-surface-base text-content-muted hover:text-content-primary"
                   } ${isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""}`}
-                title="Filter by staff"
+                title={t("myArea.todoWidget.filterByStaff")}
               >
                 <Filter size={12} />
               </button>
@@ -704,7 +705,7 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
               {isFilterDropdownOpen && (
                 <div className="absolute right-0 top-7 bg-surface-dark border border-border rounded-xl shadow-lg z-50 min-w-[180px] py-1">
                   <div className="px-3 py-2 border-b border-border">
-                    <p className="text-xs text-content-faint font-medium">Filter by Staff</p>
+                    <p className="text-xs text-content-faint font-medium">{t("myArea.todoWidget.filterByStaff")}</p>
                   </div>
                   <button
                     onClick={() => setSelectedStaffFilter([])}
@@ -713,7 +714,7 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
                       : "text-content-secondary hover:bg-surface-dark"
                       }`}
                   >
-                    All Tasks
+                    {t("myArea.todoWidget.allTasks")}
                   </button>
                   {availableAssignees.map((staff) => (
                     <button
@@ -739,7 +740,7 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
                 disabled={isSidebarEditing}
                 className={`p-1.5 bg-surface-base rounded-md text-content-muted hover:text-content-primary transition-colors ${isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""
                   }`}
-                title="Sort tasks"
+                title={t("myArea.todoWidget.sortTasks")}
               >
                 <ArrowUpDown size={12} />
               </button>
@@ -747,13 +748,13 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
               {isSortDropdownOpen && (
                 <div className="absolute right-0 top-7 bg-surface-dark border border-border rounded-xl shadow-lg z-50 min-w-[160px] py-1">
                   <div className="px-3 py-2 border-b border-border">
-                    <p className="text-xs text-content-faint font-medium">Sort by</p>
+                    <p className="text-xs text-content-faint font-medium">{t("myArea.todoWidget.sort.sortBy")}</p>
                   </div>
                   {[
-                    { value: "custom", label: "Custom" },
-                    { value: "title", label: "Title" },
-                    { value: "dueDate", label: "Due Date" },
-                    { value: "recentlyAdded", label: "Recent" },
+                    { value: "custom", label: t("myArea.todoWidget.sort.custom") },
+                    { value: "title", label: t("myArea.todoWidget.sort.title") },
+                    { value: "dueDate", label: t("myArea.todoWidget.sort.dueDate") },
+                    { value: "recentlyAdded", label: t("myArea.todoWidget.sort.recent") },
                   ].map((option) => (
                     <div
                       key={option.value}
@@ -792,7 +793,7 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
                   setIsTaskModalOpen(true)
                 }}
                 className="p-1.5 bg-primary hover:bg-primary-hover rounded-md transition-colors text-white"
-                title="Add task"
+                title={t("myArea.todoWidget.addTask")}
               >
                 <Plus size={14} />
               </button>
@@ -817,7 +818,7 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
               }}
             >
               <div className={`w-2 h-2 rounded-full ${config.dotColor}`}></div>
-              <span className={compactMode ? "hidden" : "hidden sm:inline"}>{config.label}</span>
+              <span className={compactMode ? "hidden" : "hidden sm:inline"}>{t(`myArea.todoWidget.status.${status}`)}</span>
               <span
                 className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${activeTab === status ? "bg-primary/15 text-primary" : "bg-surface-button text-content-muted"
                   }`}
@@ -834,8 +835,7 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
         <div className="flex items-center gap-2 text-xs text-secondary flex-shrink-0">
           <UserCheck size={12} />
           <span>
-            Filtered by {selectedStaffFilter.length} staff member
-            {selectedStaffFilter.length > 1 ? "s" : ""}
+            {t("myArea.todoWidget.filteredBy", { count: selectedStaffFilter.length })}
           </span>
           <button
             onClick={() => setSelectedStaffFilter([])}
@@ -871,9 +871,9 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
             <div className="w-12 h-12 rounded-full bg-surface-dark flex items-center justify-center mb-3">
               <Check size={20} className="text-content-faint" />
             </div>
-            <p className="text-sm">No {activeTab} tasks</p>
+            <p className="text-sm">{t("myArea.todoWidget.noTasks", { status: t(`myArea.todoWidget.status.${activeTab}`) })}</p>
             {selectedStaffFilter.length > 0 && (
-              <p className="text-xs mt-1">Try adjusting your filter</p>
+              <p className="text-xs mt-1">{t("myArea.todoWidget.adjustFilter")}</p>
             )}
           </div>
         )}
@@ -882,7 +882,7 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
       {/* Footer Link */}
       <div className="flex justify-center pt-2 border-t border-border flex-shrink-0">
         <Link to="/dashboard/to-do" className="text-xs text-content-muted hover:text-content-primary transition-colors">
-          View all tasks →
+          {t("myArea.todoWidget.viewAll")}
         </Link>
       </div>
 
@@ -890,22 +890,22 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
       {taskToDelete && createPortal(
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[99999]">
           <div className="bg-surface-card rounded-xl p-6 max-w-md mx-4">
-            <h3 className="text-lg font-semibold mb-4 text-content-primary">Delete Task</h3>
+            <h3 className="text-lg font-semibold mb-4 text-content-primary">{t("myArea.todoWidget.deleteTask")}</h3>
             <p className="text-content-secondary mb-6">
-              Are you sure you want to delete this task? This action cannot be undone.
+              {t("myArea.todoWidget.deleteTaskConfirm")}
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setTaskToDelete(null)}
                 className="px-4 py-2 bg-surface-button text-content-secondary rounded-xl hover:bg-surface-button-hover"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 onClick={() => handleDeleteTask(taskToDelete)}
                 className="px-4 py-2 bg-accent-red text-white rounded-xl hover:bg-accent-red/90"
               >
-                Delete
+                {t("common.delete")}
               </button>
             </div>
           </div>

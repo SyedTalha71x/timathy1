@@ -5,6 +5,7 @@ import { Clock, Users, ChevronDown, ChevronLeft, ChevronRight, Calendar } from '
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getShiftThunk } from '../../../features/staff/staffSlice';
+import { useTranslation } from "react-i18next"
 
 // ============================================
 // Helper Functions
@@ -16,27 +17,27 @@ const formatDateStr = (date) => {
   return `${y}-${m}-${d}`;
 };
 
-const formatDisplayDate = (date) => {
+const formatDisplayDate = (date, t, lang) => {
   const today = new Date();
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
 
-  const dateStr = date.toLocaleDateString('en-US', {
+  const dateStr = date.toLocaleDateString(lang, {
     month: 'short',
     day: 'numeric'
   });
 
   if (formatDateStr(date) === formatDateStr(today)) {
-    return `Today, ${dateStr}`;
+    return `${t("myArea.shiftScheduleWidget.today", { date: dateStr })}`;
   } else if (formatDateStr(date) === formatDateStr(tomorrow)) {
-    return `Tomorrow, ${dateStr}`;
+    return `${t("myArea.shiftScheduleWidget.tomorrow", { date: dateStr })}`;
   } else if (formatDateStr(date) === formatDateStr(yesterday)) {
-    return `Yesterday, ${dateStr}`;
+    return `${t("myArea.shiftScheduleWidget.yesterday", { date: dateStr })}`;
   }
 
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleDateString(lang, {
     weekday: 'short',
     month: 'short',
     day: 'numeric'
@@ -100,7 +101,7 @@ const InitialsAvatar = ({ firstName, lastName, img, size = "sm" }) => {
 // ============================================
 // Shift Card Component
 // ============================================
-const ShiftCard = ({ shift }) => {
+const ShiftCard = ({ shift, t }) => {
   return (
     <div className="p-3 rounded-xl bg-surface-card hover:bg-surface-hover transition-colors">
       <div className="flex items-start gap-3">
@@ -119,7 +120,7 @@ const ShiftCard = ({ shift }) => {
               <h3 className="font-semibold text-sm text-content-primary truncate">
                 {shift.staffName}
               </h3>
-              <p className="text-xs text-content-faint">{shift.position || 'Staff'}</p>
+              <p className="text-xs text-content-faint">{shift.position || t('myArea.shiftScheduleWidget.position.staff')}</p>
             </div>
           </div>
 
@@ -146,6 +147,7 @@ const ShiftScheduleWidget = ({
   maxItems = null,
   staffMembers = [] // Add staffMembers prop
 }) => {
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate();
   const { shift = [] } = useSelector((state) => state.staff);
   const dispatch = useDispatch();
@@ -253,7 +255,7 @@ const ShiftScheduleWidget = ({
       {showHeader && (
         <div className="flex justify-between items-center mb-3 flex-shrink-0">
           <div className="flex items-center gap-2">
-            <h2 className="text-base font-semibold text-content-primary">Staff Shifts</h2>
+            <h2 className="text-base font-semibold text-content-primary">{t("myArea.shiftScheduleWidget.title")}</h2>
           </div>
 
           {/* Staff Filter Dropdown */}
@@ -266,7 +268,7 @@ const ShiftScheduleWidget = ({
                 <Users size={12} className="text-content-muted" />
                 <span className="text-content-secondary">
                   {selectedStaff === "all"
-                    ? `All (${activeStaff.length})`
+                    ? t("myArea.shiftScheduleWidget.allCount", { count: activeStaff.length })
                     : activeStaff.find(s => s._id?.toString() === selectedStaff)?.firstName || "Staff"
                   }
                 </span>
@@ -289,7 +291,7 @@ const ShiftScheduleWidget = ({
                       }}
                     >
                       <Users size={12} />
-                      All Staff ({activeStaff.length})
+                      {t("myArea.shiftScheduleWidget.allStaff")} ({activeStaff.length})
                     </button>
                     <div className="border-t border-border my-1" />
                     {activeStaff.map((staff) => (
@@ -324,10 +326,10 @@ const ShiftScheduleWidget = ({
 
         <div className="text-center">
           <div className="font-medium text-sm text-content-primary">
-            {formatDisplayDate(selectedDate)}
+            {formatDisplayDate(selectedDate, t, i18n.language)}
           </div>
           <div className="text-[10px] text-content-faint">
-            {currentShifts.length} staff scheduled
+            {t("myArea.shiftScheduleWidget.staffScheduled", { count: currentShifts.length })}
           </div>
         </div>
 
@@ -347,18 +349,18 @@ const ShiftScheduleWidget = ({
       >
         {currentShifts.length > 0 ? (
           currentShifts.map((shift) => (
-            <ShiftCard key={shift.id} shift={shift} />
+            <ShiftCard key={shift.id} shift={shift} t={t} />
           ))
         ) : (
           <div className="flex flex-col items-center justify-center py-8 text-content-faint">
             <div className="w-12 h-12 rounded-full bg-surface-dark flex items-center justify-center mb-3">
               <Calendar size={20} className="text-content-faint" />
             </div>
-            <p className="text-sm">No shifts scheduled</p>
+            <p className="text-sm">{t("myArea.shiftScheduleWidget.noShifts")}</p>
             <p className="text-xs mt-1 text-content-faint">
               {formatDateStr(selectedDate) === formatDateStr(new Date()) 
-                ? "No shifts available for today" 
-                : isWeekend(selectedDate) ? "Weekend" : "Check another date"}
+                ? t("myArea.shiftScheduleWidget.noShiftsToday") 
+                : isWeekend(selectedDate) ? t("myArea.shiftScheduleWidget.weekend") : t("myArea.shiftScheduleWidget.checkOtherDate")}
             </p>
           </div>
         )}
@@ -375,7 +377,7 @@ const ShiftScheduleWidget = ({
           })}
           className="text-xs text-content-muted hover:text-content-primary transition-colors"
         >
-          View full schedule →
+          {t("myArea.shiftScheduleWidget.viewAll")}
         </button>
       </div>
     </div>

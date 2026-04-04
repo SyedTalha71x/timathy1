@@ -15,6 +15,7 @@ import {
   deleteNoteThunk,
   updateNoteThunk
 } from "../../../features/notes/noteSlice"
+import { useTranslation } from "react-i18next"
 
 // Helper function to strip HTML tags for preview
 const stripHtmlTags = (html) => {
@@ -28,10 +29,10 @@ const stripHtmlTags = (html) => {
 // Tab Configuration
 const TAB_CONFIG = {
   personal: {
-    label: "Personal",
+    label: "personal",
   },
   studio: {
-    label: "Studio",
+    label: "studio",
   },
 }
 
@@ -39,6 +40,8 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
 
   const { personalNotes = [], studioNotes = [] } = useSelector((state) => state.notes || {})
   const dispatch = useDispatch()
+
+  const { t, i18n } = useTranslation()
 
   // Tab state
   const [activeTab, setActiveTab] = useState("personal")
@@ -347,7 +350,7 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
       {/* Header - Full version with title (My Area) */}
       {showHeader && (
         <div className="flex justify-between items-center flex-shrink-0">
-          <h2 className="text-lg font-semibold">Notes</h2>
+          <h2 className="text-lg font-semibold">{t("myArea.notesWidget.title")}</h2>
           <div className="flex items-center gap-2">
             {/* Sort Dropdown */}
             <div className="relative" ref={sortDropdownRef}>
@@ -356,7 +359,7 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
                 disabled={isSidebarEditing}
                 className={`p-1.5 bg-surface-base rounded-lg text-content-muted hover:text-content-primary transition-colors ${isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""
                   }`}
-                title="Sort notes"
+                title={t("myArea.notesWidget.sortNotes")}
               >
                 {sortOrder === "asc" ? (
                   <ArrowUp size={14} />
@@ -368,13 +371,13 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
               {isSortDropdownOpen && (
                 <div className="absolute right-0 top-8 bg-surface-dark border border-border rounded-xl shadow-lg z-50 min-w-[160px] py-1">
                   <div className="px-3 py-2 border-b border-border">
-                    <p className="text-xs text-content-faint font-medium">Sort by</p>
+                    <p className="text-xs text-content-faint font-medium">{t("myArea.notesWidget.sort.sortBy")}</p>
                   </div>
                   {[
-                    { value: "custom", label: "Custom" },
-                    { value: "title", label: "Title" },
-                    { value: "recentlyUpdated", label: "Updated" },
-                    { value: "recentlyCreated", label: "Created" },
+                    { value: "custom", label: t("myArea.notesWidget.sort.custom") },
+                    { value: "title", label: t("myArea.notesWidget.sort.title") },
+                    { value: "recentlyUpdated", label: t("myArea.notesWidget.sort.recentlyUpdated") },
+                    { value: "recentlyCreated", label: t("myArea.notesWidget.sort.recentlyCreated") },
                   ].map((option) => (
                     <div
                       key={option.value}
@@ -412,7 +415,7 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
               <button
                 onClick={handleCreateClick}
                 className="p-2 bg-primary hover:bg-primary-hover rounded-lg cursor-pointer transition-colors text-white"
-                title="Add New Note"
+                title={t("myArea.notesWidget.addNote")}
               >
                 <Plus size={18} />
               </button>
@@ -435,7 +438,7 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
                   : "text-content-muted hover:text-content-primary"
                   }`}
               >
-                <span>{config.label}</span>
+                <span>{t(`myArea.notesWidget.tabs.${config.label}`)}</span>
                 <span
                   className={`text-[9px] px-1 py-0.5 rounded-full font-medium ${activeTab === tab ? "bg-primary/15 text-primary" : "bg-surface-button text-content-faint"
                     }`}
@@ -455,7 +458,7 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
                 disabled={isSidebarEditing}
                 className={`p-1.5 bg-surface-base rounded-md text-content-muted hover:text-content-primary transition-colors ${isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""
                   }`}
-                title="Sort notes"
+                title={t("myArea.notesWidget.sortNotes")}
               >
                 {sortOrder === "asc" ? (
                   <ArrowUp size={12} />
@@ -467,13 +470,13 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
               {isSortDropdownOpen && (
                 <div className="absolute right-0 top-7 bg-surface-dark border border-border rounded-xl shadow-lg z-50 min-w-[160px] py-1">
                   <div className="px-3 py-2 border-b border-border">
-                    <p className="text-xs text-content-faint font-medium">Sort by</p>
+                    <p className="text-xs text-content-faint font-medium">{t("myArea.notesWidget.sort.sortBy")}</p>
                   </div>
                   {[
-                    { value: "custom", label: "Custom" },
-                    { value: "title", label: "Title" },
-                    { value: "recentlyUpdated", label: "Updated" },
-                    { value: "recentlyCreated", label: "Created" },
+                    { value: "custom", label: t("myArea.notesWidget.sort.custom") },
+                    { value: "title", label: t("myArea.notesWidget.sort.title") },
+                    { value: "recentlyUpdated", label: t("myArea.notesWidget.sort.recentlyUpdated") },
+                    { value: "recentlyCreated", label: t("myArea.notesWidget.sort.recentlyCreated") },
                   ].map((option) => (
                     <div
                       key={option.value}
@@ -511,7 +514,7 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
               <button
                 onClick={handleCreateClick}
                 className="p-1.5 bg-primary hover:bg-primary-hover rounded-md cursor-pointer transition-colors text-white"
-                title="Add New Note"
+                title={t("myArea.notesWidget.addNote")}
               >
                 <Plus size={14} />
               </button>
@@ -532,7 +535,7 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
                 : "text-content-muted hover:text-content-primary"
                 }`}
             >
-              <span>{config.label}</span>
+              <span>{t(`myArea.notesWidget.tabs.${config.label}`)}</span>
               <span
                 className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${activeTab === tab ? "bg-primary/15 text-primary" : "bg-surface-button text-content-faint"
                   }`}
@@ -567,7 +570,7 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
               <div className="flex-1 min-w-0">
                 <div className="flex items-start gap-2 mb-1">
                   <h3 className="text-sm font-semibold text-content-primary truncate flex-1">
-                    {note.title || "Untitled"}
+                    {note.title || t("myArea.notesWidget.untitled")}
                   </h3>
                   {note.isPinned && (
                     <Pin size={12} className="text-primary fill-primary flex-shrink-0" />
@@ -605,11 +608,11 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
                 {/* Date and Time */}
                 <div className="flex items-center gap-2 mt-2">
                   <span className="text-[10px] text-content-faint">
-                    {new Date(note.updatedAt || note.createdAt).toLocaleDateString("en-US", {
+                    {new Date(note.updatedAt || note.createdAt).toLocaleDateString(i18n.language, {
                       month: "short",
                       day: "numeric",
                     })}{" "}
-                    {new Date(note.updatedAt || note.createdAt).toLocaleTimeString("en-US", {
+                    {new Date(note.updatedAt || note.createdAt).toLocaleTimeString(i18n.language, {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
@@ -639,14 +642,14 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
                       className="w-full px-3 py-2 text-left text-xs hover:bg-surface-hover flex items-center gap-2 text-content-primary transition-colors"
                     >
                       <Edit size={12} />
-                      Edit
+                      {t("myArea.notesWidget.edit")}
                     </button>
                     <button
                       onClick={() => handleDeleteClick(note)}
                       className="w-full px-3 py-2 text-left text-xs hover:bg-surface-hover text-accent-red flex items-center gap-2 transition-colors"
                     >
                       <Trash2 size={12} />
-                      Delete
+                      {t("myArea.notesWidget.delete")}
                     </button>
                   </div>
                 )}
@@ -661,8 +664,8 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
             <div className="w-12 h-12 rounded-full bg-surface-dark flex items-center justify-center mb-3">
               <Edit size={20} className="text-content-faint" />
             </div>
-            <p className="text-sm">No {activeTab} notes</p>
-            <p className="text-xs mt-1">Click + to create a note</p>
+            <p className="text-sm">{t("myArea.notesWidget.noNotes", { tab: t(`myArea.notesWidget.tabs.${activeTab}`) })}</p>
+            <p className="text-xs mt-1">{t("myArea.notesWidget.addNoteHint")}</p>
           </div>
         )}
       </div>
@@ -670,7 +673,7 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) =
       {/* Footer Link */}
       <div className="flex justify-center pt-2 border-t border-border flex-shrink-0">
         <Link to="/dashboard/notes" className="text-xs text-content-muted hover:text-content-primary transition-colors">
-          View all notes →
+          {t("myArea.notesWidget.viewAll")}
         </Link>
       </div>
 

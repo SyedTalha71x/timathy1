@@ -2,6 +2,7 @@
 /* eslint-disable react/prop-types */
 import { Minus } from "lucide-react"
 import { useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 
 /**
  * DraggableWidget - Unified draggable widget wrapper

@@ -38,30 +38,31 @@ import { fetchAllAppointments } from "../../../features/appointments/Appointment
 import { fetchAllMember } from "../../../features/member/memberSlice"
 import { fetchAllLeadsThunk } from "../../../features/lead/leadSlice"
 import ReactApexChart from "react-apexcharts"
+import { useTranslation } from "react-i18next"
 
-// ✅ Extended dropdown options - Full scope like Analytics menu
-const dropdownOptions = {
+// ✅ Extended dropdown options - built inside component for i18n access
+const getDropdownOptions = (t) => ({
   Appointments: [
-    { value: "overview", label: "Overview", type: "stats" },
-    { value: "monthlyBreakdown", label: "Monthly Breakdown", type: "chart" },
-    { value: "popularTimes", label: "Popular Times", type: "chart" },
+    { value: "overview", label: t("myArea.analyticsWidget.options.overview"), type: t("myArea.analyticsWidget.types.stats") },
+    { value: "monthlyBreakdown", label: t("myArea.analyticsWidget.options.monthlyBreakdown"), type: t("myArea.analyticsWidget.types.chart") },
+    { value: "popularTimes", label: t("myArea.analyticsWidget.options.popularTimes"), type: t("myArea.analyticsWidget.types.chart") },
   ],
   Members: [
-    { value: "overview", label: "Overview", type: "stats" },
-    { value: "memberActivity", label: "Member Activity", type: "chart" },
-    { value: "membersByType", label: "Members by Type", type: "chart" },
+    { value: "overview", label: t("myArea.analyticsWidget.options.overview"), type: t("myArea.analyticsWidget.types.stats") },
+    { value: "memberActivity", label: t("myArea.analyticsWidget.options.memberActivity"), type: t("myArea.analyticsWidget.types.chart") },
+    { value: "membersByType", label: t("myArea.analyticsWidget.options.membersByType"), type: t("myArea.analyticsWidget.types.chart") },
   ],
   Leads: [
-    { value: "overview", label: "Overview", type: "stats" },
-    { value: "newVsConverted", label: "New Leads & Converted", type: "chart" },
-    { value: "conversionRate", label: "Conversion Rate", type: "chart" },
+    { value: "overview", label: t("myArea.analyticsWidget.options.overview"), type: t("myArea.analyticsWidget.types.stats") },
+    { value: "newVsConverted", label: t("myArea.analyticsWidget.options.newVsConverted"), type: t("myArea.analyticsWidget.types.chart") },
+    { value: "conversionRate", label: t("myArea.analyticsWidget.options.conversionRate"), type: t("myArea.analyticsWidget.types.chart") },
   ],
   Finances: [
-    { value: "overview", label: "Overview", type: "stats" },
-    { value: "topServices", label: "Top Services by Revenue", type: "chart" },
-    { value: "mostSold", label: "Most Frequently Sold", type: "chart" },
+    { value: "overview", label: t("myArea.analyticsWidget.options.overview"), type: t("myArea.analyticsWidget.types.stats") },
+    { value: "topServices", label: t("myArea.analyticsWidget.options.topServices"), type: t("myArea.analyticsWidget.types.chart") },
+    { value: "mostSold", label: t("myArea.analyticsWidget.options.mostSold"), type: t("myArea.analyticsWidget.types.chart") },
   ],
-}
+})
 
 // ✅ Mini Stat Card Component for Overview
 const MiniStatCard = ({ title, value, icon: Icon, iconBg, iconColor, change, isMobile }) => {
@@ -123,6 +124,17 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
   const { members = [] } = useSelector((state) => state.member || {})
   const { leads = [] } = useSelector((state) => state.leads || {})
   const dispatch = useDispatch()
+  const { t } = useTranslation()
+  const dropdownOptions = getDropdownOptions(t)
+
+  // Helper: translate member type strings from backend
+  const translateMemberType = (typeStr) => {
+    if (!typeStr) return typeStr
+    const key = `myArea.analyticsWidget.memberTypes.${typeStr.toLowerCase()}`
+    const translated = t(key, { defaultValue: "" })
+    return translated || typeStr
+  }
+
   const [activeTab, setActiveTab] = useState("Members")
   const [selectedOption, setSelectedOption] = useState("memberActivity")
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
@@ -239,10 +251,87 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
   const getChartConfig = () => {
     const widgetHeight = isMobile ? 200 : 260
 
+    // Helper: translate a single label string (months, days, series names, etc.)
+    const tLabel = (label) => {
+      if (!label || typeof label !== 'string') return label
+      // Try months
+      const monthKey = `myArea.analyticsWidget.chartLabels.months.${label}`
+      const monthVal = t(monthKey, { defaultValue: "" })
+      if (monthVal) return monthVal
+      // Try series names
+      const seriesKey = `myArea.analyticsWidget.chartLabels.series.${label}`
+      const seriesVal = t(seriesKey, { defaultValue: "" })
+      if (seriesVal) return seriesVal
+      // Try days
+      const dayKey = `myArea.analyticsWidget.chartLabels.days.${label}`
+      const dayVal = t(dayKey, { defaultValue: "" })
+      if (dayVal) return dayVal
+      // Try time slots
+      const timeKey = `myArea.analyticsWidget.chartLabels.timeSlots.${label}`
+      const timeVal = t(timeKey, { defaultValue: "" })
+      if (timeVal) return timeVal
+      // Try member types
+      return translateMemberType(label)
+    }
+
+    // Helper: translate xaxis categories array
+    const translateCategories = (options) => {
+      if (!options?.xaxis?.categories) return options
+      return {
+        ...options,
+        xaxis: {
+          ...options.xaxis,
+          categories: options.xaxis.categories.map(c => tLabel(c))
+        }
+      }
+    }
+
+    // Helper: translate series names
+    const translateSeries = (series) => {
+      if (!Array.isArray(series)) return series
+      return series.map(s => {
+        if (typeof s === 'object' && s.name) {
+          return { ...s, name: tLabel(s.name) }
+        }
+        return s
+      })
+    }
+
+    // Helper: translate labels array (for donut/pie charts)
+    const translateLabels = (options) => {
+      if (!options?.labels) return options
+      return {
+        ...options,
+        labels: options.labels.map(l => tLabel(l))
+      }
+    }
+
     const widgetOverrides = {
       chart: {
         height: widgetHeight,
         toolbar: { show: false },
+        defaultLocale: 'de',
+        locales: [{
+          name: 'de',
+          options: {
+            months: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+            shortMonths: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
+            days: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
+            shortDays: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
+            toolbar: {
+              exportToSVG: 'SVG herunterladen',
+              exportToPNG: 'PNG herunterladen',
+              exportToCSV: 'CSV herunterladen',
+              menu: 'Menü',
+              selection: 'Auswahl',
+              selectionZoom: 'Auswahl-Zoom',
+              zoomIn: 'Vergrößern',
+              zoomOut: 'Verkleinern',
+              pan: 'Verschieben',
+              reset: 'Zoom zurücksetzen'
+            }
+          }
+        }]
       },
       legend: {
         position: isMobile ? "bottom" : "top",
@@ -259,28 +348,30 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
         switch (selectedOption) {
           case "monthlyBreakdown": {
             const config = getMonthlyBreakdownChartConfig(appointmentData)
+            const opts = translateCategories({ ...config.options })
             return {
               options: {
-                ...config.options,
-                chart: { ...config.options.chart, ...widgetOverrides.chart },
-                legend: { ...config.options.legend, ...widgetOverrides.legend },
-                stroke: { ...config.options.stroke, ...widgetOverrides.stroke },
+                ...opts,
+                chart: { ...opts.chart, ...widgetOverrides.chart },
+                legend: { ...opts.legend, ...widgetOverrides.legend },
+                stroke: { ...opts.stroke, ...widgetOverrides.stroke },
               },
-              series: config.series,
+              series: translateSeries(config.series),
               type: "line",
             }
           }
           case "popularTimes": {
             const config = getPopularTimesChartConfig(appointmentData)
+            const opts = translateCategories({ ...config.options })
             return {
               options: {
-                ...config.options,
-                chart: { ...config.options.chart, ...widgetOverrides.chart },
+                ...opts,
+                chart: { ...opts.chart, ...widgetOverrides.chart },
                 plotOptions: {
                   bar: { borderRadius: 4, columnWidth: isMobile ? "70%" : "60%" },
                 },
               },
-              series: config.series,
+              series: translateSeries(config.series),
               type: "bar",
             }
           }
@@ -291,23 +382,25 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
         switch (selectedOption) {
           case "memberActivity": {
             const config = getMemberActivityChartConfig(membersData)
+            const opts = translateCategories({ ...config.options })
             return {
               options: {
-                ...config.options,
-                chart: { ...config.options.chart, ...widgetOverrides.chart },
-                legend: { ...config.options.legend, ...widgetOverrides.legend },
-                stroke: { ...config.options.stroke, ...widgetOverrides.stroke },
+                ...opts,
+                chart: { ...opts.chart, ...widgetOverrides.chart },
+                legend: { ...opts.legend, ...widgetOverrides.legend },
+                stroke: { ...opts.stroke, ...widgetOverrides.stroke },
               },
-              series: config.series,
+              series: translateSeries(config.series),
               type: "line",
             }
           }
           case "membersByType": {
             const config = getMembersByTypeChartConfig(membersData)
+            const opts = translateLabels(translateCategories({ ...config.options }))
             return {
               options: {
-                ...config.options,
-                chart: { ...config.options.chart, ...widgetOverrides.chart },
+                ...opts,
+                chart: { ...opts.chart, ...widgetOverrides.chart },
                 legend: {
                   ...config.options.legend,
                   position: "bottom",
@@ -321,7 +414,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
                         show: true,
                         total: {
                           show: true,
-                          label: "Total",
+                          label: t("common.all"),
                           color: getComputedStyle(document.documentElement).getPropertyValue('--color-content-muted').trim() || "#9CA3AF",
                           fontSize: isMobile ? "11px" : "12px",
                           formatter: () => membersData.totalMembers.toString(),
@@ -344,28 +437,30 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
         switch (selectedOption) {
           case "newVsConverted": {
             const config = getLeadsChartConfig(leadsData)
+            const opts = translateCategories({ ...config.options })
             return {
               options: {
-                ...config.options,
-                chart: { ...config.options.chart, ...widgetOverrides.chart },
-                legend: { ...config.options.legend, ...widgetOverrides.legend },
+                ...opts,
+                chart: { ...opts.chart, ...widgetOverrides.chart },
+                legend: { ...opts.legend, ...widgetOverrides.legend },
                 plotOptions: {
                   bar: { borderRadius: 4, columnWidth: isMobile ? "70%" : "60%" },
                 },
               },
-              series: config.series,
+              series: translateSeries(config.series),
               type: "bar",
             }
           }
           case "conversionRate": {
             const config = getConversionRateChartConfig(leadsData)
+            const opts = translateCategories({ ...config.options })
             return {
               options: {
-                ...config.options,
-                chart: { ...config.options.chart, ...widgetOverrides.chart },
-                stroke: { ...config.options.stroke, ...widgetOverrides.stroke },
+                ...opts,
+                chart: { ...opts.chart, ...widgetOverrides.chart },
+                stroke: { ...opts.stroke, ...widgetOverrides.stroke },
               },
-              series: config.series,
+              series: translateSeries(config.series),
               type: "line",
             }
           }
@@ -376,29 +471,31 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
         switch (selectedOption) {
           case "topServices": {
             const config = getTopServicesByRevenueChartConfig()
+            const opts = translateCategories({ ...config.options })
             return {
               options: {
-                ...config.options,
-                chart: { ...config.options.chart, ...widgetOverrides.chart },
+                ...opts,
+                chart: { ...opts.chart, ...widgetOverrides.chart },
                 plotOptions: {
                   bar: { borderRadius: 4, horizontal: true },
                 },
               },
-              series: config.series,
+              series: translateSeries(config.series),
               type: "bar",
             }
           }
           case "mostSold": {
             const config = getMostFrequentlySoldChartConfig()
+            const opts = translateCategories({ ...config.options })
             return {
               options: {
-                ...config.options,
-                chart: { ...config.options.chart, ...widgetOverrides.chart },
+                ...opts,
+                chart: { ...opts.chart, ...widgetOverrides.chart },
                 plotOptions: {
                   bar: { borderRadius: 4, columnWidth: isMobile ? "70%" : "60%" },
                 },
               },
-              series: config.series,
+              series: translateSeries(config.series),
               type: "bar",
             }
           }
@@ -415,7 +512,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
         return (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <MiniStatCard
-              title="Bookings"
+              title={t("myArea.analyticsWidget.stats.totalBookings")}
               value={appointmentData.totals.bookings}
               icon={CalendarDays}
               iconBg="bg-primary/20"
@@ -424,7 +521,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
               isMobile={isMobile}
             />
             <MiniStatCard
-              title="Check-ins"
+              title={t("myArea.analyticsWidget.stats.checkIns")}
               value={appointmentData.totals.checkIns}
               icon={UserCheck}
               iconBg="bg-accent-green/20"
@@ -433,7 +530,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
               isMobile={isMobile}
             />
             <MiniStatCard
-              title="Cancellations"
+              title={t("myArea.analyticsWidget.stats.cancellations")}
               value={appointmentData.totals.cancellations}
               icon={UserX}
               iconBg="bg-accent-red/20"
@@ -442,7 +539,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
               isMobile={isMobile}
             />
             <MiniStatCard
-              title="Late Cancels"
+              title={t("myArea.analyticsWidget.stats.lateCancellations")}
               value={appointmentData.totals.lateCancellations}
               icon={Clock}
               iconBg="bg-accent-yellow/20"
@@ -450,7 +547,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
               isMobile={isMobile}
             />
             <MiniStatCard
-              title="No Shows"
+              title={t("myArea.analyticsWidget.stats.noShows")}
               value={appointmentData.totals.noShows}
               icon={AlertCircle}
               iconBg="bg-primary/20"
@@ -464,7 +561,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
         return (
           <div className="space-y-3">
             <MiniStatCard
-              title="Total Members"
+              title={t("myArea.analyticsWidget.stats.totalMembers")}
               value={membersData.totalMembers}
               icon={Users}
               iconBg="bg-primary/20"
@@ -476,7 +573,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
               {membersData.membersByType.map((type, index) => (
                 <div key={type.type} className="bg-surface-card rounded-xl p-2 text-center">
                   <div className="text-sm sm:text-base font-bold text-content-primary">{type.count}</div>
-                  <div className="text-[10px] sm:text-xs text-content-muted">{type.type}</div>
+                  <div className="text-[10px] sm:text-xs text-content-muted">{translateMemberType(type.type)}</div>
                 </div>
               ))}
             </div>
@@ -494,7 +591,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
         return (
           <div className="space-y-3">
             <MiniStatCard
-              title="Total Leads"
+              title={t("myArea.analyticsWidget.stats.totalLeads")}
               value={leadsData.totalLeads}
               icon={UserPlus}
               iconBg="bg-primary/20"
@@ -505,15 +602,15 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
             <div className="grid grid-cols-3 gap-3">
               <div className="bg-surface-card rounded-xl p-2 text-center">
                 <div className="text-sm sm:text-base font-bold text-accent-green">{totalConverted}</div>
-                <div className="text-[10px] sm:text-xs text-content-muted">Converted</div>
+                <div className="text-[10px] sm:text-xs text-content-muted">{t("myArea.analyticsWidget.stats.converted")}</div>
               </div>
               <div className="bg-surface-card rounded-xl p-2 text-center">
                 <div className="text-sm sm:text-base font-bold text-primary">{avgConversion}%</div>
-                <div className="text-[10px] sm:text-xs text-content-muted">Avg Rate</div>
+                <div className="text-[10px] sm:text-xs text-content-muted">{t("myArea.analyticsWidget.stats.avgRate")}</div>
               </div>
               <div className="bg-surface-card rounded-xl p-2 text-center">
                 <div className="text-sm sm:text-base font-bold text-content-primary">{lastMonth.newLeads}</div>
-                <div className="text-[10px] sm:text-xs text-content-muted">This Month</div>
+                <div className="text-[10px] sm:text-xs text-content-muted">{t("myArea.analyticsWidget.stats.thisMonth")}</div>
               </div>
             </div>
           </div>
@@ -523,7 +620,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
         return (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <MiniStatCard
-              title="Total Revenue"
+              title={t("myArea.analyticsWidget.stats.totalRevenue")}
               value={`$${financesData.totalRevenue.toLocaleString()}`}
               icon={DollarSign}
               iconBg="bg-accent-green/20"
@@ -532,7 +629,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
               isMobile={isMobile}
             />
             <MiniStatCard
-              title="Avg/Member"
+              title={t("myArea.analyticsWidget.stats.avgPerMember")}
               value={`$${financesData.averageRevenuePerMember.toFixed(0)}`}
               icon={CreditCard}
               iconBg="bg-primary/20"
@@ -541,7 +638,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
               isMobile={isMobile}
             />
             <MiniStatCard
-              title="Outstanding"
+              title={t("myArea.analyticsWidget.stats.outstanding")}
               value={`$${financesData.outstandingPayments.toLocaleString()}`}
               icon={AlertCircle}
               iconBg="bg-accent-red/20"
@@ -565,7 +662,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
     <div className="p-3 sm:p-4 bg-surface-button rounded-xl">
       {/* Header */}
       <div className="flex justify-between items-center mb-3">
-        <h2 className="text-base sm:text-lg font-semibold text-content-primary">Analytics</h2>
+        <h2 className="text-base sm:text-lg font-semibold text-content-primary">{t("myArea.analyticsWidget.title")}</h2>
       </div>
 
       {/* Tabs */}
@@ -584,8 +681,9 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
           >
             <tab.icon className="text-xs sm:text-sm" />
             <span>
-              {isMobile && tab.name === "Appointments" ? "Appts" :
-                isMobile && tab.name === "Finances" ? "Finance" : tab.name}
+              {isMobile && tab.name === "Appointments" ? t("myArea.analyticsWidget.tabs.appointmentsShort") :
+                isMobile && tab.name === "Finances" ? t("myArea.analyticsWidget.tabs.financesShort") : 
+                t(`myArea.analyticsWidget.tabs.${tab.name.toLowerCase()}`)}
             </span>
           </button>
         ))}

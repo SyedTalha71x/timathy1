@@ -12,6 +12,7 @@ import toast from "react-hot-toast"
 import MessageTypeSelectionModal from "../../shared/communication/MessageTypeSelectionModal"
 import ChatPopup from "../../shared/communication/ChatPopup"
 import SendEmailModal from "../../shared/communication/SendEmailModal"
+import { useTranslation } from "react-i18next"
 
 // Initials Avatar Component
 const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) => {
@@ -36,7 +37,10 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
   )
 }
 
-export const ExpiringContractsWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) => {
+export const ExpiringContractsWidget = ({
+ isSidebarEditing, showHeader = true, maxItems = null }) => {
+  const { t, i18n } = useTranslation()
+
   // Contact Modal States
   const [messageTypeModal, setMessageTypeModal] = useState({
     isOpen: false,
@@ -68,10 +72,10 @@ export const ExpiringContractsWidget = ({ isSidebarEditing, showHeader = true, m
   }
 
   // Format date for display
-  const formatDate = (dateStr) => {
+  const formatDate = (dateStr, locale) => {
     if (!dateStr) return ""
     const date = new Date(dateStr)
-    return date.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" })
+    return date.toLocaleDateString(locale, { day: "2-digit", month: "2-digit", year: "numeric" })
   }
 
   // Get members with expiring contracts (within 90 days), always sorted by expiry
@@ -135,7 +139,7 @@ export const ExpiringContractsWidget = ({ isSidebarEditing, showHeader = true, m
       setSelectedMemberForEmail(messageTypeModal.member)
       setEmailData({
         to: messageTypeModal.member.email || "",
-        subject: "Contract Renewal",
+        subject: t("myArea.expiringContractsWidget.contractRenewal"),
         body: "",
         recipientName: `${messageTypeModal.member.firstName} ${messageTypeModal.member.lastName}`
       })
@@ -151,13 +155,13 @@ export const ExpiringContractsWidget = ({ isSidebarEditing, showHeader = true, m
 
   const handleSendEmail = () => {
     console.log("Sending email:", emailData)
-    toast.success("Email sent successfully!")
+    toast.success(t("myArea.expiringContractsWidget.toast.emailSent"))
     handleCloseEmailModal()
   }
 
   const handleSaveEmailAsDraft = (draftData) => {
     console.log("Saving draft:", draftData)
-    toast.success("Draft saved!")
+    toast.success(t("myArea.expiringContractsWidget.toast.draftSaved"))
   }
 
   const handleSearchMemberForEmail = (query) => {
@@ -175,7 +179,7 @@ export const ExpiringContractsWidget = ({ isSidebarEditing, showHeader = true, m
         {/* Header */}
         {showHeader && (
           <div className="flex justify-between items-center mb-3 flex-shrink-0">
-            <h2 className="text-base font-semibold text-content-primary">Expiring Contracts</h2>
+            <h2 className="text-base font-semibold text-content-primary">{t("myArea.expiringContractsWidget.title")}</h2>
           </div>
         )}
 
@@ -210,32 +214,32 @@ export const ExpiringContractsWidget = ({ isSidebarEditing, showHeader = true, m
                           <div className="flex items-center gap-1.5 mt-1">
                             <Calendar size={10} className="text-content-muted" />
                             <span className="text-xs text-content-muted">
-                              {formatDate(member.contractEnd)}
+                              {formatDate(member.contractEnd, i18n.language)}
                             </span>
                           </div>
 
                           <p className="text-[10px] text-primary mt-0.5">
-                            {daysRemaining} days left
+                            {t("myArea.expiringContractsWidget.daysLeft", { count: daysRemaining })}
                           </p>
 
                           {/* Member Type */}
                           {member.memberType && (
                             <p className="text-[10px] text-content-faint mt-0.5 capitalize">
-                              {member.memberType} Member
+                              {t("myArea.expiringContractsWidget.memberType", { type: member.memberType })}
                             </p>
                           )}
                         </div>
 
                         {/* Status Badge - Centered */}
                         <span className="px-2 py-1 text-[10px] rounded-full font-medium whitespace-nowrap bg-primary/20 text-primary flex-shrink-0">
-                          Expiring Soon
+                          {t("myArea.expiringContractsWidget.expiringSoon")}
                         </span>
 
                         {/* Contact Button - Orange */}
                         <button
                           onClick={(e) => handleContactClick(member, e)}
                           className="p-1.5 bg-primary hover:bg-primary-hover rounded-lg text-white transition-colors flex-shrink-0"
-                          title="Contact Member"
+                          title={t("myArea.expiringContractsWidget.contactMember")}
                         >
                           <MessageCircle size={14} />
                         </button>
@@ -250,7 +254,7 @@ export const ExpiringContractsWidget = ({ isSidebarEditing, showHeader = true, m
               <div className="w-12 h-12 rounded-full bg-surface-dark flex items-center justify-center mb-3">
                 <FileText size={20} className="text-content-faint" />
               </div>
-              <p className="text-sm">No expiring contracts</p>
+              <p className="text-sm">{t("myArea.expiringContractsWidget.noExpiring")}</p>
             </div>
           )}
         </div>
@@ -258,7 +262,7 @@ export const ExpiringContractsWidget = ({ isSidebarEditing, showHeader = true, m
         {/* Footer Link */}
         <div className="flex justify-center pt-2 border-t border-border flex-shrink-0 mt-2">
           <Link to="/dashboard/contract" className="text-xs text-content-muted hover:text-content-primary transition-colors">
-            View all contracts →
+            {t("myArea.expiringContractsWidget.viewAll")}
           </Link>
         </div>
       </div>

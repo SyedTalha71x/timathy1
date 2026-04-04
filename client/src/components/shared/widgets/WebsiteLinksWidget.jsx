@@ -4,6 +4,7 @@ import { createPortal } from "react-dom"
 import { Plus, ExternalLink, MoreVertical, X, Edit, Trash2 } from "lucide-react"
 import { useSelector, useDispatch } from 'react-redux'
 import { createWebsiteThunk, fetchWebsiteThunk, updateWebsiteThunk, deleteWebsiteThunk } from "../../../features/website/websiteSlice"
+import { useTranslation } from "react-i18next"
 
 // ============================================
 // Website Link Modal Component
@@ -13,6 +14,7 @@ const WebsiteLinkModal = ({
   onClose,
   onSave
 }) => {
+  const { t } = useTranslation()
   const [title, setTitle] = useState("")
   const [url, setUrl] = useState("")
 
@@ -48,7 +50,7 @@ const WebsiteLinkModal = ({
       <div className="p-6 space-y-4">
         <div className="flex justify-between items-center">
           <h2 className="text-lg font-semibold text-content-primary">
-            {link ? "Edit Website Link" : "Add Website Link"}
+            {link ? t("myArea.websiteLinksWidget.editLink") : t("myArea.websiteLinksWidget.addLink")}
           </h2>
           <button
             onClick={onClose}
@@ -60,17 +62,17 @@ const WebsiteLinkModal = ({
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm text-content-muted mb-2">Title</label>
+            <label className="block text-sm text-content-muted mb-2">{t("myArea.websiteLinksWidget.fieldTitle")}</label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full p-3 bg-surface-base rounded-xl text-sm outline-none text-content-primary placeholder-content-faint"
-              placeholder="Enter title"
+              placeholder={t("myArea.websiteLinksWidget.enterTitle")}
             />
           </div>
           <div>
-            <label className="block text-sm text-content-muted mb-2">URL</label>
+            <label className="block text-sm text-content-muted mb-2">{t("myArea.websiteLinksWidget.fieldUrl")}</label>
             <input
               type="url"
               value={url}
@@ -86,7 +88,7 @@ const WebsiteLinkModal = ({
             onClick={onClose}
             className="px-4 py-2 bg-surface-button text-content-secondary rounded-xl hover:bg-surface-button-hover text-sm"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             onClick={handleSave}
@@ -96,7 +98,7 @@ const WebsiteLinkModal = ({
               : "bg-primary hover:bg-primary-hover text-white"
               }`}
           >
-            Save
+            {t("common.save")}
           </button>
         </div>
       </div>
@@ -116,6 +118,7 @@ const WebsiteLinksWidget = ({
   showHeader = true,
   maxItems = null
 }) => {
+  const { t } = useTranslation()
   const { website = [] } = useSelector((state) => state.website) || {}
   const dispatch = useDispatch();
   const [openDropdownId, setOpenDropdownId] = useState(null)
@@ -235,12 +238,12 @@ const WebsiteLinksWidget = ({
       {/* Header */}
       {showHeader && (
         <div className="flex justify-between items-center flex-shrink-0">
-          <h2 className="text-lg font-semibold">Website Links</h2>
+          <h2 className="text-lg font-semibold">{t("myArea.websiteLinksWidget.title")}</h2>
           <div className="flex items-center gap-2">
             <button
               onClick={handleAddClick}
               className="p-2 bg-primary hover:bg-primary-hover rounded-lg transition-colors text-white"
-              title="Add link"
+              title={t("myArea.websiteLinksWidget.addLinkBtn")}
             >
               <Plus size={18} />
             </button>
@@ -252,7 +255,7 @@ const WebsiteLinksWidget = ({
           <button
             onClick={handleAddClick}
             className="p-2 bg-primary hover:bg-primary-hover rounded-lg transition-colors text-white"
-            title="Add link"
+            title={t("myArea.websiteLinksWidget.addLinkBtn")}
           >
             <Plus size={18} />
           </button>
@@ -283,7 +286,7 @@ const WebsiteLinksWidget = ({
                 <button
                   onClick={() => window.open(link.url, "_blank")}
                   className="p-1 hover:bg-surface-hover rounded text-content-muted hover:text-content-primary"
-                  title="Open link"
+                  title={t("myArea.websiteLinksWidget.openLink")}
                 >
                   <ExternalLink size={14} />
                 </button>
@@ -307,14 +310,14 @@ const WebsiteLinksWidget = ({
                         className="w-full px-3 py-2 text-left text-xs hover:bg-surface-hover flex items-center gap-2 text-content-primary"
                       >
                         <Edit size={12} />
-                        Edit
+                        {t("myArea.websiteLinksWidget.edit")}
                       </button>
                       <button
                         onClick={() => handleDeleteClick(link._id)}
                         className="w-full px-3 py-2 text-left text-xs hover:bg-surface-hover text-accent-red flex items-center gap-2"
                       >
                         <Trash2 size={12} />
-                        Delete
+                        {t("myArea.websiteLinksWidget.delete")}
                       </button>
                     </div>
                   )}
@@ -330,8 +333,8 @@ const WebsiteLinksWidget = ({
             <div className="w-12 h-12 rounded-full bg-surface-dark flex items-center justify-center mb-3">
               <ExternalLink size={20} className="text-content-faint" />
             </div>
-            <p className="text-sm">No links yet</p>
-            <p className="text-xs mt-1">Click + to add a link</p>
+            <p className="text-sm">{t("myArea.websiteLinksWidget.noLinks")}</p>
+            <p className="text-xs mt-1">{t("myArea.websiteLinksWidget.addLinkHint")}</p>
           </div>
         )}
       </div>
@@ -355,22 +358,22 @@ const WebsiteLinksWidget = ({
       {linkToDelete && createPortal(
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[99999]">
           <div className="bg-surface-card rounded-xl p-6 max-w-md mx-4">
-            <h3 className="text-lg font-semibold mb-4 text-content-primary">Delete Link</h3>
+            <h3 className="text-lg font-semibold mb-4 text-content-primary">{t("myArea.websiteLinksWidget.deleteLink")}</h3>
             <p className="text-content-secondary mb-6">
-              Are you sure you want to delete this link? This action cannot be undone.
+              {t("myArea.websiteLinksWidget.deleteLinkConfirm")}
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setLinkToDelete(null)}
                 className="px-4 py-2 bg-surface-button text-content-secondary rounded-xl hover:bg-surface-button-hover"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 onClick={confirmDelete}
                 className="px-4 py-2 bg-accent-red text-white rounded-xl hover:bg-accent-red/90"
               >
-                Delete
+                {t("common.delete")}
               </button>
             </div>
           </div>

@@ -65,7 +65,8 @@
       "errorMinLength": "El nombre debe tener al menos 2 caracteres",
       "save": "Guardar",
       "create": "Crear"
-    }
+    },
+    "unknown": "Desconocido"
   },
   "languages": {
     "en": "Inglés",
@@ -4057,6 +4058,434 @@
       "closeTitle": "¿Cerrar editor de contratos?",
       "closeMessage": "¿Deseas guardar los cambios antes de cerrar?",
       "discardTitle": "¿Descartar cambios?"
+    }
+  },
+  "myArea": {
+    "title": "Mi Área",
+    "editMode": {
+      "edit": "Editar panel",
+      "done": "Listo",
+      "addWidget": "Añadir widget"
+    },
+    "widgetSelection": {
+      "titleDashboard": "Añadir widget a Mi Área",
+      "titleSidebar": "Añadir widget a la barra lateral",
+      "alreadyInDashboard": "Ya añadido a Mi Área",
+      "alreadyInSidebar": "Ya añadido a la barra lateral",
+      "widgets": {
+        "chart": {
+          "name": "Gráfico de análisis",
+          "description": "Ver estadísticas y análisis de miembros"
+        },
+        "expiringContracts": {
+          "name": "Contratos por vencer",
+          "description": "Seguimiento de contratos próximos a vencer"
+        },
+        "appointments": {
+          "name": "Próximas citas",
+          "description": "Ver próximas citas"
+        },
+        "upcomingClasses": {
+          "name": "Próximas clases",
+          "description": "Ver clases programadas"
+        },
+        "staffCheckIn": {
+          "name": "Fichaje del personal",
+          "description": "Entrada/salida del personal"
+        },
+        "websiteLink": {
+          "name": "Enlaces web",
+          "description": "Acceso rápido a sitios web importantes"
+        },
+        "todo": {
+          "name": "Tareas",
+          "description": "Gestión de tareas y entradas pendientes"
+        },
+        "birthday": {
+          "name": "Próximos cumpleaños",
+          "description": "Próximos cumpleaños de miembros"
+        },
+        "bulletinBoard": {
+          "name": "Tablón de anuncios",
+          "description": "Ver publicaciones para personal y miembros"
+        },
+        "notes": {
+          "name": "Notas",
+          "description": "Crear y gestionar notas personales"
+        },
+        "shiftSchedule": {
+          "name": "Horario de turnos",
+          "description": "Ver y gestionar horarios de turnos del personal"
+        }
+      }
+    },
+    "viewManagement": {
+      "titleDashboard": "Gestionar vistas de Mi Área",
+      "titleSidebar": "Gestionar vistas de la barra lateral",
+      "saveCurrentView": "Guardar vista actual",
+      "editView": "Editar vista",
+      "saveCurrentLayout": "Guardar diseño actual",
+      "enterViewName": "Introducir nombre de vista...",
+      "update": "Actualizar",
+      "savedViews": "Vistas guardadas",
+      "noSavedViews": "Aún no hay vistas guardadas",
+      "saveLayoutHint": "Guarda tu diseño actual para comenzar",
+      "widgetsCount": "{{count}} Widgets • Creado el {{date}}",
+      "createdBy": "Creado por {{name}}",
+      "load": "Cargar",
+      "pinned": "Fijado",
+      "default": "Predeterminado",
+      "active": "Activo",
+      "editViewTitle": "Editar vista",
+      "pinAsStandard": "Fijar como vista predeterminada",
+      "unpinView": "Desfijar vista",
+      "deleteView": "Eliminar vista",
+      "toast": {
+        "viewSaved": "Vista \"{{name}}\" guardada con éxito",
+        "viewLoaded": "Vista cargada: {{name}}",
+        "viewPinned": "Vista fijada",
+        "viewUnpinned": "Vista desfijada",
+        "viewDeleted": "Vista eliminada",
+        "viewUpdated": "Vista actualizada con éxito",
+        "cannotDeleteDefault": "La vista predeterminada no se puede eliminar",
+        "enterViewName": "Por favor, introduce un nombre de vista"
+      },
+      "defaultView": "Vista predeterminada",
+      "unknown": "Desconocido",
+      "deleteViewDescription": "Esta vista se eliminará permanentemente. Esta acción no se puede deshacer."
+    },
+    "analyticsWidget": {
+      "title": "Análisis",
+      "tabs": {
+        "appointments": "Citas",
+        "appointmentsShort": "Citas",
+        "members": "Miembros",
+        "leads": "Leads",
+        "finances": "Finanzas",
+        "financesShort": "Finanzas"
+      },
+      "options": {
+        "overview": "Resumen",
+        "monthlyBreakdown": "Desglose mensual",
+        "popularTimes": "Horarios populares",
+        "memberActivity": "Actividad de miembros",
+        "membersByType": "Miembros por tipo",
+        "newVsConverted": "Leads nuevos y convertidos",
+        "conversionRate": "Tasa de conversión",
+        "topServices": "Top servicios por ingresos",
+        "mostSold": "Más vendidos"
+      },
+      "types": {
+        "stats": "Estadísticas",
+        "chart": "Gráfico"
+      },
+      "stats": {
+        "totalBookings": "Reservas totales",
+        "checkIns": "Check-ins",
+        "cancellations": "Cancelaciones",
+        "lateCancellations": "Cancelaciones tardías",
+        "noShows": "Ausencias",
+        "totalMembers": "Miembros totales",
+        "totalLeads": "Leads totales",
+        "converted": "Convertidos",
+        "avgRate": "Tasa media",
+        "thisMonth": "Este mes",
+        "totalRevenue": "Ingresos totales",
+        "avgPerMember": "Media/Miembro",
+        "outstanding": "Pendiente"
+      },
+      "memberTypes": {
+        "full": "Miembro completo",
+        "full member": "Miembro completo",
+        "full members": "Miembros completos",
+        "temporary": "Temporal",
+        "temporary member": "Miembro temporal",
+        "temporary members": "Miembros temporales",
+        "active": "Activo",
+        "active member": "Miembro activo",
+        "active members": "Miembros activos",
+        "inactive": "Inactivo",
+        "inactive member": "Miembro inactivo",
+        "inactive members": "Miembros inactivos",
+        "paused": "En pausa",
+        "paused member": "Miembro en pausa",
+        "paused members": "Miembros en pausa",
+        "premium": "Premium",
+        "trial": "Prueba",
+        "student": "Estudiante",
+        "senior": "Senior",
+        "family": "Familia",
+        "new": "Nuevo",
+        "expired": "Expirado",
+        "cancelled": "Cancelado",
+        "frozen": "Congelado"
+      },
+      "chartLabels": {
+        "months": {
+          "Jan": "Ene",
+          "Feb": "Feb",
+          "Mar": "Mar",
+          "Apr": "Abr",
+          "May": "May",
+          "Jun": "Jun",
+          "Jul": "Jul",
+          "Aug": "Ago",
+          "Sep": "Sep",
+          "Oct": "Oct",
+          "Nov": "Nov",
+          "Dec": "Dic",
+          "January": "Enero",
+          "February": "Febrero",
+          "March": "Marzo",
+          "April": "Abril",
+          "June": "Junio",
+          "July": "Julio",
+          "August": "Agosto",
+          "September": "Septiembre",
+          "October": "Octubre",
+          "November": "Noviembre",
+          "December": "Diciembre"
+        },
+        "series": {
+          "Bookings": "Reservas",
+          "Check-ins": "Check-ins",
+          "Check-Ins": "Check-ins",
+          "Cancellations": "Cancelaciones",
+          "Late Cancellations": "Cancelaciones tardías",
+          "No Shows": "Ausencias",
+          "New Leads": "Nuevos leads",
+          "Converted": "Convertidos",
+          "Conversion Rate": "Tasa de conversión",
+          "New Members": "Nuevos miembros",
+          "Cancelled Members": "Miembros cancelados",
+          "Active Members": "Miembros activos",
+          "Inactive Members": "Miembros inactivos",
+          "Revenue": "Ingresos",
+          "Count": "Cantidad",
+          "Total": "Total",
+          "Appointments": "Citas",
+          "Members": "Miembros",
+          "Sales": "Ventas"
+        },
+        "days": {
+          "Mon": "Lun",
+          "Tue": "Mar",
+          "Wed": "Mié",
+          "Thu": "Jue",
+          "Fri": "Vie",
+          "Sat": "Sáb",
+          "Sun": "Dom",
+          "Monday": "Lunes",
+          "Tuesday": "Martes",
+          "Wednesday": "Miércoles",
+          "Thursday": "Jueves",
+          "Friday": "Viernes",
+          "Saturday": "Sábado",
+          "Sunday": "Domingo"
+        },
+        "timeSlots": {
+          "Morning": "Mañana",
+          "Afternoon": "Tarde",
+          "Evening": "Noche",
+          "Night": "Noche"
+        }
+      }
+    },
+    "expiringContractsWidget": {
+      "title": "Contratos por vencer",
+      "daysLeft": "{{count}} días restantes",
+      "oneDayLeft": "1 día restante",
+      "memberType": "Miembro {{type}}",
+      "expiringSoon": "Vence pronto",
+      "contactMember": "Contactar miembro",
+      "noExpiring": "No hay contratos por vencer",
+      "viewAll": "Ver todos los contratos →",
+      "contractRenewal": "Renovación de contrato",
+      "toast": {
+        "emailSent": "¡Correo enviado con éxito!",
+        "draftSaved": "¡Borrador guardado!"
+      }
+    },
+    "appointmentsWidget": {
+      "title": "Próximas citas",
+      "today": "Hoy",
+      "tomorrow": "Mañana",
+      "expand": "Expandir",
+      "collapse": "Contraer",
+      "checkIn": "Check-In",
+      "checkedIn": "Registrado",
+      "trialTraining": "Entrenamiento de prueba",
+      "cancelled": "Cancelado",
+      "noAppointments": "No hay citas próximas",
+      "trainingPlans": "Planes de entrenamiento"
+    },
+    "staffCheckInWidget": {
+      "title": "Fichaje del personal",
+      "additionalTitle": "Fichaje adicional del personal",
+      "selectStaff": "Seleccionar personal",
+      "checkedIn": "Fichado entrada",
+      "checkedOut": "Fichado salida",
+      "passwordFor": "Contraseña para {{name}}",
+      "enterPassword": "Introducir contraseña",
+      "enterYourPassword": "Introduce tu contraseña",
+      "enterPasswordTitle": "Introducir contraseña",
+      "password": "Contraseña",
+      "checkInBtn": "Check-In",
+      "checkOutBtn": "Check-Out",
+      "checkInAdditional": "Fichar otro miembro del personal",
+      "status": "Estado: {{status}}",
+      "canCheckOutAfter": "Puede fichar salida después de: {{time}}",
+      "confirm": "Confirmar",
+      "cancel": "Cancelar",
+      "toast": {
+        "checkedIn": "Fichado con éxito",
+        "checkedOut": "Salida fichada con éxito",
+        "canCheckOut": "Ya puedes fichar la salida",
+        "cannotCheckOut": "Aún no puedes fichar la salida. Espera al tiempo de espera de 2 minutos.",
+        "incorrectPassword": "Contraseña incorrecta",
+        "staffCheckedIn": "{{name}} fichado con éxito",
+        "staffCheckedOut": "{{name}} salida fichada con éxito"
+      }
+    },
+    "websiteLinksWidget": {
+      "title": "Enlaces web",
+      "addLink": "Añadir enlace web",
+      "editLink": "Editar enlace web",
+      "fieldTitle": "Título",
+      "fieldUrl": "URL",
+      "enterTitle": "Introducir título",
+      "urlPlaceholder": "https://ejemplo.com",
+      "openLink": "Abrir enlace",
+      "addLinkBtn": "Añadir enlace",
+      "noLinks": "Aún no hay enlaces",
+      "addLinkHint": "Haz clic en + para añadir un enlace",
+      "deleteLink": "Eliminar enlace",
+      "deleteLinkConfirm": "¿Estás seguro de que quieres eliminar este enlace? Esta acción no se puede deshacer.",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "save": "Guardar",
+      "cancel": "Cancelar"
+    },
+    "todoWidget": {
+      "title": "Tareas",
+      "status": {
+        "ongoing": "Abierta",
+        "completed": "Completada",
+        "canceled": "Cancelada"
+      },
+      "sort": {
+        "sortBy": "Ordenar por",
+        "custom": "Personalizado",
+        "title": "Título",
+        "dueDate": "Fecha de vencimiento",
+        "recent": "Reciente"
+      },
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "cancel": "Cancelar tarea",
+      "restore": "Cancelada — Haz clic para restaurar",
+      "sortTasks": "Ordenar tareas",
+      "addTask": "Añadir tarea",
+      "noTasks": "No hay tareas {{status}}",
+      "adjustFilter": "Intenta ajustar el filtro",
+      "filteredBy": "Filtrado por {{count}} miembro(s) del personal",
+      "filteredBy_other": "Filtrado por {{count}} miembros del personal",
+      "deleteTask": "Eliminar tarea",
+      "deleteTaskConfirm": "¿Estás seguro de que quieres eliminar esta tarea? Esta acción no se puede deshacer.",
+      "viewAll": "Ver todas las tareas →",
+      "filterByStaff": "Filtrar por personal",
+      "allTasks": "Todas las tareas"
+    },
+    "birthdaysWidget": {
+      "title": "Próximos cumpleaños",
+      "today": "Hoy",
+      "inDays": "en {{count}} días",
+      "inOneDay": "en 1 día",
+      "noBirthdays": "No hay cumpleaños próximos",
+      "viewAll": "Ver todos los miembros →",
+      "sendMessage": "Enviar mensaje de cumpleaños",
+      "happyBirthday": "¡Feliz cumpleaños!",
+      "toast": {
+        "messageSent": "¡Mensaje de cumpleaños enviado con éxito!",
+        "draftSaved": "¡Borrador guardado!"
+      },
+      "emailBody": "¡Feliz cumpleaños {{name}}! 🎉 ¡Te deseamos un día maravilloso lleno de alegría y celebración!"
+    },
+    "bulletinBoardWidget": {
+      "title": "Tablón de anuncios",
+      "tabs": {
+        "members": "Miembros",
+        "staff": "Personal"
+      },
+      "statusFilter": {
+        "all": "Todas las publicaciones",
+        "active": "Activo",
+        "inactive": "Inactivo",
+        "scheduled": "Programado"
+      },
+      "sort": {
+        "sortBy": "Ordenar por",
+        "custom": "Personalizado",
+        "title": "Título",
+        "author": "Autor",
+        "recent": "Reciente"
+      },
+      "view": "Ver",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "addPost": "Crear nueva publicación",
+      "noPosts": "No hay publicaciones {{tab}}",
+      "adjustFilter": "Intenta ajustar el filtro",
+      "viewAll": "Ver todas las publicaciones →",
+      "scheduled": "Programado",
+      "showingFilter": "Mostrando publicaciones {{filter}}",
+      "filterByStatus": "Filtrar por estado"
+    },
+    "notesWidget": {
+      "title": "Notas",
+      "tabs": {
+        "personal": "Personal",
+        "studio": "Estudio"
+      },
+      "sort": {
+        "sortBy": "Ordenar por",
+        "title": "Título",
+        "recentlyUpdated": "Actualizado recientemente",
+        "recentlyCreated": "Creado recientemente",
+        "custom": "Personalizado"
+      },
+      "untitled": "Sin título",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "addNote": "Crear nueva nota",
+      "noNotes": "No hay notas {{tab}}",
+      "addNoteHint": "Haz clic en + para crear una nota",
+      "viewAll": "Ver todas las notas →",
+      "sortNotes": "Ordenar notas"
+    },
+    "shiftScheduleWidget": {
+      "title": "Turnos del personal",
+      "today": "Hoy, {{date}}",
+      "tomorrow": "Mañana, {{date}}",
+      "yesterday": "Ayer, {{date}}",
+      "allStaff": "Todo el personal",
+      "allCount": "Todos ({{count}})",
+      "staff": "Personal",
+      "staffScheduled": "{{count}} personal programado",
+      "noShifts": "No hay turnos programados",
+      "noShiftsToday": "No hay turnos disponibles para hoy",
+      "weekend": "Fin de semana",
+      "checkOtherDate": "Consultar otra fecha",
+      "viewAll": "Ver horario completo de turnos →",
+      "position": {
+        "staff": "Personal"
+      }
+    },
+    "upcomingClassesWidget": {
+      "title": "Próximas clases",
+      "noClasses": "No hay clases próximas",
+      "full": "Completo",
+      "spotsLeft": "({{count}} disponible(s))"
     }
   }
 }

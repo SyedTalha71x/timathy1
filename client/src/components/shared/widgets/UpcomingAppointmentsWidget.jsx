@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { Clock, Dumbbell, ChevronDown, ChevronUp, Calendar } from "lucide-react"
 import { MemberSpecialNoteIcon } from "../../shared/special-note/shared-special-note-icon"
 import DatePickerField from "../DatePickerField"
+import { useTranslation } from "react-i18next"
 
 const UpcomingAppointmentsWidget = ({
   isSidebarEditing,
@@ -24,6 +25,7 @@ const UpcomingAppointmentsWidget = ({
   showDateIndicator = false,  // Show date indicator next to title (for sidebar)
   maxItems = null             // Maximum items to display (for sidebar)
 }) => {
+  const { t, i18n } = useTranslation()
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [selectedDate, setSelectedDate] = useState(initialDate || new Date())
   // Measure actual item heights for maxItems constraint
@@ -132,11 +134,11 @@ const UpcomingAppointmentsWidget = ({
     tomorrow.setDate(tomorrow.getDate() + 1)
 
     if (date.toDateString() === today.toDateString()) {
-      return "Today"
+      return t("myArea.appointmentsWidget.today")
     } else if (date.toDateString() === tomorrow.toDateString()) {
-      return "Tomorrow"
+      return t("myArea.appointmentsWidget.tomorrow")
     } else {
-      return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+      return date.toLocaleDateString(i18n.language, { day: "numeric", month: "short" })
     }
   }
 
@@ -173,7 +175,7 @@ const UpcomingAppointmentsWidget = ({
       {showHeader && (
         <div className="flex justify-between items-center flex-shrink-0 px-3 pt-2.5 pb-2">
           <div className="flex items-center gap-2">
-            <h2 className="text-sm font-semibold text-content-primary">Upcoming Appointments</h2>
+            <h2 className="text-sm font-semibold text-content-primary">{t("myArea.appointmentsWidget.title")}</h2>
 
             {/* Show selected date indicator when explicitly enabled */}
             {showDateIndicator && filterDate && !showDatePicker && (
@@ -205,7 +207,7 @@ const UpcomingAppointmentsWidget = ({
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
               className="p-1 bg-surface-button hover:bg-surface-button-hover rounded-lg cursor-pointer transition-colors text-content-primary"
-              title={isCollapsed ? "Expand" : "Collapse"}
+              title={isCollapsed ? t("myArea.appointmentsWidget.expand") : t("myArea.appointmentsWidget.collapse")}
             >
               {isCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
             </button>
@@ -289,7 +291,7 @@ const UpcomingAppointmentsWidget = ({
                         <div
                           className="cursor-pointer rounded p-0.5 transition-all duration-200 hover:scale-110 active:scale-95"
                           onClick={(e) => handleDumbbellClick(appointment, e)}
-                          title="Training Plans"
+                          title={t("myArea.appointmentsWidget.trainingPlans")}
                         >
                           <Dumbbell className="text-white/80" size={14} />
                         </div>
@@ -306,7 +308,7 @@ const UpcomingAppointmentsWidget = ({
                             : "bg-black hover:bg-black/80 text-white border-transparent"
                           }`}
                       >
-                        {appointment.isCheckedIn ? "Checked In" : "Check In"}
+                        {appointment.isCheckedIn ? t("myArea.appointmentsWidget.checkedIn") : t("myArea.appointmentsWidget.checkIn")}
                       </button>
                     )}
                   </div>
@@ -322,7 +324,7 @@ const UpcomingAppointmentsWidget = ({
                         {appointment._pendingMove?.originalStartTime || appointment.startTime} - {appointment.endTime}
                       </p>
                       <p className="text-[10px] opacity-70">
-                        {new Date(appointment.originalISODate).toLocaleDateString("en-US", {
+                        {new Date(appointment.originalISODate).toLocaleDateString(i18n.language, {
                           weekday: "short"
                         })?.split("|")[0]?.trim()}
                       </p>
@@ -330,10 +332,10 @@ const UpcomingAppointmentsWidget = ({
                     <p className="text-[11px] mt-1 opacity-70">
                       {appointment.isTrial
                         ? (appointment.trialType
-                          ? `Trial Training • ${appointment.trialType}`
-                          : "Trial Training")
+                          ? `${t("myArea.appointmentsWidget.trialTraining")} • ${appointment.trialType}`
+                          : t("myArea.appointmentsWidget.trialTraining"))
                         : appointment.isCancelled
-                          ? <span className="text-red-400">Cancelled</span>
+                          ? <span className="text-red-400">{t("myArea.appointmentsWidget.cancelled")}</span>
                           : appointment.type}
                     </p>
                     {/* Show note for blocked appointments */}
@@ -351,7 +353,7 @@ const UpcomingAppointmentsWidget = ({
               <div className="w-12 h-12 rounded-full bg-surface-dark flex items-center justify-center mb-3">
                 <Calendar size={20} className="text-content-faint" />
               </div>
-              <p className="text-sm">No upcoming appointments</p>
+              <p className="text-sm">{t("myArea.appointmentsWidget.noAppointments")}</p>
             </div>
           )}
         </div>

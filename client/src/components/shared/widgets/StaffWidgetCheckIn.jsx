@@ -2,6 +2,7 @@ import { useState } from "react"
 import { createPortal } from "react-dom"
 import toast from "react-hot-toast"
 import { Clock, Users, X } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 const loggedInStaff = {
     id: 1,
@@ -18,6 +19,7 @@ const loggedInStaff = {
 
   // Additional Staff Modal Component (integrated)
   function AdditionalStaffModal({ staffList, additionalStaffCheckIns, onCheckIn, onClose }) {
+    const { t } = useTranslation()
     const [selectedStaff, setSelectedStaff] = useState(null)
     const [password, setPassword] = useState("")
   
@@ -32,14 +34,14 @@ const loggedInStaff = {
     return (
       <div className="bg-surface-card rounded-xl w-full max-w-md mx-4 p-6">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Additional Staff Check-In</h3>
+          <h3 className="text-lg font-semibold">{t("myArea.staffCheckInWidget.additionalTitle")}</h3>
           <button onClick={onClose} className="p-2 hover:bg-surface-hover rounded-lg">
             <X size={16} />
           </button>
         </div>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm text-content-muted mb-2">Select Staff Member</label>
+            <label className="block text-sm text-content-muted mb-2">{t("myArea.staffCheckInWidget.selectStaff")}</label>
             <div className="space-y-2 max-h-40 overflow-y-auto">
               {staffList.map((staff) => (
                 <div
@@ -58,7 +60,7 @@ const loggedInStaff = {
                           : "bg-surface-button text-content-muted"
                       }`}
                     >
-                      {additionalStaffCheckIns[staff.id] ? "Checked In" : "Checked Out"}
+                      {additionalStaffCheckIns[staff.id] ? t("myArea.staffCheckInWidget.checkedIn") : t("myArea.staffCheckInWidget.checkedOut")}
                     </span>
                   </div>
                 </div>
@@ -67,29 +69,29 @@ const loggedInStaff = {
           </div>
           {selectedStaff && (
             <div>
-              <label className="block text-sm text-content-muted mb-1">Password for {selectedStaff.name}</label>
+              <label className="block text-sm text-content-muted mb-1">{t("myArea.staffCheckInWidget.passwordFor", { name: selectedStaff.name })}</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full p-3 bg-surface-base rounded-xl text-sm outline-none"
-                placeholder="Enter password"
+                placeholder={t("myArea.staffCheckInWidget.enterPassword")}
                 onKeyPress={(e) => e.key === "Enter" && handleSubmit()}
               />
             </div>
           )}
           <div className="flex gap-2 justify-end">
-            <button onClick={onClose} className="px-4 py-2 text-sm rounded-xl hover:bg-surface-hover">
-              Cancel
+            <button onClick={onClose} className="px-4 py-2 text-sm rounded-xl bg-surface-button hover:bg-surface-button-hover text-content-secondary transition-colors">
+              {t("common.cancel")}
             </button>
             <button
               onClick={handleSubmit}
               disabled={!selectedStaff || !password}
-              className={`px-4 py-2 text-sm rounded-xl ${
+              className={`px-4 py-2 text-sm rounded-xl text-white transition-colors ${
                 selectedStaff && password ? "bg-primary hover:bg-primary-hover" : "bg-primary/50 cursor-not-allowed"
               }`}
             >
-              {additionalStaffCheckIns[selectedStaff?.id] ? "Check Out" : "Check In"}
+              {additionalStaffCheckIns[selectedStaff?.id] ? t("myArea.staffCheckInWidget.checkOutBtn") : t("myArea.staffCheckInWidget.checkInBtn")}
             </button>
           </div>
         </div>
@@ -98,6 +100,7 @@ const loggedInStaff = {
   }
   
   function StaffCheckInWidget({ compact = false, showHeader = true }) {
+    const { t, i18n } = useTranslation()
     const [isCheckedIn, setIsCheckedIn] = useState(false)
     const [checkInTime, setCheckInTime] = useState(null)
     const [showPasswordModal, setShowPasswordModal] = useState(false)
@@ -115,7 +118,7 @@ const loggedInStaff = {
       if (password === loggedInStaff.password) {
         if (isCheckedIn) {
           if (!canCheckOut) {
-            toast.error("Cannot check out yet. Please wait for the 2-minute timeout.")
+            toast.error(t("myArea.staffCheckInWidget.toast.cannotCheckOut"))
             setShowPasswordModal(false)
             setPassword("")
             return
@@ -124,7 +127,7 @@ const loggedInStaff = {
           setCheckInTime(null)
           setBookingTimeout(null)
           setCanCheckOut(true)
-          toast.success("Checked out successfully")
+          toast.success(t("myArea.staffCheckInWidget.toast.checkedOut"))
         } else {
           setIsCheckedIn(true)
           const now = new Date()
@@ -136,16 +139,16 @@ const loggedInStaff = {
           setTimeout(
             () => {
               setCanCheckOut(true)
-              toast.success("You can now check out")
+              toast.success(t("myArea.staffCheckInWidget.toast.canCheckOut"))
             },
             2 * 60 * 1000,
           )
-          toast.success("Checked in successfully")
+          toast.success(t("myArea.staffCheckInWidget.toast.checkedIn"))
         }
         setShowPasswordModal(false)
         setPassword("")
       } else {
-        toast.error("Incorrect password")
+        toast.error(t("myArea.staffCheckInWidget.toast.incorrectPassword"))
       }
     }
   
@@ -156,9 +159,9 @@ const loggedInStaff = {
           ...prev,
           [staffId]: !prev[staffId],
         }))
-        toast.success(`${staff.name} ${additionalStaffCheckIns[staffId] ? "checked out" : "checked in"} successfully`)
+        toast.success(additionalStaffCheckIns[staffId] ? t("myArea.staffCheckInWidget.toast.staffCheckedOut", { name: staff.name }) : t("myArea.staffCheckInWidget.toast.staffCheckedIn", { name: staff.name }))
       } else {
-        toast.error("Incorrect password")
+        toast.error(t("myArea.staffCheckInWidget.toast.incorrectPassword"))
       }
     }
 
@@ -177,7 +180,7 @@ const loggedInStaff = {
       >
         <div className="bg-surface-card text-content-primary rounded-xl w-full max-w-md p-6">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-content-primary">Enter Password</h3>
+            <h3 className="text-lg font-semibold text-content-primary">{t("myArea.staffCheckInWidget.enterPasswordTitle")}</h3>
             <button
               onClick={() => {
                 setShowPasswordModal(false)
@@ -190,13 +193,13 @@ const loggedInStaff = {
           </div>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm text-content-muted mb-1">Password</label>
+              <label className="block text-sm text-content-muted mb-1">{t("myArea.staffCheckInWidget.password")}</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full p-3 bg-surface-base rounded-xl text-sm outline-none text-content-primary"
-                placeholder="Enter your password"
+                placeholder={t("myArea.staffCheckInWidget.enterYourPassword")}
                 onKeyPress={(e) => e.key === "Enter" && handlePasswordSubmit()}
                 autoFocus
               />
@@ -207,15 +210,15 @@ const loggedInStaff = {
                   setShowPasswordModal(false)
                   setPassword("")
                 }}
-                className="px-4 py-2 text-sm rounded-xl hover:bg-surface-hover text-content-secondary"
+                className="px-4 py-2 text-sm rounded-xl bg-surface-button hover:bg-surface-button-hover text-content-secondary transition-colors"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 onClick={handlePasswordSubmit}
                 className="px-4 py-2 text-sm rounded-xl bg-primary hover:bg-primary-hover text-white"
               >
-                Confirm
+                {t("myArea.staffCheckInWidget.confirm")}
               </button>
             </div>
           </div>
@@ -250,18 +253,18 @@ const loggedInStaff = {
     return (
       <>
         <div className={`p-3 bg-surface-button text-content-primary rounded-xl ${compact ? "h-auto" : "h-[320px] md:h-[340px]"}`}>
-          {showHeader && <h2 className="text-lg font-semibold mb-3">Staff Check-In</h2>}
+          {showHeader && <h2 className="text-lg font-semibold mb-3">{t("myArea.staffCheckInWidget.title")}</h2>}
           <div className="flex flex-col gap-3">
             <div>
-              <p className="text-sm mb-1">Status: {isCheckedIn ? "Checked In" : "Checked Out"}</p>
+              <p className="text-sm mb-1">{t("myArea.staffCheckInWidget.status", { status: isCheckedIn ? t("myArea.staffCheckInWidget.checkedIn") : t("myArea.staffCheckInWidget.checkedOut") })}</p>
               {checkInTime && (
                 <div className="text-xs text-content-muted">
                   <p className="flex items-center gap-1">
                     <Clock size={14} />
-                    {checkInTime.toLocaleTimeString()}
+                    {checkInTime.toLocaleTimeString(i18n.language)}
                   </p>
                   {bookingTimeout && !canCheckOut && (
-                    <p className="text-accent-yellow mt-1">Can check out after: {bookingTimeout.toLocaleTimeString()}</p>
+                    <p className="text-accent-yellow mt-1">{t("myArea.staffCheckInWidget.canCheckOutAfter", { time: bookingTimeout.toLocaleTimeString(i18n.language) })}</p>
                   )}
                 </div>
               )}
@@ -271,7 +274,7 @@ const loggedInStaff = {
                 onClick={handleCheckInOut}
                 className="w-full py-2.5 rounded-xl text-sm font-medium transition-colors bg-primary hover:bg-primary-hover text-white"
               >
-                {loggedInStaff.name} - Check In
+                {loggedInStaff.name} - {t("myArea.staffCheckInWidget.checkInBtn")}
               </button>
             ) : (
               <button
@@ -281,15 +284,15 @@ const loggedInStaff = {
                 }`}
                 disabled={!canCheckOut}
               >
-                {loggedInStaff.name} - Check Out
+                {loggedInStaff.name} - {t("myArea.staffCheckInWidget.checkOutBtn")}
               </button>
             )}
             <button
               onClick={() => setShowAdditionalStaff(true)}
-              className="w-full py-2 rounded-xl text-sm font-medium transition-colors bg-secondary hover:bg-secondary-hover text-white flex items-center justify-center gap-2"
+              className="w-full py-2 rounded-xl text-sm font-medium transition-colors bg-secondary hover:bg-secondary/80 text-white flex items-center justify-center gap-2"
             >
               <Users size={16} />
-              Check in additional staff
+              {t("myArea.staffCheckInWidget.checkInAdditional")}
             </button>
           </div>
         </div>

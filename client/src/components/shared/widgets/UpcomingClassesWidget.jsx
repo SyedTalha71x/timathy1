@@ -3,6 +3,7 @@
 import React from "react";
 import { Users, Clock, ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next"
 
 const parseTimeForDisplay = (timeStr) => {
   if (!timeStr) return "";
@@ -25,6 +26,7 @@ const UpcomingClassesWidget = ({
   isCollapsed: externalCollapsed,
   onToggleCollapse,
 }) => {
+  const { t, i18n } = useTranslation()
   const [internalCollapsed, setInternalCollapsed] = useState(false);
   const isCollapsed = externalCollapsed !== undefined ? externalCollapsed : internalCollapsed;
   const toggleCollapse = onToggleCollapse || (() => setInternalCollapsed(!internalCollapsed));
@@ -88,7 +90,7 @@ const UpcomingClassesWidget = ({
     if (!dateStr) return "";
     const d = new Date(dateStr);
     if (isNaN(d?.getTime())) return "";
-    return d.toLocaleDateString("en-GB", {
+    return d.toLocaleDateString(i18n.language, {
       weekday: "short",
       day: "2-digit",
       month: "2-digit",
@@ -108,7 +110,7 @@ const UpcomingClassesWidget = ({
         className={`flex items-center justify-between cursor-pointer ${isCollapsed ? '' : 'mb-2'}`}
         onClick={toggleCollapse}
       >
-        <h3 className="text-content-primary font-semibold text-sm">Upcoming Classes</h3>
+        <h3 className="text-content-primary font-semibold text-sm">{t("myArea.upcomingClassesWidget.title")}</h3>
         <button className="p-1 bg-surface-button hover:bg-surface-button-hover rounded-lg cursor-pointer transition-colors text-content-primary">
           {isCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
         </button>
@@ -118,7 +120,7 @@ const UpcomingClassesWidget = ({
         <div className="flex-1 overflow-y-auto space-y-1.5 min-h-0">
           {upcomingClasses.length === 0 ? (
             <div className="text-center py-6 text-content-muted text-xs">
-              No upcoming classes
+              {t("myArea.upcomingClassesWidget.noClasses")}
             </div>
           ) : (
             upcomingClasses.map((cls) => {
@@ -159,8 +161,8 @@ const UpcomingClassesWidget = ({
                   >
                     <Users size={10} />
                     <span>{enrolled}/{max}</span>
-                    {isFull && <span className="text-[8px]">(Full)</span>}
-                    {!isFull && spotsLeft <= 2 && <span className="text-[8px]">({spotsLeft} left)</span>}
+                    {isFull && <span className="text-[8px]">({t("myArea.upcomingClassesWidget.full")})</span>}
+                    {!isFull && spotsLeft <= 2 && <span className="text-[8px]">({t("myArea.upcomingClassesWidget.spotsLeft", { count: spotsLeft })})</span>}
                   </div>
                 </button>
               );

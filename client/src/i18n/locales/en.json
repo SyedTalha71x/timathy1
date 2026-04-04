@@ -65,7 +65,8 @@
       "errorMinLength": "Folder name must be at least 2 characters",
       "save": "Save",
       "create": "Create"
-    }
+    },
+    "unknown": "Unknown"
   },
   "languages": {
     "en": "English",
@@ -4057,6 +4058,434 @@
       "closeTitle": "Close Contract Builder?",
       "closeMessage": "Do you want to save your changes before closing?",
       "discardTitle": "Discard Changes?"
+    }
+  },
+  "myArea": {
+    "title": "My Area",
+    "editMode": {
+      "edit": "Edit Dashboard",
+      "done": "Done",
+      "addWidget": "Add Widget"
+    },
+    "widgetSelection": {
+      "titleDashboard": "Add Widget to My Area",
+      "titleSidebar": "Add Widget to Sidebar",
+      "alreadyInDashboard": "Already added to My Area",
+      "alreadyInSidebar": "Already added to Sidebar",
+      "widgets": {
+        "chart": {
+          "name": "Analytics Chart",
+          "description": "View member statistics and analytics"
+        },
+        "expiringContracts": {
+          "name": "Expiring Contracts",
+          "description": "Track contracts nearing expiration"
+        },
+        "appointments": {
+          "name": "Upcoming Appointments",
+          "description": "View upcoming appointments"
+        },
+        "upcomingClasses": {
+          "name": "Upcoming Classes",
+          "description": "View scheduled classes"
+        },
+        "staffCheckIn": {
+          "name": "Staff Check-In",
+          "description": "Staff clock in/out"
+        },
+        "websiteLink": {
+          "name": "Website Links",
+          "description": "Quick access to important websites"
+        },
+        "todo": {
+          "name": "To-Do",
+          "description": "Task management and to-do entries"
+        },
+        "birthday": {
+          "name": "Upcoming Birthdays",
+          "description": "Upcoming member birthdays"
+        },
+        "bulletinBoard": {
+          "name": "Bulletin Board",
+          "description": "View posts for staff and members"
+        },
+        "notes": {
+          "name": "Notes",
+          "description": "Create and manage personal notes"
+        },
+        "shiftSchedule": {
+          "name": "Shift Schedule",
+          "description": "View and manage staff shift schedules"
+        }
+      }
+    },
+    "viewManagement": {
+      "titleDashboard": "Manage My Area Views",
+      "titleSidebar": "Manage Sidebar Views",
+      "saveCurrentView": "Save Current View",
+      "editView": "Edit View",
+      "saveCurrentLayout": "Save Current Layout",
+      "enterViewName": "Enter view name...",
+      "update": "Update",
+      "savedViews": "Saved Views",
+      "noSavedViews": "No saved views yet",
+      "saveLayoutHint": "Save your current layout to get started",
+      "widgetsCount": "{{count}} Widgets • Created on {{date}}",
+      "createdBy": "Created by {{name}}",
+      "load": "Load",
+      "pinned": "Pinned",
+      "default": "Default",
+      "active": "Active",
+      "editViewTitle": "Edit View",
+      "pinAsStandard": "Pin as Default View",
+      "unpinView": "Unpin View",
+      "deleteView": "Delete View",
+      "toast": {
+        "viewSaved": "View \"{{name}}\" saved successfully",
+        "viewLoaded": "View loaded: {{name}}",
+        "viewPinned": "View pinned",
+        "viewUnpinned": "View unpinned",
+        "viewDeleted": "View deleted",
+        "viewUpdated": "View updated successfully",
+        "cannotDeleteDefault": "The default view cannot be deleted",
+        "enterViewName": "Please enter a view name"
+      },
+      "defaultView": "Default View",
+      "unknown": "Unknown",
+      "deleteViewDescription": "This view will be permanently deleted. This action cannot be undone."
+    },
+    "analyticsWidget": {
+      "title": "Analytics",
+      "tabs": {
+        "appointments": "Appointments",
+        "appointmentsShort": "Appts",
+        "members": "Members",
+        "leads": "Leads",
+        "finances": "Finances",
+        "financesShort": "Finance"
+      },
+      "options": {
+        "overview": "Overview",
+        "monthlyBreakdown": "Monthly Breakdown",
+        "popularTimes": "Popular Times",
+        "memberActivity": "Member Activity",
+        "membersByType": "Members by Type",
+        "newVsConverted": "New & Converted Leads",
+        "conversionRate": "Conversion Rate",
+        "topServices": "Top Services by Revenue",
+        "mostSold": "Most Sold"
+      },
+      "types": {
+        "stats": "Statistics",
+        "chart": "Chart"
+      },
+      "stats": {
+        "totalBookings": "Total Bookings",
+        "checkIns": "Check-ins",
+        "cancellations": "Cancellations",
+        "lateCancellations": "Late Cancellations",
+        "noShows": "No Shows",
+        "totalMembers": "Total Members",
+        "totalLeads": "Total Leads",
+        "converted": "Converted",
+        "avgRate": "Avg. Rate",
+        "thisMonth": "This Month",
+        "totalRevenue": "Total Revenue",
+        "avgPerMember": "Avg./Member",
+        "outstanding": "Outstanding"
+      },
+      "memberTypes": {
+        "full": "Full Member",
+        "full member": "Full Member",
+        "full members": "Full Members",
+        "temporary": "Temporary",
+        "temporary member": "Temporary Member",
+        "temporary members": "Temporary Members",
+        "active": "Active",
+        "active member": "Active Member",
+        "active members": "Active Members",
+        "inactive": "Inactive",
+        "inactive member": "Inactive Member",
+        "inactive members": "Inactive Members",
+        "paused": "Paused",
+        "paused member": "Paused Member",
+        "paused members": "Paused Members",
+        "premium": "Premium",
+        "trial": "Trial",
+        "student": "Student",
+        "senior": "Senior",
+        "family": "Family",
+        "new": "New",
+        "expired": "Expired",
+        "cancelled": "Cancelled",
+        "frozen": "Frozen"
+      },
+      "chartLabels": {
+        "months": {
+          "Jan": "Jan",
+          "Feb": "Feb",
+          "Mar": "Mar",
+          "Apr": "Apr",
+          "May": "May",
+          "Jun": "Jun",
+          "Jul": "Jul",
+          "Aug": "Aug",
+          "Sep": "Sep",
+          "Oct": "Oct",
+          "Nov": "Nov",
+          "Dec": "Dec",
+          "January": "January",
+          "February": "February",
+          "March": "March",
+          "April": "April",
+          "June": "June",
+          "July": "July",
+          "August": "August",
+          "September": "September",
+          "October": "October",
+          "November": "November",
+          "December": "December"
+        },
+        "series": {
+          "Bookings": "Bookings",
+          "Check-ins": "Check-ins",
+          "Check-Ins": "Check-Ins",
+          "Cancellations": "Cancellations",
+          "Late Cancellations": "Late Cancellations",
+          "No Shows": "No Shows",
+          "New Leads": "New Leads",
+          "Converted": "Converted",
+          "Conversion Rate": "Conversion Rate",
+          "New Members": "New Members",
+          "Cancelled Members": "Cancelled Members",
+          "Active Members": "Active Members",
+          "Inactive Members": "Inactive Members",
+          "Revenue": "Revenue",
+          "Count": "Count",
+          "Total": "Total",
+          "Appointments": "Appointments",
+          "Members": "Members",
+          "Sales": "Sales"
+        },
+        "days": {
+          "Mon": "Mon",
+          "Tue": "Tue",
+          "Wed": "Wed",
+          "Thu": "Thu",
+          "Fri": "Fri",
+          "Sat": "Sat",
+          "Sun": "Sun",
+          "Monday": "Monday",
+          "Tuesday": "Tuesday",
+          "Wednesday": "Wednesday",
+          "Thursday": "Thursday",
+          "Friday": "Friday",
+          "Saturday": "Saturday",
+          "Sunday": "Sunday"
+        },
+        "timeSlots": {
+          "Morning": "Morning",
+          "Afternoon": "Afternoon",
+          "Evening": "Evening",
+          "Night": "Night"
+        }
+      }
+    },
+    "expiringContractsWidget": {
+      "title": "Expiring Contracts",
+      "daysLeft": "{{count}} days remaining",
+      "oneDayLeft": "1 day remaining",
+      "memberType": "{{type}} Member",
+      "expiringSoon": "Expiring Soon",
+      "contactMember": "Contact Member",
+      "noExpiring": "No expiring contracts",
+      "viewAll": "View All Contracts →",
+      "contractRenewal": "Contract Renewal",
+      "toast": {
+        "emailSent": "Email sent successfully!",
+        "draftSaved": "Draft saved!"
+      }
+    },
+    "appointmentsWidget": {
+      "title": "Upcoming Appointments",
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "expand": "Expand",
+      "collapse": "Collapse",
+      "checkIn": "Check-In",
+      "checkedIn": "Checked In",
+      "trialTraining": "Trial Training",
+      "cancelled": "Cancelled",
+      "noAppointments": "No upcoming appointments",
+      "trainingPlans": "Training Plans"
+    },
+    "staffCheckInWidget": {
+      "title": "Staff Check-In",
+      "additionalTitle": "Additional Staff Check-In",
+      "selectStaff": "Select Staff",
+      "checkedIn": "Checked In",
+      "checkedOut": "Checked Out",
+      "passwordFor": "Password for {{name}}",
+      "enterPassword": "Enter password",
+      "enterYourPassword": "Enter your password",
+      "enterPasswordTitle": "Enter Password",
+      "password": "Password",
+      "checkInBtn": "Check-In",
+      "checkOutBtn": "Check-Out",
+      "checkInAdditional": "Check in additional staff",
+      "status": "Status: {{status}}",
+      "canCheckOutAfter": "Can check out after: {{time}}",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "toast": {
+        "checkedIn": "Successfully checked in",
+        "checkedOut": "Successfully checked out",
+        "canCheckOut": "You can now check out",
+        "cannotCheckOut": "Cannot check out yet. Please wait for the 2-minute timeout.",
+        "incorrectPassword": "Incorrect password",
+        "staffCheckedIn": "{{name}} successfully checked in",
+        "staffCheckedOut": "{{name}} successfully checked out"
+      }
+    },
+    "websiteLinksWidget": {
+      "title": "Website Links",
+      "addLink": "Add Website Link",
+      "editLink": "Edit Website Link",
+      "fieldTitle": "Title",
+      "fieldUrl": "URL",
+      "enterTitle": "Enter title",
+      "urlPlaceholder": "https://example.com",
+      "openLink": "Open Link",
+      "addLinkBtn": "Add Link",
+      "noLinks": "No links yet",
+      "addLinkHint": "Click + to add a link",
+      "deleteLink": "Delete Link",
+      "deleteLinkConfirm": "Are you sure you want to delete this link? This action cannot be undone.",
+      "edit": "Edit",
+      "delete": "Delete",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "todoWidget": {
+      "title": "To-Do",
+      "status": {
+        "ongoing": "Open",
+        "completed": "Completed",
+        "canceled": "Canceled"
+      },
+      "sort": {
+        "sortBy": "Sort by",
+        "custom": "Custom",
+        "title": "Title",
+        "dueDate": "Due Date",
+        "recent": "Recent"
+      },
+      "edit": "Edit",
+      "delete": "Delete",
+      "cancel": "Cancel Task",
+      "restore": "Canceled — Click to Restore",
+      "sortTasks": "Sort Tasks",
+      "addTask": "Add Task",
+      "noTasks": "No {{status}} tasks",
+      "adjustFilter": "Try adjusting the filter",
+      "filteredBy": "Filtered by {{count}} staff member(s)",
+      "filteredBy_other": "Filtered by {{count}} staff members",
+      "deleteTask": "Delete Task",
+      "deleteTaskConfirm": "Are you sure you want to delete this task? This action cannot be undone.",
+      "viewAll": "View All Tasks →",
+      "filterByStaff": "Filter by Staff",
+      "allTasks": "All Tasks"
+    },
+    "birthdaysWidget": {
+      "title": "Upcoming Birthdays",
+      "today": "Today",
+      "inDays": "in {{count}} days",
+      "inOneDay": "in 1 day",
+      "noBirthdays": "No upcoming birthdays",
+      "viewAll": "View All Members →",
+      "sendMessage": "Send Birthday Message",
+      "happyBirthday": "Happy Birthday!",
+      "toast": {
+        "messageSent": "Birthday message sent successfully!",
+        "draftSaved": "Draft saved!"
+      },
+      "emailBody": "Happy Birthday {{name}}! 🎉 We wish you a wonderful day full of joy and celebration!"
+    },
+    "bulletinBoardWidget": {
+      "title": "Bulletin Board",
+      "tabs": {
+        "members": "Members",
+        "staff": "Staff"
+      },
+      "statusFilter": {
+        "all": "All Posts",
+        "active": "Active",
+        "inactive": "Inactive",
+        "scheduled": "Scheduled"
+      },
+      "sort": {
+        "sortBy": "Sort by",
+        "custom": "Custom",
+        "title": "Title",
+        "author": "Author",
+        "recent": "Recent"
+      },
+      "view": "View",
+      "edit": "Edit",
+      "delete": "Delete",
+      "addPost": "Create New Post",
+      "noPosts": "No {{tab}} posts",
+      "adjustFilter": "Try adjusting the filter",
+      "viewAll": "View All Posts →",
+      "scheduled": "Scheduled",
+      "showingFilter": "Showing {{filter}} posts",
+      "filterByStatus": "Filter by Status"
+    },
+    "notesWidget": {
+      "title": "Notes",
+      "tabs": {
+        "personal": "Personal",
+        "studio": "Studio"
+      },
+      "sort": {
+        "sortBy": "Sort by",
+        "title": "Title",
+        "recentlyUpdated": "Recently Updated",
+        "recentlyCreated": "Recently Created",
+        "custom": "Custom"
+      },
+      "untitled": "Untitled",
+      "edit": "Edit",
+      "delete": "Delete",
+      "addNote": "Create New Note",
+      "noNotes": "No {{tab}} notes",
+      "addNoteHint": "Click + to create a note",
+      "viewAll": "View All Notes →",
+      "sortNotes": "Sort Notes"
+    },
+    "shiftScheduleWidget": {
+      "title": "Staff Shifts",
+      "today": "Today, {{date}}",
+      "tomorrow": "Tomorrow, {{date}}",
+      "yesterday": "Yesterday, {{date}}",
+      "allStaff": "All Staff",
+      "allCount": "All ({{count}})",
+      "staff": "Staff",
+      "staffScheduled": "{{count}} staff scheduled",
+      "noShifts": "No shifts scheduled",
+      "noShiftsToday": "No shifts available for today",
+      "weekend": "Weekend",
+      "checkOtherDate": "Check another date",
+      "viewAll": "View Full Shift Schedule →",
+      "position": {
+        "staff": "Staff"
+      }
+    },
+    "upcomingClassesWidget": {
+      "title": "Upcoming Classes",
+      "noClasses": "No upcoming classes",
+      "full": "Full",
+      "spotsLeft": "({{count}} left)"
     }
   }
 }

@@ -56,6 +56,7 @@ import { useDispatch, useSelector } from "react-redux"
 import { fetchAllMember } from "../../features/member/memberSlice"
 import { fetchAllAppointments } from "../../features/appointments/AppointmentSlice"
 import { fetchAllLeadsThunk } from "../../features/lead/leadSlice"
+import { useTranslation } from "react-i18next"
 
 // ============================================
 // Constants
@@ -112,6 +113,7 @@ const AVAILABLE_TRAINING_PLANS = [
 // ============================================
 export default function MyArea() {
   const navigate = useNavigate()
+  const { t, i18n } = useTranslation()
 
 
   //======================================
@@ -136,7 +138,7 @@ export default function MyArea() {
   // Default view that cannot be deleted
   const DEFAULT_DASHBOARD_VIEW = {
     id: "default_dashboard_view",
-    name: "Default",
+    name: t("myArea.viewManagement.default"),
     widgets: [...DEFAULT_WIDGETS],
     widgetSettings: {},
     isStandard: true,
@@ -234,6 +236,19 @@ export default function MyArea() {
       localStorage.setItem("dashboardViews", JSON.stringify(savedViews))
     }
   }, [savedViews])
+
+  // Keep default view name in sync with current language
+  useEffect(() => {
+    const translatedName = t("myArea.viewManagement.default")
+    setSavedViews((prev) =>
+      prev.map((view) =>
+        view.isDefault ? { ...view, name: translatedName } : view
+      )
+    )
+    setCurrentView((prev) =>
+      prev?.isDefault ? { ...prev, name: translatedName } : prev
+    )
+  }, [i18n.language, t])
 
 
   // ==================================
@@ -589,7 +604,7 @@ export default function MyArea() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="flex items-center gap-2 justify-between">
-                <h1 className="text-xl font-bold">My Area</h1>
+                <h1 className="text-xl font-bold">{t("myArea.title")}</h1>
               </div>
 
               {/* Action Buttons */}
@@ -601,7 +616,7 @@ export default function MyArea() {
                   >
                     <Eye size={16} />
                     <span className="md:inline hidden">
-                      {currentView ? currentView.name : "Standard View"}
+                      {currentView ? currentView.name : t("myArea.viewManagement.defaultView")}
                     </span>
                   </button>
                 )}
@@ -612,7 +627,7 @@ export default function MyArea() {
                     className="py-2 px-4 bg-surface-dark md:w-auto w-full justify-center text-content-primary rounded-xl text-sm flex items-center gap-1"
                   >
                     <Plus size={20} />
-                    <span className="hidden sm:inline">Add Widget</span>
+                    <span className="hidden sm:inline">{t("myArea.editMode.addWidget")}</span>
                   </button>
                 )}
 
@@ -623,7 +638,7 @@ export default function MyArea() {
                 >
                   {isEditing ? <Check size={18} /> : <Edit size={18} />}
                   <span className="hidden sm:inline">
-                    {isEditing ? "Done" : "Edit Dashboard"}
+                    {isEditing ? t("myArea.editMode.done") : t("myArea.editMode.edit")}
                   </span>
                 </button>
               </div>

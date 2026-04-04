@@ -11,6 +11,7 @@ import DeleteBulletinModal from "../../shared/bulletin-board/DeleteBulletinBoard
 import ViewBulletinModal from "../../shared/bulletin-board/ViewBulletinBoard"
 import TagManagerModal from "../../shared/TagManagerModal"
 import { defaultTags, defaultPosts } from "../../../utils/studio-states/bulletin-board-states"
+import { useTranslation } from "react-i18next"
 
 // Helper function to strip HTML tags for preview
 const stripHtmlTags = (html) => {
@@ -28,10 +29,10 @@ const stripHtmlTags = (html) => {
 }
 
 // Format schedule date for display
-const formatScheduleDate = (dateStr) => {
+const formatScheduleDate = (dateStr, locale) => {
   if (!dateStr) return ''
   const date = new Date(dateStr)
-  return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  return date.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
 // Format schedule time for display
@@ -47,14 +48,15 @@ const formatScheduleTime = (time) => {
 // Visibility Configuration
 const VISIBILITY_CONFIG = {
   members: {
-    label: "Members",
+    label: "members",
   },
   staff: {
-    label: "Staff",
+    label: "staff",
   },
 }
 
 export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = true, maxItems = null }) => {
+  const { t, i18n } = useTranslation()
   const [bulletinPosts, setBulletinPosts] = useState(defaultPosts)
   const [tags, setTags] = useState(defaultTags)
 
@@ -341,7 +343,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                     ? "bg-secondary text-white"
                     : "bg-surface-base text-content-muted hover:text-content-primary"
                 } ${isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""}`}
-                title="Filter by status"
+                title={t("myArea.bulletinBoardWidget.filterByStatus")}
               >
                 <Filter size={14} />
               </button>
@@ -349,7 +351,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
               {isStatusFilterOpen && (
                 <div className="absolute right-0 top-8 bg-surface-dark border border-border rounded-xl shadow-lg z-50 min-w-[140px] py-1">
                   <div className="px-3 py-2 border-b border-border">
-                    <p className="text-xs text-content-faint font-medium">Filter by Status</p>
+                    <p className="text-xs text-content-faint font-medium">{t("myArea.bulletinBoardWidget.filterByStatus")}</p>
                   </div>
                   <button
                     onClick={() => {
@@ -362,7 +364,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                         : "text-content-secondary hover:bg-surface-dark"
                     }`}
                   >
-                    All Posts
+                    {t("myArea.bulletinBoardWidget.statusFilter.all")}
                   </button>
                   <button
                     onClick={() => {
@@ -375,7 +377,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                         : "text-content-secondary hover:bg-surface-dark"
                     }`}
                   >
-                    Active
+                    {t("myArea.bulletinBoardWidget.statusFilter.active")}
                   </button>
                   <button
                     onClick={() => {
@@ -388,7 +390,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                         : "text-content-secondary hover:bg-surface-dark"
                     }`}
                   >
-                    Scheduled
+                    {t("myArea.bulletinBoardWidget.statusFilter.scheduled")}
                   </button>
                   <button
                     onClick={() => {
@@ -401,7 +403,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                         : "text-content-secondary hover:bg-surface-dark"
                     }`}
                   >
-                    Inactive
+                    {t("myArea.bulletinBoardWidget.statusFilter.inactive")}
                   </button>
                 </div>
               )}
@@ -415,7 +417,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                 className={`p-1.5 bg-surface-base rounded-lg text-content-muted hover:text-content-primary transition-colors ${
                   isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""
                 }`}
-                title="Sort posts"
+                title={t("myArea.bulletinBoardWidget.sort.sortBy")}
               >
                 {sortOrder === "asc" ? (
                   <ArrowUp size={14} />
@@ -427,13 +429,13 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
               {isSortDropdownOpen && (
                 <div className="absolute right-0 top-8 bg-surface-dark border border-border rounded-xl shadow-lg z-50 min-w-[160px] py-1">
                   <div className="px-3 py-2 border-b border-border">
-                    <p className="text-xs text-content-faint font-medium">Sort by</p>
+                    <p className="text-xs text-content-faint font-medium">{t("myArea.bulletinBoardWidget.sort.sortBy")}</p>
                   </div>
                   {[
-                    { value: "custom", label: "Custom" },
-                    { value: "title", label: "Title" },
-                    { value: "author", label: "Author" },
-                    { value: "recentlyAdded", label: "Recent" },
+                    { value: "custom", label: t("myArea.bulletinBoardWidget.sort.custom") },
+                    { value: "title", label: t("myArea.bulletinBoardWidget.sort.title") },
+                    { value: "author", label: t("myArea.bulletinBoardWidget.sort.author") },
+                    { value: "recentlyAdded", label: t("myArea.bulletinBoardWidget.sort.recent") },
                   ].map((option) => (
                     <div
                       key={option.value}
@@ -496,7 +498,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                     : "text-content-muted hover:text-content-primary"
                 }`}
               >
-                <span>{config.label}</span>
+                <span>{t(`myArea.bulletinBoardWidget.tabs.${config.label}`)}</span>
                 <span
                   className={`text-[9px] px-1 py-0.5 rounded-full font-medium ${
                     activeTab === visibility ? "bg-primary/15 text-primary" : "bg-surface-button text-content-faint"
@@ -520,7 +522,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                     ? "bg-secondary text-white"
                     : "bg-surface-base text-content-muted hover:text-content-primary"
                 } ${isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""}`}
-                title="Filter by status"
+                title={t("myArea.bulletinBoardWidget.filterByStatus")}
               >
                 <Filter size={12} />
               </button>
@@ -528,7 +530,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
               {isStatusFilterOpen && (
                 <div className="absolute right-0 top-7 bg-surface-dark border border-border rounded-xl shadow-lg z-50 min-w-[140px] py-1">
                   <div className="px-3 py-2 border-b border-border">
-                    <p className="text-xs text-content-faint font-medium">Filter by Status</p>
+                    <p className="text-xs text-content-faint font-medium">{t("myArea.bulletinBoardWidget.filterByStatus")}</p>
                   </div>
                   <button
                     onClick={() => {
@@ -541,7 +543,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                         : "text-content-secondary hover:bg-surface-dark"
                     }`}
                   >
-                    All Posts
+                    {t("myArea.bulletinBoardWidget.statusFilter.all")}
                   </button>
                   <button
                     onClick={() => {
@@ -554,7 +556,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                         : "text-content-secondary hover:bg-surface-dark"
                     }`}
                   >
-                    Active
+                    {t("myArea.bulletinBoardWidget.statusFilter.active")}
                   </button>
                   <button
                     onClick={() => {
@@ -567,7 +569,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                         : "text-content-secondary hover:bg-surface-dark"
                     }`}
                   >
-                    Scheduled
+                    {t("myArea.bulletinBoardWidget.statusFilter.scheduled")}
                   </button>
                   <button
                     onClick={() => {
@@ -580,7 +582,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                         : "text-content-secondary hover:bg-surface-dark"
                     }`}
                   >
-                    Inactive
+                    {t("myArea.bulletinBoardWidget.statusFilter.inactive")}
                   </button>
                 </div>
               )}
@@ -594,7 +596,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                 className={`p-1.5 bg-surface-base rounded-md text-content-muted hover:text-content-primary transition-colors ${
                   isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""
                 }`}
-                title="Sort posts"
+                title={t("myArea.bulletinBoardWidget.sort.sortBy")}
               >
                 {sortOrder === "asc" ? (
                   <ArrowUp size={12} />
@@ -606,13 +608,13 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
               {isSortDropdownOpen && (
                 <div className="absolute right-0 top-7 bg-surface-dark border border-border rounded-xl shadow-lg z-50 min-w-[160px] py-1">
                   <div className="px-3 py-2 border-b border-border">
-                    <p className="text-xs text-content-faint font-medium">Sort by</p>
+                    <p className="text-xs text-content-faint font-medium">{t("myArea.bulletinBoardWidget.sort.sortBy")}</p>
                   </div>
                   {[
-                    { value: "custom", label: "Custom" },
-                    { value: "title", label: "Title" },
-                    { value: "author", label: "Author" },
-                    { value: "recentlyAdded", label: "Recent" },
+                    { value: "custom", label: t("myArea.bulletinBoardWidget.sort.custom") },
+                    { value: "title", label: t("myArea.bulletinBoardWidget.sort.title") },
+                    { value: "author", label: t("myArea.bulletinBoardWidget.sort.author") },
+                    { value: "recentlyAdded", label: t("myArea.bulletinBoardWidget.sort.recent") },
                   ].map((option) => (
                     <div
                       key={option.value}
@@ -673,7 +675,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                   : "text-content-muted hover:text-content-primary"
               }`}
             >
-              <span>{config.label}</span>
+              <span>{t(`myArea.bulletinBoardWidget.tabs.${config.label}`)}</span>
               <span
                 className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
                   activeTab === visibility ? "bg-primary/15 text-primary" : "bg-surface-button text-content-faint"
@@ -690,7 +692,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
       {statusFilter !== "all" && (
         <div className="flex items-center gap-2 text-xs text-secondary flex-shrink-0">
           <Filter size={12} />
-          <span>Showing {statusFilter} posts</span>
+          <span>{t("myArea.bulletinBoardWidget.showingFilter", { filter: t(`myArea.bulletinBoardWidget.statusFilter.${statusFilter}`) })}</span>
           <button
             onClick={() => setStatusFilter("all")}
             className="ml-auto text-content-muted hover:text-content-primary"
@@ -767,7 +769,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                     >
                       <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                       <span className="text-[10px] text-primary font-medium">
-                        Scheduled
+                        {t("myArea.bulletinBoardWidget.statusFilter.scheduled")}
                       </span>
                       
                       {/* Schedule Popup */}
@@ -777,7 +779,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                             {post.schedule.startDate && (
                               <div className="flex items-center gap-1.5 text-primary">
                                 <Calendar size={8} />
-                                <span>{formatScheduleDate(post.schedule.startDate)}</span>
+                                <span>{formatScheduleDate(post.schedule.startDate, i18n.language)}</span>
                               </div>
                             )}
                           </div>
@@ -819,7 +821,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                       className="w-full px-3 py-2 text-left text-xs hover:bg-surface-hover flex items-center gap-2 text-content-primary transition-colors"
                     >
                       <Eye size={12} />
-                      View
+                      {t("myArea.bulletinBoardWidget.view")}
                     </button>
                     {post.createdBy === "current-user" && (
                       <>
@@ -828,14 +830,14 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
                           className="w-full px-3 py-2 text-left text-xs hover:bg-surface-hover flex items-center gap-2 text-content-primary transition-colors"
                         >
                           <Edit size={12} />
-                          Edit
+                          {t("common.edit")}
                         </button>
                         <button
                           onClick={() => handleDeleteClick(post)}
                           className="w-full px-3 py-2 text-left text-xs hover:bg-surface-hover text-accent-red flex items-center gap-2 transition-colors"
                         >
                           <Trash2 size={12} />
-                          Delete
+                          {t("common.delete")}
                         </button>
                       </>
                     )}
@@ -852,9 +854,9 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
             <div className="w-12 h-12 rounded-full bg-surface-dark flex items-center justify-center mb-3">
               <Calendar size={20} className="text-content-faint" />
             </div>
-            <p className="text-sm">No {activeTab} posts</p>
+            <p className="text-sm">{t("myArea.bulletinBoardWidget.noPosts", { tab: t(`myArea.bulletinBoardWidget.tabs.${activeTab}`) })}</p>
             {statusFilter !== "all" && (
-              <p className="text-xs mt-1">Try adjusting your filter</p>
+              <p className="text-xs mt-1">{t("myArea.bulletinBoardWidget.adjustFilter")}</p>
             )}
           </div>
         )}
@@ -863,7 +865,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
       {/* Footer Link */}
       <div className="flex justify-center pt-2 border-t border-border flex-shrink-0">
         <Link to="/dashboard/bulletin-board" className="text-xs text-content-muted hover:text-content-primary transition-colors">
-          View all posts →
+          {t("myArea.bulletinBoardWidget.viewAll")}
         </Link>
       </div>
 

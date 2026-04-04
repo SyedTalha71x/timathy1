@@ -65,7 +65,8 @@
       "errorMinLength": "Ordnername muss mindestens 2 Zeichen lang sein",
       "save": "Speichern",
       "create": "Erstellen"
-    }
+    },
+    "unknown": "Unbekannt"
   },
   "languages": {
     "en": "Englisch",
@@ -4056,6 +4057,434 @@
       "closeTitle": "Vertragsbaukasten schließen?",
       "closeMessage": "Möchtest du deine Änderungen vor dem Schließen speichern?",
       "discardTitle": "Änderungen verwerfen?"
+    }
+  },
+  "myArea": {
+    "title": "Mein Bereich",
+    "editMode": {
+      "edit": "Dashboard bearbeiten",
+      "done": "Fertig",
+      "addWidget": "Widget hinzufügen"
+    },
+    "widgetSelection": {
+      "titleDashboard": "Widget zu Mein Bereich hinzufügen",
+      "titleSidebar": "Widget zur Seitenleiste hinzufügen",
+      "alreadyInDashboard": "Bereits in Mein Bereich hinzugefügt",
+      "alreadyInSidebar": "Bereits zur Seitenleiste hinzugefügt",
+      "widgets": {
+        "chart": {
+          "name": "Analytik-Diagramm",
+          "description": "Mitgliederstatistiken und Analysen anzeigen"
+        },
+        "expiringContracts": {
+          "name": "Auslaufende Verträge",
+          "description": "Verträge kurz vor Ablauf verfolgen"
+        },
+        "appointments": {
+          "name": "Anstehende Termine",
+          "description": "Bevorstehende Termine anzeigen"
+        },
+        "upcomingClasses": {
+          "name": "Anstehende Kurse",
+          "description": "Geplante Kurse anzeigen"
+        },
+        "staffCheckIn": {
+          "name": "Mitarbeiter Check-In",
+          "description": "Mitarbeiter Ein-/Ausstempeln"
+        },
+        "websiteLink": {
+          "name": "Website-Links",
+          "description": "Schnellzugriff auf wichtige Webseiten"
+        },
+        "todo": {
+          "name": "To-Do",
+          "description": "Aufgabenverwaltung und To-Do-Einträge"
+        },
+        "birthday": {
+          "name": "Anstehende Geburtstage",
+          "description": "Bevorstehende Mitglieder-Geburtstage"
+        },
+        "bulletinBoard": {
+          "name": "Schwarzes Brett",
+          "description": "Beiträge für Mitarbeiter und Mitglieder anzeigen"
+        },
+        "notes": {
+          "name": "Notizen",
+          "description": "Persönliche Notizen erstellen und verwalten"
+        },
+        "shiftSchedule": {
+          "name": "Schichtplan",
+          "description": "Mitarbeiter-Schichtpläne anzeigen und verwalten"
+        }
+      }
+    },
+    "viewManagement": {
+      "titleDashboard": "Mein Bereich Ansichten verwalten",
+      "titleSidebar": "Seitenleiste Ansichten verwalten",
+      "saveCurrentView": "Aktuelle Ansicht speichern",
+      "editView": "Ansicht bearbeiten",
+      "saveCurrentLayout": "Aktuelles Layout speichern",
+      "enterViewName": "Ansichtsname eingeben...",
+      "update": "Aktualisieren",
+      "savedViews": "Gespeicherte Ansichten",
+      "noSavedViews": "Noch keine gespeicherten Ansichten",
+      "saveLayoutHint": "Speichere dein aktuelles Layout um zu beginnen",
+      "widgetsCount": "{{count}} Widgets • Erstellt am {{date}}",
+      "createdBy": "Erstellt von {{name}}",
+      "load": "Laden",
+      "pinned": "Angeheftet",
+      "default": "Standard",
+      "active": "Aktiv",
+      "editViewTitle": "Ansicht bearbeiten",
+      "pinAsStandard": "Als Standardansicht anheften",
+      "unpinView": "Ansicht lösen",
+      "deleteView": "Ansicht löschen",
+      "toast": {
+        "viewSaved": "Ansicht \"{{name}}\" erfolgreich gespeichert",
+        "viewLoaded": "Ansicht geladen: {{name}}",
+        "viewPinned": "Ansicht angeheftet",
+        "viewUnpinned": "Ansicht gelöst",
+        "viewDeleted": "Ansicht gelöscht",
+        "viewUpdated": "Ansicht erfolgreich aktualisiert",
+        "cannotDeleteDefault": "Die Standardansicht kann nicht gelöscht werden",
+        "enterViewName": "Bitte gib einen Ansichtsnamen ein"
+      },
+      "defaultView": "Standardansicht",
+      "unknown": "Unbekannt",
+      "deleteViewDescription": "Diese Ansicht wird unwiderruflich gelöscht. Diese Aktion kann nicht rückgängig gemacht werden."
+    },
+    "analyticsWidget": {
+      "title": "Analytik",
+      "tabs": {
+        "appointments": "Termine",
+        "appointmentsShort": "Termine",
+        "members": "Mitglieder",
+        "leads": "Leads",
+        "finances": "Finanzen",
+        "financesShort": "Finanzen"
+      },
+      "options": {
+        "overview": "Übersicht",
+        "monthlyBreakdown": "Monatliche Aufschlüsselung",
+        "popularTimes": "Beliebte Zeiten",
+        "memberActivity": "Mitgliederaktivität",
+        "membersByType": "Mitglieder nach Typ",
+        "newVsConverted": "Neue & Konvertierte Leads",
+        "conversionRate": "Konversionsrate",
+        "topServices": "Top-Services nach Umsatz",
+        "mostSold": "Am häufigsten verkauft"
+      },
+      "types": {
+        "stats": "Statistiken",
+        "chart": "Diagramm"
+      },
+      "stats": {
+        "totalBookings": "Buchungen gesamt",
+        "checkIns": "Check-ins",
+        "cancellations": "Stornierungen",
+        "lateCancellations": "Späte Stornierungen",
+        "noShows": "Nicht erschienen",
+        "totalMembers": "Mitglieder gesamt",
+        "totalLeads": "Leads gesamt",
+        "converted": "Konvertiert",
+        "avgRate": "Durchschn. Rate",
+        "thisMonth": "Dieser Monat",
+        "totalRevenue": "Gesamtumsatz",
+        "avgPerMember": "Durchschn./Mitglied",
+        "outstanding": "Ausstehend"
+      },
+      "memberTypes": {
+        "full": "Vollmitglied",
+        "full member": "Vollmitglied",
+        "full members": "Vollmitglieder",
+        "temporary": "Temporär",
+        "temporary member": "Temporäres Mitglied",
+        "temporary members": "Temporäre Mitglieder",
+        "active": "Aktiv",
+        "active member": "Aktives Mitglied",
+        "active members": "Aktive Mitglieder",
+        "inactive": "Inaktiv",
+        "inactive member": "Inaktives Mitglied",
+        "inactive members": "Inaktive Mitglieder",
+        "paused": "Pausiert",
+        "paused member": "Pausiertes Mitglied",
+        "paused members": "Pausierte Mitglieder",
+        "premium": "Premium",
+        "trial": "Probe",
+        "student": "Student",
+        "senior": "Senior",
+        "family": "Familie",
+        "new": "Neu",
+        "expired": "Abgelaufen",
+        "cancelled": "Gekündigt",
+        "frozen": "Eingefroren"
+      },
+      "chartLabels": {
+        "months": {
+          "Jan": "Jan",
+          "Feb": "Feb",
+          "Mar": "Mär",
+          "Apr": "Apr",
+          "May": "Mai",
+          "Jun": "Jun",
+          "Jul": "Jul",
+          "Aug": "Aug",
+          "Sep": "Sep",
+          "Oct": "Okt",
+          "Nov": "Nov",
+          "Dec": "Dez",
+          "January": "Januar",
+          "February": "Februar",
+          "March": "März",
+          "April": "April",
+          "June": "Juni",
+          "July": "Juli",
+          "August": "August",
+          "September": "September",
+          "October": "Oktober",
+          "November": "November",
+          "December": "Dezember"
+        },
+        "series": {
+          "Bookings": "Buchungen",
+          "Check-ins": "Check-ins",
+          "Check-Ins": "Check-ins",
+          "Cancellations": "Stornierungen",
+          "Late Cancellations": "Späte Stornierungen",
+          "No Shows": "Nicht erschienen",
+          "New Leads": "Neue Leads",
+          "Converted": "Konvertiert",
+          "Conversion Rate": "Konversionsrate",
+          "New Members": "Neue Mitglieder",
+          "Cancelled Members": "Gekündigte Mitglieder",
+          "Active Members": "Aktive Mitglieder",
+          "Inactive Members": "Inaktive Mitglieder",
+          "Revenue": "Umsatz",
+          "Count": "Anzahl",
+          "Total": "Gesamt",
+          "Appointments": "Termine",
+          "Members": "Mitglieder",
+          "Sales": "Verkäufe"
+        },
+        "days": {
+          "Mon": "Mo",
+          "Tue": "Di",
+          "Wed": "Mi",
+          "Thu": "Do",
+          "Fri": "Fr",
+          "Sat": "Sa",
+          "Sun": "So",
+          "Monday": "Montag",
+          "Tuesday": "Dienstag",
+          "Wednesday": "Mittwoch",
+          "Thursday": "Donnerstag",
+          "Friday": "Freitag",
+          "Saturday": "Samstag",
+          "Sunday": "Sonntag"
+        },
+        "timeSlots": {
+          "Morning": "Morgens",
+          "Afternoon": "Nachmittags",
+          "Evening": "Abends",
+          "Night": "Nachts"
+        }
+      }
+    },
+    "expiringContractsWidget": {
+      "title": "Auslaufende Verträge",
+      "daysLeft": "{{count}} Tage verbleibend",
+      "oneDayLeft": "1 Tag verbleibend",
+      "memberType": "{{type}} Mitglied",
+      "expiringSoon": "Läuft bald ab",
+      "contactMember": "Mitglied kontaktieren",
+      "noExpiring": "Keine auslaufenden Verträge",
+      "viewAll": "Alle Verträge anzeigen →",
+      "contractRenewal": "Vertragsverlängerung",
+      "toast": {
+        "emailSent": "E-Mail erfolgreich gesendet!",
+        "draftSaved": "Entwurf gespeichert!"
+      }
+    },
+    "appointmentsWidget": {
+      "title": "Anstehende Termine",
+      "today": "Heute",
+      "tomorrow": "Morgen",
+      "expand": "Ausklappen",
+      "collapse": "Einklappen",
+      "checkIn": "Check-In",
+      "checkedIn": "Eingecheckt",
+      "trialTraining": "Probetraining",
+      "cancelled": "Abgesagt",
+      "noAppointments": "Keine anstehenden Termine",
+      "trainingPlans": "Trainingspläne"
+    },
+    "staffCheckInWidget": {
+      "title": "Mitarbeiter Check-In",
+      "additionalTitle": "Zusätzlicher Mitarbeiter Check-In",
+      "selectStaff": "Mitarbeiter auswählen",
+      "checkedIn": "Eingecheckt",
+      "checkedOut": "Ausgecheckt",
+      "passwordFor": "Passwort für {{name}}",
+      "enterPassword": "Passwort eingeben",
+      "enterYourPassword": "Gib dein Passwort ein",
+      "enterPasswordTitle": "Passwort eingeben",
+      "password": "Passwort",
+      "checkInBtn": "Check-In",
+      "checkOutBtn": "Check-Out",
+      "checkInAdditional": "Weiteren Mitarbeiter einchecken",
+      "status": "Status: {{status}}",
+      "canCheckOutAfter": "Auschecken möglich nach: {{time}}",
+      "confirm": "Bestätigen",
+      "cancel": "Abbrechen",
+      "toast": {
+        "checkedIn": "Erfolgreich eingecheckt",
+        "checkedOut": "Erfolgreich ausgecheckt",
+        "canCheckOut": "Du kannst jetzt auschecken",
+        "cannotCheckOut": "Auschecken noch nicht möglich. Bitte warte auf den 2-Minuten-Timeout.",
+        "incorrectPassword": "Falsches Passwort",
+        "staffCheckedIn": "{{name}} erfolgreich eingecheckt",
+        "staffCheckedOut": "{{name}} erfolgreich ausgecheckt"
+      }
+    },
+    "websiteLinksWidget": {
+      "title": "Website-Links",
+      "addLink": "Website-Link hinzufügen",
+      "editLink": "Website-Link bearbeiten",
+      "fieldTitle": "Titel",
+      "fieldUrl": "URL",
+      "enterTitle": "Titel eingeben",
+      "urlPlaceholder": "https://beispiel.de",
+      "openLink": "Link öffnen",
+      "addLinkBtn": "Link hinzufügen",
+      "noLinks": "Noch keine Links",
+      "addLinkHint": "Klicke auf + um einen Link hinzuzufügen",
+      "deleteLink": "Link löschen",
+      "deleteLinkConfirm": "Möchtest du diesen Link wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "save": "Speichern",
+      "cancel": "Abbrechen"
+    },
+    "todoWidget": {
+      "title": "To-Do",
+      "status": {
+        "ongoing": "Offen",
+        "completed": "Erledigt",
+        "canceled": "Abgebrochen"
+      },
+      "sort": {
+        "sortBy": "Sortieren nach",
+        "custom": "Benutzerdefiniert",
+        "title": "Titel",
+        "dueDate": "Fälligkeitsdatum",
+        "recent": "Neueste"
+      },
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "cancel": "Aufgabe abbrechen",
+      "restore": "Abgebrochen — Klicken zum Wiederherstellen",
+      "sortTasks": "Aufgaben sortieren",
+      "addTask": "Aufgabe hinzufügen",
+      "noTasks": "Keine {{status}} Aufgaben",
+      "adjustFilter": "Versuche den Filter anzupassen",
+      "filteredBy": "Gefiltert nach {{count}} Mitarbeiter(n)",
+      "filteredBy_other": "Gefiltert nach {{count}} Mitarbeitern",
+      "deleteTask": "Aufgabe löschen",
+      "deleteTaskConfirm": "Möchtest du diese Aufgabe wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+      "viewAll": "Alle Aufgaben anzeigen →",
+      "filterByStaff": "Nach Mitarbeiter filtern",
+      "allTasks": "Alle Aufgaben"
+    },
+    "birthdaysWidget": {
+      "title": "Anstehende Geburtstage",
+      "today": "Heute",
+      "inDays": "in {{count}} Tagen",
+      "inOneDay": "in 1 Tag",
+      "noBirthdays": "Keine anstehenden Geburtstage",
+      "viewAll": "Alle Mitglieder anzeigen →",
+      "sendMessage": "Geburtstagsnachricht senden",
+      "happyBirthday": "Alles Gute zum Geburtstag!",
+      "toast": {
+        "messageSent": "Geburtstagsnachricht erfolgreich gesendet!",
+        "draftSaved": "Entwurf gespeichert!"
+      },
+      "emailBody": "Alles Gute zum Geburtstag {{name}}! 🎉 Wir wünschen dir einen wunderbaren Tag voller Freude und Feierlichkeiten!"
+    },
+    "bulletinBoardWidget": {
+      "title": "Schwarzes Brett",
+      "tabs": {
+        "members": "Mitglieder",
+        "staff": "Mitarbeiter"
+      },
+      "statusFilter": {
+        "all": "Alle Beiträge",
+        "active": "Aktiv",
+        "inactive": "Inaktiv",
+        "scheduled": "Geplant"
+      },
+      "sort": {
+        "sortBy": "Sortieren nach",
+        "custom": "Benutzerdefiniert",
+        "title": "Titel",
+        "author": "Autor",
+        "recent": "Neueste"
+      },
+      "view": "Ansehen",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "addPost": "Neuen Beitrag erstellen",
+      "noPosts": "Keine {{tab}} Beiträge",
+      "adjustFilter": "Versuche den Filter anzupassen",
+      "viewAll": "Alle Beiträge anzeigen →",
+      "scheduled": "Geplant",
+      "showingFilter": "{{filter}} Beiträge anzeigen",
+      "filterByStatus": "Nach Status filtern"
+    },
+    "notesWidget": {
+      "title": "Notizen",
+      "tabs": {
+        "personal": "Persönlich",
+        "studio": "Studio"
+      },
+      "sort": {
+        "sortBy": "Sortieren nach",
+        "title": "Titel",
+        "recentlyUpdated": "Zuletzt aktualisiert",
+        "recentlyCreated": "Zuletzt erstellt",
+        "custom": "Benutzerdefiniert"
+      },
+      "untitled": "Ohne Titel",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "addNote": "Neue Notiz erstellen",
+      "noNotes": "Keine {{tab}} Notizen",
+      "addNoteHint": "Klicke auf + um eine Notiz zu erstellen",
+      "viewAll": "Alle Notizen anzeigen →",
+      "sortNotes": "Notizen sortieren"
+    },
+    "shiftScheduleWidget": {
+      "title": "Mitarbeiter-Schichten",
+      "today": "Heute, {{date}}",
+      "tomorrow": "Morgen, {{date}}",
+      "yesterday": "Gestern, {{date}}",
+      "allStaff": "Alle Mitarbeiter",
+      "allCount": "Alle ({{count}})",
+      "staff": "Mitarbeiter",
+      "staffScheduled": "{{count}} Mitarbeiter eingeplant",
+      "noShifts": "Keine Schichten eingeplant",
+      "noShiftsToday": "Keine Schichten für heute verfügbar",
+      "weekend": "Wochenende",
+      "checkOtherDate": "Anderes Datum prüfen",
+      "viewAll": "Gesamten Schichtplan anzeigen →",
+      "position": {
+        "staff": "Mitarbeiter"
+      }
+    },
+    "upcomingClassesWidget": {
+      "title": "Anstehende Kurse",
+      "noClasses": "Keine anstehenden Kurse",
+      "full": "Voll",
+      "spotsLeft": "({{count}} frei)"
     }
   }
 }

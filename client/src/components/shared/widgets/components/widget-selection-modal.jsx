@@ -4,75 +4,78 @@ import { BarChart3, Calendar, Users, Link, CheckSquare, Gift, Clipboard, Timer }
 import { RiContractLine } from "react-icons/ri";
 import { IoIosCheckmarkCircleOutline } from "react-icons/io";
 import { BsPersonWorkspace } from "react-icons/bs";
+import { useTranslation } from "react-i18next"
 
 export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidgetStatus, widgetArea = "dashboard" }) {
+  const { t } = useTranslation()
+
   if (!isOpen) return null
 
   const dashboardWidgets = [
     {
       id: "chart",
-      name: "Analytics Chart",
-      description: "Display member statistics and analytics",
+      name: t("myArea.widgetSelection.widgets.chart.name"),
+      description: t("myArea.widgetSelection.widgets.chart.description"),
       icon: BarChart3,
     },
     {
       id: "expiringContracts",
-      name: "Expiring Contracts",
-      description: "Track contracts nearing expiration",
+      name: t("myArea.widgetSelection.widgets.expiringContracts.name"),
+      description: t("myArea.widgetSelection.widgets.expiringContracts.description"),
       icon: RiContractLine,
     },
     {
       id: "appointments",
-      name: "Upcoming Appointments",
-      description: "Show upcoming appointments",
+      name: t("myArea.widgetSelection.widgets.appointments.name"),
+      description: t("myArea.widgetSelection.widgets.appointments.description"),
       icon: Calendar,
     },
     {
       id: "upcomingClasses",
-      name: "Upcoming Classes",
-      description: "View upcoming scheduled classes",
+      name: t("myArea.widgetSelection.widgets.upcomingClasses.name"),
+      description: t("myArea.widgetSelection.widgets.upcomingClasses.description"),
       icon: Timer,
     },
     {
       id: "staffCheckIn",
-      name: "Staff Check-In",
-      description: "Staff check-in/out functionality",
+      name: t("myArea.widgetSelection.widgets.staffCheckIn.name"),
+      description: t("myArea.widgetSelection.widgets.staffCheckIn.description"),
       icon: IoIosCheckmarkCircleOutline,
     },
     {
       id: "websiteLink",
-      name: "Website Links",
-      description: "Quick access to important websites",
+      name: t("myArea.widgetSelection.widgets.websiteLink.name"),
+      description: t("myArea.widgetSelection.widgets.websiteLink.description"),
       icon: Link,
     },
     {
       id: "todo",
-      name: "To-Do",
-      description: "Task management and to-do items",
+      name: t("myArea.widgetSelection.widgets.todo.name"),
+      description: t("myArea.widgetSelection.widgets.todo.description"),
       icon: CheckSquare,
     },
     {
       id: "birthday",
-      name: "Upcoming Birthdays",
-      description: "Upcoming member birthdays",
+      name: t("myArea.widgetSelection.widgets.birthday.name"),
+      description: t("myArea.widgetSelection.widgets.birthday.description"),
       icon: Gift,
     },
     {
       id: "bulletinBoard",
-      name: "Bulletin Board",
-      description: "View bulletin board posts for staff and members",
+      name: t("myArea.widgetSelection.widgets.bulletinBoard.name"),
+      description: t("myArea.widgetSelection.widgets.bulletinBoard.description"),
       icon: Clipboard,
     },
     {
       id: "notes",
-      name: "Notes",
-      description: "Create and manage personal notes",
+      name: t("myArea.widgetSelection.widgets.notes.name"),
+      description: t("myArea.widgetSelection.widgets.notes.description"),
       icon: FileText,
     },
     {
       id: "shiftSchedule",
-      name: "Shift Schedule",
-      description: "View and manage staff shift schedules",
+      name: t("myArea.widgetSelection.widgets.shiftSchedule.name"),
+      description: t("myArea.widgetSelection.widgets.shiftSchedule.description"),
       icon: BsPersonWorkspace,
     }
   ]
@@ -80,63 +83,63 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
   const sidebarWidgets = [
     {
       id: "todo",
-      name: "To-Do",
-      description: "Task management and to-do items",
+      name: t("myArea.widgetSelection.widgets.todo.name"),
+      description: t("myArea.widgetSelection.widgets.todo.description"),
       icon: CheckSquare,
     },
     {
       id: "birthday",
-      name: "Upcoming Birthdays",
-      description: "Upcoming member birthdays",
+      name: t("myArea.widgetSelection.widgets.birthday.name"),
+      description: t("myArea.widgetSelection.widgets.birthday.description"),
       icon: Gift,
     },
     {
       id: "websiteLinks",
-      name: "Website Links",
-      description: "Quick access to important websites",
+      name: t("myArea.widgetSelection.widgets.websiteLink.name"),
+      description: t("myArea.widgetSelection.widgets.websiteLink.description"),
       icon: Link,
     },
   
     {
       id: "expiringContracts",
-      name: "Expiring Contracts",
-      description: "Track contracts nearing expiration",
+      name: t("myArea.widgetSelection.widgets.expiringContracts.name"),
+      description: t("myArea.widgetSelection.widgets.expiringContracts.description"),
       icon: RiContractLine,
     },
     {
       id: "appointments",
-      name: "Upcoming Appointments",
-      description: "Show upcoming appointments",
+      name: t("myArea.widgetSelection.widgets.appointments.name"),
+      description: t("myArea.widgetSelection.widgets.appointments.description"),
       icon: Calendar,
     },
     {
       id: "upcomingClasses",
-      name: "Upcoming Classes",
-      description: "View upcoming scheduled classes",
+      name: t("myArea.widgetSelection.widgets.upcomingClasses.name"),
+      description: t("myArea.widgetSelection.widgets.upcomingClasses.description"),
       icon: Timer,
     },
     {
       id: "staffCheckIn",
-      name: "Staff Check-In",
-      description: "Staff check-in/out functionality",
+      name: t("myArea.widgetSelection.widgets.staffCheckIn.name"),
+      description: t("myArea.widgetSelection.widgets.staffCheckIn.description"),
       icon: IoIosCheckmarkCircleOutline,
     },
     {
       id: "bulletinBoard",
-      name: "Bulletin Board",
-      description: "View bulletin board posts for staff and members",
+      name: t("myArea.widgetSelection.widgets.bulletinBoard.name"),
+      description: t("myArea.widgetSelection.widgets.bulletinBoard.description"),
       icon: Clipboard,
     },
     {
       id: "notes",
-      name: "Notes",
-      description: "Create and manage personal notes",
+      name: t("myArea.widgetSelection.widgets.notes.name"),
+      description: t("myArea.widgetSelection.widgets.notes.description"),
       icon: FileText,
     },
     {
       id: "shiftSchedule",
-      name: "Shift Schedule",
-      description: "View and manage staff shift schedules",
+      name: t("myArea.widgetSelection.widgets.shiftSchedule.name"),
+      description: t("myArea.widgetSelection.widgets.shiftSchedule.description"),
       icon: BsPersonWorkspace,
     }
   ]
@@ -150,7 +153,7 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold">
-              Add Widget to {widgetArea === "dashboard" ? "My Area" : "Sidebar"}
+              {widgetArea === "dashboard" ? t("myArea.widgetSelection.titleDashboard") : t("myArea.widgetSelection.titleSidebar")}
             </h2>
             <button onClick={onClose} className="p-2 hover:bg-surface-hover rounded-lg">
               <X size={16} />
@@ -163,9 +166,9 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
               let message = ""
               if (isAlreadyAdded) {
                 if (location === "dashboard") {
-                  message = "Already added to your My Area"
+                  message = t("myArea.widgetSelection.alreadyInDashboard")
                 } else if (location === "sidebar") {
-                  message = "Already added to your sidebar"
+                  message = t("myArea.widgetSelection.alreadyInSidebar")
                 }
               }
 
