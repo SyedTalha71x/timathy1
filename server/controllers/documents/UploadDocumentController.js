@@ -2,7 +2,7 @@
 const DocumentModel = require('../../models/documents/DocumentModel');
 const { StaffModel, MemberModel } = require('../../models/Discriminators');
 const TagsModel = require('../../models/TagsModel');
-const { uploadToCloudinary } = require('../../utils/CloudinaryUpload');
+const { uploadToCloudinary, uploadRawFile } = require('../../utils/CloudinaryUpload');
 const { NotFoundError, BadRequestError } = require('../../middleware/error/httpErrors');
 const cloudinary = require('../../utils/Cloudinary');
 // const cloudinary = require('cloudinary').v2;
@@ -36,7 +36,7 @@ const uploadDocuments = async (req, res, next) => {
 
         if (req.files && req.files.length > 0) {
             for (const file of req.files) {
-                const cloudinaryResult = await uploadToCloudinary(file.buffer, `${entityType}/documents`);
+                const cloudinaryResult = await uploadRawFile(file.buffer, `${entityType}/documents`);
 
                 const document = new DocumentModel({
                     url: cloudinaryResult.secure_url,

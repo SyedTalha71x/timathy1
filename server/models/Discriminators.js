@@ -199,9 +199,8 @@ const StaffModel = UserModel.discriminator('staff', new mongoose.Schema({
         type: String,
     },
     staffRole: {
-        type: String,
-        // enum: ['manager', 'employee', 'admin'],
-        // required: true,
+        type: mongoose.Schema.Types.Mixed, // Changed from ObjectId to Mixed temporarily
+        default: null
     },
     staffColor: {
         type: String

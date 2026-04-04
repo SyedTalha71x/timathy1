@@ -18,7 +18,7 @@ import { Building2 } from "lucide-react"
  * - onOpenTerms: Function — opens terms modal
  * - onOpenChangelog: Function — opens changelog modal
  */
-const StudioProfileDropdown = ({ isMobile = false, fullName, studioName, onOpenPrivacy, onOpenTerms, onOpenChangelog }) => {
+const StudioProfileDropdown = ({ isMobile = false, fullName, studioName, onOpenPrivacy, onOpenTerms, onOpenChangelog, userImage }) => {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
@@ -63,11 +63,10 @@ const StudioProfileDropdown = ({ isMobile = false, fullName, studioName, onOpenP
     <div className="relative" ref={ref}>
       <div
         onClick={toggle}
-        className={`flex items-center cursor-pointer ${
-          isMobile ? "" : "gap-2 p-1.5 px-2.5 rounded-xl bg-surface-card hover:bg-surface-button-hover transition-colors"
-        }`}
+        className={`flex items-center cursor-pointer ${isMobile ? "" : "gap-2 p-1.5 px-2.5 rounded-xl bg-surface-card hover:bg-surface-button-hover transition-colors"
+          }`}
       >
-        <img draggable="false" src="/gray-avatar-fotor-20250912192528.png" alt="Profile" className={`rounded-${isMobile ? "md" : "lg"} ${isMobile ? "w-7 h-7" : "w-6 h-6"}`} />
+        <img draggable="false" src={userImage} alt="Profile" className={`rounded-${isMobile ? "md" : "lg"} ${isMobile ? "w-7 h-7" : "w-6 h-6"}`} />
         {!isMobile && <h2 className="font-semibold text-content-primary text-sm leading-tight">{fullName}</h2>}
       </div>
 

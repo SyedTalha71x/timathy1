@@ -16,12 +16,28 @@ export const StaffAssignmentModal = ({
   // Reset assigned staff when role changes
   useEffect(() => {
     if (role) {
-      setAssignedStaff(role.assignedStaff || [])
+      // Extract IDs from populated staff objects
+      const staffIds = (role.assignedStaff || []).map(staff => staff._id || staff.id)
+      setAssignedStaff(staffIds)
     }
   }, [role])
 
+  // Normalize staff to have consistent id and name fields
+  const normalizedStaff = allStaff.map(staff => ({
+    ...staff,
+    id: staff._id || staff.id,
+    name: `${staff.firstName || ''} ${staff.lastName || ''}`.trim() || staff.email || 'Unknown'
+  }))
+
+  // Normalize roles to have consistent id and assignedStaff as IDs
+  const normalizedRoles = allRoles.map(roleItem => ({
+    ...roleItem,
+    id: roleItem._id || roleItem.id,
+    assignedStaff: (roleItem.assignedStaff || []).map(staff => staff._id || staff.id)
+  }))
+
   // Get the admin role
-  const adminRole = allRoles.find(r => r.isAdmin)
+  const adminRole = normalizedRoles.find(r => r.isAdmin)
 
   // Check if a staff member is the last admin
   const isLastAdmin = (staffId) => {
@@ -32,19 +48,20 @@ export const StaffAssignmentModal = ({
 
   // Get current role for a staff member
   const getStaffCurrentRole = (staffId) => {
-    for (const r of allRoles) {
-      if (r.id !== role?.id && r.assignedStaff?.includes(staffId)) {
+    for (const r of normalizedRoles) {
+      if (r.id !== role?.id && (r.assignedStaff || []).includes(staffId)) {
         return r
       }
     }
     return null
   }
 
-  // Filter staff based on search
-  const filteredStaff = allStaff.filter(staff =>
+  // Filter staff based on search - use normalizedStaff
+  const filteredStaff = normalizedStaff.filter(staff =>
     (staff.firstName || '').toLowerCase().includes(searchText.toLowerCase()) ||
     (staff.lastName || '').toLowerCase().includes(searchText.toLowerCase()) ||
-    (staff.email || '').toLowerCase().includes(searchText.toLowerCase())
+    (staff.email || '').toLowerCase().includes(searchText.toLowerCase()) ||
+    (staff.name || '').toLowerCase().includes(searchText.toLowerCase())
   )
 
   const handleToggleStaff = (staffId) => {
@@ -80,7 +97,7 @@ export const StaffAssignmentModal = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-black/70"
         onClick={onClose}
       />
@@ -139,9 +156,19 @@ export const StaffAssignmentModal = ({
               const currentRole = getStaffCurrentRole(staff.id)
               const isLastAdminStaff = isLastAdmin(staff.id)
               const isLastAdminInCurrentRole = role?.isAdmin && assignedStaff.length === 1 && isAssigned
-              
+
               // Can't select last admin for non-admin role
               const isDisabled = isLastAdminInCurrentRole || (!role?.isAdmin && isLastAdminStaff && !isAssigned)
+
+              // Get initials for avatar
+              const getInitials = () => {
+                if (staff.firstName && staff.lastName) {
+                  return `${staff.firstName[0]}${staff.lastName[0]}`.toUpperCase()
+                }
+                if (staff.firstName) return staff.firstName[0].toUpperCase()
+                if (staff.lastName) return staff.lastName[0].toUpperCase()
+                return (staff.email?.[0] || '?').toUpperCase()
+              }
 
               return (
                 <button
@@ -166,22 +193,22 @@ export const StaffAssignmentModal = ({
                       ? "bg-primary border-primary"
                       : "border-border"
                   }`}>
-                    {isAssigned && <Check className="w-3 h-3 text-content-primary" />}
+                    {isAssigned && <Check className="w-3 h-3 text-white" />}
                   </div>
 
                   {/* Avatar */}
-                  <div 
-                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-content-primary font-medium text-sm"
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-white font-medium text-sm"
                     style={{ backgroundColor: isAssigned ? (role?.color || "#FF843E") : (currentRole?.color || "#444444") }}
                   >
-                    {staff.avatar ? (
-                      <img 
-                        src={staff.avatar} 
-                        alt={staff.name} 
-                        className="w-full h-full rounded-xl object-cover" 
+                    {staff.img?.url ? (
+                      <img
+                        src={staff.img.url}
+                        alt={staff.name}
+                        className="w-full h-full rounded-xl object-cover"
                       />
                     ) : (
-                      staff.name.split(' ').map(n => n[0]).join('').toUpperCase()
+                      getInitials()
                     )}
                   </div>
 
@@ -207,7 +234,7 @@ export const StaffAssignmentModal = ({
                       <AlertCircle className="w-4 h-4 text-primary" />
                     </div>
                   ) : currentRole && !isAssigned ? (
-                    <div 
+                    <div
                       className="flex-shrink-0 px-2 py-1 rounded text-xs"
                       style={{ backgroundColor: `${currentRole.color}20`, color: currentRole.color }}
                     >

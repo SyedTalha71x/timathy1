@@ -58,7 +58,7 @@ const DashboardHeader = ({
   // User data
   const studioName = user?.studio?.studioName || ""
   const fullName = `${user?.firstName || ""} ${user?.lastName || ""} `
-
+  const profile = user?.img?.url
   // ============================================
   // Theme Toggle
   // ============================================
@@ -72,7 +72,7 @@ const DashboardHeader = ({
       localStorage.setItem('theme', 'light')
     }
     if (Capacitor.isNativePlatform()) {
-      StatusBar.setStyle({ style: isDarkMode ? Style.Dark : Style.Light }).catch(() => {})
+      StatusBar.setStyle({ style: isDarkMode ? Style.Dark : Style.Light }).catch(() => { })
     }
   }, [isDarkMode])
 
@@ -194,6 +194,7 @@ const DashboardHeader = ({
           <StudioProfileDropdown
             fullName={fullName}
             studioName={studioName}
+            userImage={profile}
             onOpenPrivacy={() => setIsPrivacyOpen(true)}
             onOpenTerms={() => setIsTermsOpen(true)}
             onOpenChangelog={() => setIsChangelogOpen(true)}

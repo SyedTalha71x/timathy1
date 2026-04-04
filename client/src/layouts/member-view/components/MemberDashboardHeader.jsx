@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react"
-import { useSelector } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
 import { useNavigate, useLocation } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { Sun, Moon, Settings } from "lucide-react"
@@ -10,6 +10,7 @@ import LanguageDropdown from '../../LanguageDropdown'
 import { haptic } from "../../../utils/haptic"
 import { Capacitor } from "@capacitor/core"
 import { StatusBar, Style } from "@capacitor/status-bar"
+import { fetchMyStudio } from "../../../features/studio/studioSlice"
 
 const MemberDashboardHeader = ({
   isLeftSidebarCollapsed,
@@ -20,10 +21,10 @@ const MemberDashboardHeader = ({
   const location = useLocation()
 
   // Redux — studio data from backend
-  const { studio } = useSelector((state) => state.studios)
+  const { studio, isLoading, error } = useSelector((state) => state.studios) || {}
   const studioName = studio?.studioName || t("nav.studio")
-  const studioLogo = studio?.logo?.url || studio?.logo || null
-
+  const studioLogo = studio?.img?.url || studio?.logo || null
+  const dispatch = useDispatch()
   const isSettingsActive = location.pathname.includes("/settings")
 
   // Theme state - defaults to dark mode
@@ -33,6 +34,10 @@ const MemberDashboardHeader = ({
     if (!dark) document.documentElement.classList.add('light')
     return dark
   })
+
+  useEffect(() => {
+    dispatch(fetchMyStudio())
+  }, [dispatch])
 
   // ============================================
   // Theme Toggle Effect
@@ -47,7 +52,7 @@ const MemberDashboardHeader = ({
       localStorage.setItem('theme', 'light')
     }
     if (Capacitor.isNativePlatform()) {
-      StatusBar.setStyle({ style: isDarkMode ? Style.Dark : Style.Light }).catch(() => {})
+      StatusBar.setStyle({ style: isDarkMode ? Style.Dark : Style.Light }).catch(() => { })
     }
   }, [isDarkMode])
 
@@ -70,11 +75,10 @@ const MemberDashboardHeader = ({
   const SettingsButton = ({ isMobile = false }) => (
     <button
       onClick={goToSettings}
-      className={`rounded-xl transition-colors cursor-pointer flex items-center gap-1 ${
-        isSettingsActive
-          ? "bg-primary/15 text-primary"
-          : "bg-surface-card text-content-muted hover:bg-surface-button-hover"
-      } ${isMobile ? "p-2 px-3" : "p-1.5 px-2.5"}`}
+      className={`rounded-xl transition-colors cursor-pointer flex items-center gap-1 ${isSettingsActive
+        ? "bg-primary/15 text-primary"
+        : "bg-surface-card text-content-muted hover:bg-surface-button-hover"
+        } ${isMobile ? "p-2 px-3" : "p-1.5 px-2.5"}`}
       aria-label={t("nav.settings")}
       title={t("nav.settings")}
     >
@@ -85,9 +89,8 @@ const MemberDashboardHeader = ({
   const ThemeToggle = ({ isMobile = false }) => (
     <button
       onClick={toggleTheme}
-      className={`rounded-xl text-content-muted bg-surface-card hover:bg-surface-button-hover transition-colors cursor-pointer flex items-center gap-1 ${
-        isMobile ? "p-2 px-3" : "p-1.5 px-2.5"
-      }`}
+      className={`rounded-xl text-content-muted bg-surface-card hover:bg-surface-button-hover transition-colors cursor-pointer flex items-center gap-1 ${isMobile ? "p-2 px-3" : "p-1.5 px-2.5"
+        }`}
       aria-label={isDarkMode ? t("header.switchToLight") : t("header.switchToDark")}
       title={isDarkMode ? t("header.switchToLight") : t("header.switchToDark")}
     >
@@ -108,6 +111,7 @@ const MemberDashboardHeader = ({
         className="w-6 h-6 rounded-lg object-cover"
         onError={(e) => {
           e.target.src = DefaultAvatar
+          e.target.onerror = null // Prevent infinite loop
         }}
       />
       <p className={`font-bold text-content-primary truncate ${isMobile ? "text-xs max-w-[120px]" : "text-sm max-w-[180px]"}`}>
@@ -115,6 +119,23 @@ const MemberDashboardHeader = ({
       </p>
     </div>
   )
+
+  // Show loading state or minimal header while loading
+  if (isLoading) {
+    return (
+      <div className="fixed top-0 left-0 w-full bg-surface-dark border-b border-border py-2 px-4 lg:flex hidden justify-between items-center z-40">
+        <div className="animate-pulse flex items-center gap-2">
+          <div className="w-6 h-6 bg-surface-hover rounded-lg"></div>
+          <div className="w-32 h-4 bg-surface-hover rounded"></div>
+        </div>
+        <div className="flex gap-2">
+          <div className="w-8 h-8 bg-surface-hover rounded-xl"></div>
+          <div className="w-8 h-8 bg-surface-hover rounded-xl"></div>
+          <div className="w-8 h-8 bg-surface-hover rounded-xl"></div>
+        </div>
+      </div>
+    )
+  }
 
   // ============================================
   // Render
