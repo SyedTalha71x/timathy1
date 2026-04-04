@@ -86,11 +86,11 @@ const getAllPauseReason = async (req, res, next) => {
                 reasons: []
             })
         }
+
         return res.status(200).json({
             success: true,
             reasons: reasons
         })
-
     }
     catch (error) {
         next(error)
@@ -173,6 +173,7 @@ const getAllChangeReason = async (req, res, next) => {
                 reasons: []
             })
         }
+
         return res.status(200).json({
             success: true,
             reasons: reasons
@@ -260,11 +261,11 @@ const getAllRenewReason = async (req, res, next) => {
                 reasons: []
             })
         }
+
         return res.status(200).json({
             success: true,
             reasons: reasons
         })
-
     }
     catch (error) {
         next(error)
@@ -350,7 +351,6 @@ const getAllBonusReason = async (req, res, next) => {
             success: true,
             reasons: reasons
         })
-
     }
     catch (error) {
         next(error)

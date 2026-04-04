@@ -1,5 +1,22 @@
 const mongoose = require('mongoose');
 
+
+const vatRateSchema = new mongoose.Schema({
+  rate: {
+    type: Number,
+    required: true
+  },
+  description: {
+    type: String
+  },
+  studioId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Studio'
+  }
+}, { timestamps: true })
+vatRateSchema.index({ studioId: 1, rate: 1 }, { unique: true });
+const vatRateModel = mongoose.model('vatRate', vatRateSchema)
+
 const serviceSchema = new mongoose.Schema(
   {
     studio: {
@@ -12,24 +29,44 @@ const serviceSchema = new mongoose.Schema(
       required: true,
     },
     image: { url: String, public_id: String },
-    description: String,
-    category: {
+    vatRate: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'appointmentCategory'
+      ref: 'vatRate'
     },
     price: {
       type: Number,
       required: true
     },
-    duration: { type: Number, required: true }, // in minutes
-    interval: { type: Number, required: true }, // in minutes
-    contingentUsage: { type: Number, default: 1, max: 8 },
-    slot: { type: String },
-    maxSimultaneous: { type: Number, default: 1 },
-    calenderColor: { type: String }
+    contingentCredit: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100
+    },
+    link: {
+      type: String,
+      trim: true,
+      validate: {
+        validator: function (v) {
+          if (!v) return true;
+          try {
+            new URL(v);
+            return true;
+          } catch {
+            return false;
+          }
+        },
+        message: 'Please enter a valid URL (e.g., https://example.com)'
+      }
+    },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    }
   },
   { timestamps: true }
 );
 
 const ServiceModel = mongoose.model('Service', serviceSchema);
-module.exports = ServiceModel
+module.exports = { ServiceModel, vatRateModel }

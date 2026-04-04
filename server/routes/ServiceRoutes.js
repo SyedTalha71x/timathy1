@@ -12,15 +12,22 @@ const {
   createCategory,
   getAllCategories,
   updateCategory,
-  deleteCategory
+  deleteCategory,
+
+  // Vat rate
+  createVatRate,
+  getAllVatRates,
+  getVatRateById,
+  updateVatRate,
+  deleteVatRate
 } = require('../controllers/ServiceController');
 const { verifyAccessToken } = require('../middleware/verifyToken');
-const { isAdmin } = require('../middleware/RoleCheck');
+const { isAdmin, isStaff } = require('../middleware/RoleCheck');
 
 const router = express.Router();
 
 // Create a service (staff only)
-router.post('/create', verifyAccessToken, isAdmin, uploadImage.single('image'), createService);
+router.post('/create', verifyAccessToken, isStaff || isAdmin, uploadImage.single('image'), createService);
 
 // Get all services for a studio (optional: studioId param)
 router.get('/studio-services', verifyAccessToken, getAllServices);
@@ -29,11 +36,10 @@ router.get('/studio-services', verifyAccessToken, getAllServices);
 // router.get('/studioServices', verifyAccessToken, studioServices);
 
 // Get service by ID
-router.get('/:id', verifyAccessToken, getServiceById);
 
 // Delete a service
-router.delete('/:id', verifyAccessToken, deleteService);
-router.put('/:id', verifyAccessToken, uploadImage.single('image'), updateService);
+router.delete('/:serviceId', verifyAccessToken, deleteService);
+router.put('/:serviceId', verifyAccessToken, uploadImage.single('image'), updateService);
 
 
 
@@ -46,5 +52,19 @@ router.post('/category/create', verifyAccessToken, createCategory);
 router.get('/categories', verifyAccessToken, getAllCategories);
 router.put('/category/:id', verifyAccessToken, updateCategory);
 router.delete('/category/:id', verifyAccessToken, deleteCategory);
+
+
+
+// vate rate
+
+router.get('/vat-rates', verifyAccessToken, isStaff, getAllVatRates);
+router.get('/vat-rates/:id', verifyAccessToken, isStaff, getVatRateById);
+router.post('/vat-rates', verifyAccessToken, isStaff, createVatRate);
+router.put('/vat-rates/:id', verifyAccessToken, isStaff, updateVatRate);
+router.delete('/vat-rates/:id', verifyAccessToken, isStaff, deleteVatRate);
+
+
+
+router.get('/:id', verifyAccessToken, getServiceById);
 
 module.exports = router;

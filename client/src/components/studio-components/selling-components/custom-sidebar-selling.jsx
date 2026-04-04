@@ -126,7 +126,7 @@ const SidebarAreaSelling = ({
                 <div className="flex items-center gap-2">
                   <User size={16} className="text-content-muted" />
                   <span className="text-content-primary text-sm">
-                    {members.find((m) => m.id === selectedMemberMain)?.name}
+                    {members.find((m) => m.id === selectedMemberMain)?.firstName}
                   </span>
                   <span className="text-xs bg-surface-button px-2 py-1 rounded">
                     {members.find((m) => m.id === selectedMemberMain)?.type}
@@ -173,7 +173,7 @@ const SidebarAreaSelling = ({
                           onClick={() => selectMember(member)}
                           className="px-4 py-2 hover:bg-surface-base cursor-pointer text-sm flex items-center justify-between"
                         >
-                          <span>{member.name}</span>
+                          <span>{member.firstName} {member.lastName}</span>
                           <span className="text-xs bg-surface-button px-2 py-1 rounded">{member.type}</span>
                         </div>
                       ))
@@ -205,7 +205,7 @@ const SidebarAreaSelling = ({
                   <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
                     {item.image ? (
                       <img
-                        src={item.image || "/placeholder.svg"}
+                        src={item.image?.url || "/placeholder.svg"}
                         alt={item.name}
                         className="w-full h-full object-cover"
                       />
@@ -367,7 +367,7 @@ const SidebarAreaSelling = ({
                 ) : selectedMemberMain ? (
                   <div>
                     <span className="text-content-primary">
-                      Member: {members.find((m) => m.id === selectedMemberMain)?.name}
+                      Member: {members.find((m) => m.id === selectedMemberMain)?.firstName}
                     </span>
                     <div className="text-xs text-content-faint mt-1">
                       Type: {members.find((m) => m.id === selectedMemberMain)?.type}

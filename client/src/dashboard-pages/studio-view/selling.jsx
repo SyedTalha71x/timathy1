@@ -18,7 +18,8 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStr
 import { CSS } from '@dnd-kit/utilities'
 import { ExternalSidebarContext } from "../../layouts/studio-view/studio-view-layout";
 import { useDispatch, useSelector } from "react-redux"
-import { fetchStudioServices } from "../../features/services/servicesSlice"
+import { fetchStudioServices, createServiceThunk, updateServiceThunk, deleteServiceThunk } from "../../features/services/servicesSlice"
+import { fetchAllMember } from "../../features/member/memberSlice"
 
 // Sortable Product/Service Card Component
 const SortableItemCard = ({ item, children, isDragDisabled }) => {
@@ -83,6 +84,7 @@ const getTextSizeClass = (text, isCard = false) => {
 const Selling = () => {
 
   const { services: reduxServices = [] } = useSelector((state) => state.services) || {}
+  const { members: membersData = [] } = useSelector((state) => state.member) || {}
   const dispatch = useDispatch()
   // Use context to communicate sidebar state to dashboard layout
   const { isExternalSidebarOpen: isRightSidebarOpen, setIsExternalSidebarOpen: setIsRightSidebarOpen } = useContext(ExternalSidebarContext)
@@ -144,15 +146,16 @@ const Selling = () => {
     dateTo: "",
   })
 
-  const [members, setMembers] = useState([
-    { id: 1, name: "John Doe", type: "Full Member" },
-    { id: 2, name: "Jane Smith", type: "Full Member" },
-    { id: 3, name: "Mike Johnson", type: "Full Member" },
-  ])
+  // const [members, setMembers] = useState([
+  //   { id: 1, name: "John Doe", type: "Full Member" },
+  //   { id: 2, name: "Jane Smith", type: "Full Member" },
+  //   { id: 3, name: "Mike Johnson", type: "Full Member" },
+  // ])
 
 
   useEffect(() => {
     dispatch(fetchStudioServices())
+    dispatch(fetchAllMember())
   }, [dispatch])
   // DnD sensors - same as Bulletin Board
   const sensors = useSensors(
@@ -607,13 +610,13 @@ const Selling = () => {
 
   // Confirm and process checkout
   const handleConfirmCheckout = () => {
-    const selectedMemberData = selectedMemberMain ? members.find((m) => m.id === selectedMemberMain) : null
+    const selectedMemberData = selectedMemberMain ? membersData.find((m) => m._id === selectedMemberMain) : null
     const invoiceNumber = `INV-${new Date().getFullYear()}-${String(salesHistory.length + 1).padStart(3, "0")}`
 
     const newSale = {
       id: Date.now(),
       date: new Date().toLocaleString(),
-      member: sellWithoutMember ? "No Member" : selectedMemberData?.name || "No Member Selected",
+      member: sellWithoutMember ? "No Member" : selectedMemberData?.firstName || "No Member Selected",
       memberType: sellWithoutMember ? "N/A" : selectedMemberData?.type || "N/A",
       items: cart.map((item) => ({
         name: item.name,
@@ -730,13 +733,13 @@ Payment: ${sale.paymentMethod}
     URL.revokeObjectURL(url)
   }
 
-  const filteredMembers = members.filter((member) =>
-    member.name.toLowerCase().includes(memberSearchQuery.toLowerCase()),
+  const filteredMembers = membersData.filter((member) =>
+    member.firstName.toLowerCase().includes(memberSearchQuery.toLowerCase()),
   )
 
   const selectMember = (member) => {
     setSelectedMemberMain(member.id)
-    setMemberSearchQuery(member.name)
+    setMemberSearchQuery(member.firstName)
     setShowMemberResults(false)
     setSellWithoutMember(false)
   }
@@ -790,7 +793,7 @@ Payment: ${sale.paymentMethod}
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0)
 
   // Get selected member data for checkout confirmation
-  const selectedMemberData = selectedMemberMain ? members.find((m) => m.id === selectedMemberMain) : null
+  const selectedMemberData = selectedMemberMain ? membersData.find((m) => m._id === selectedMemberMain) : null
 
   return (
     <>
@@ -1002,13 +1005,13 @@ Payment: ${sale.paymentMethod}
                   </div>
                 )}
                 {sortedItems.map((item) => (
-                  <SortableItemCard key={item.id} item={item} isDragDisabled={false}>
+                  <SortableItemCard key={item._id} item={item} isDragDisabled={false}>
                     <div className="w-full h-full bg-surface-card rounded-2xl overflow-hidden relative group select-none">
                       {/* IMAGE / ORANGE BOX - 16:9 aspect ratio */}
                       <div className="relative w-full aspect-video overflow-hidden rounded-t-2xl">
                         {item.image ? (
                           <img
-                            src={item.img?.url || "/placeholder.svg"}
+                            src={item.image?.url || "/placeholder.svg"}
                             alt={item.name}
                             className="object-cover w-full h-full pointer-events-none"
                             draggable="false"
@@ -1334,7 +1337,7 @@ Payment: ${sale.paymentMethod}
           setMemberSearchQuery={setMemberSearchQuery}
           showMemberResults={showMemberResults}
           setShowMemberResults={setShowMemberResults}
-          members={members}
+          members={membersData}
           sellWithoutMember={sellWithoutMember}
           setSellWithoutMember={setSellWithoutMember}
           setIsTempMemberModalOpen={() => setShowCreateTempMemberModal(true)}

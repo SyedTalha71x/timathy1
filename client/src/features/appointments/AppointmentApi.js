@@ -82,3 +82,63 @@ export const rejectedAppointmentApi = async (appointmentId) => {
     const res = await api.patch(`/appointment/rejected/${appointmentId}`, { withCredentials: true })
     return res.data
 }
+
+
+// &&&&&&&&& 
+// ALL Appointment CATEGORY APIS
+// &&&&&&&&&&&&&&
+
+
+
+// &&& CREATE CATEGORY FOR CLASS-TYPES &&&
+
+export const createCategoryApi = async (data) => {
+    const res = await api.post('/service/category/create', data, { withCredentials: true })
+    return res.data
+}
+
+// &&& get All Category &&&
+
+export const getCategoryApi = async () => {
+    const res = await api.get('/service/categories', { withCredentials: true })
+    return res.data
+}
+
+
+// update category
+export const updateCategoryApi = async (id, updateData) => {
+    const res = await api.put(`/service/category/${id}`, updateData, { withCredentials: true })
+    return res.data
+}
+
+// delete category
+
+export const deleteCategoryApi = async (id) => {
+    const res = await api.delete(`/service/category/${id}`, { withCredentials: true })
+    return res.data
+}
+
+
+
+
+// ***************
+// Appointment Types Thunk
+// ***********************
+
+
+export const createAppointmentTypesApi = async (data) => {
+    const res = await api.post('/appointment/types/create', data, { withCredentials: true })
+    return res.data
+}
+export const updateAppointmentTypesApi = async (typeId, updateData) => {
+    const res = await api.put(`/appointment/types/${typeId}`, updateData, { withCredentials: true })
+    return res.data
+}
+export const deleteAppointmentTypesApi = async (typeId) => {
+    const res = await api.delete(`/appointment/types/${typeId}`, { withCredentials: true })
+    return res.data
+}
+export const getAppointmentTypesApi = async () => {
+    const res = await api.get('/appointment/types', { withCredentials: true })
+    return res.data
+}

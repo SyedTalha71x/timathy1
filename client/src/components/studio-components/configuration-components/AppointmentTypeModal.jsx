@@ -12,7 +12,6 @@ import ImageSourceModal from "../../shared/image-handler/ImageSourceModal"
 import ImageCropModal from "../../shared/image-handler/ImageCropModal"
 import MediaLibraryPickerModal from "../../shared/image-handler/MediaLibraryPickerModal"
 import CustomSelect from "../../shared/CustomSelect"
-// import { image } from "framer-motion/client"
 
 // ============================================
 // Inline helper components
@@ -41,34 +40,52 @@ const AppointmentTypeModal = ({
   onSave,
   openColorPicker,
 }) => {
+
+
   // Local image upload states
   const [showImageSourceModal, setShowImageSourceModal] = useState(false)
   const [showImageCropModal, setShowImageCropModal] = useState(false)
   const [showMediaLibraryModal, setShowMediaLibraryModal] = useState(false)
   const [tempImage, setTempImage] = useState(null)
+  const [imagePreview, setImagePreview] = useState(null)
   const imageInputRef = useRef(null)
+
+  // Get the current image URL for preview
+  const getCurrentImageUrl = () => {
+    // If there's a preview from new upload, show that
+    if (imagePreview) return imagePreview
+
+    // If there's an image object with URL from backend
+    if (appointmentTypeForm.image?.url) return appointmentTypeForm.image.url
+
+    // If image is a base64 string
+    if (typeof appointmentTypeForm.image === 'string' && appointmentTypeForm.image.startsWith('data:')) {
+      return appointmentTypeForm.image
+    }
+
+    return null
+  }
 
   const handleImageSelect = (e) => {
     const file = e.target.files[0]
     if (!file) return
 
-    // Update local state for preview
-    imageInputRef(prev => ({ ...prev, image: file }))
-
+    // Create preview URL
     const reader = new FileReader()
     reader.onloadend = () => {
-      imageInputRef(reader.result)
+      setImagePreview(reader.result)
+      // Store the base64 image in the form
+      setAppointmentTypeForm({ ...appointmentTypeForm, image: reader.result })
     }
     reader.readAsDataURL(file)
 
-    // Prepare FormData to send to backend
-    const formData = new FormData()
-    formData.append("img", file)
+    // Reset file input
     if (imageInputRef.current) imageInputRef.current.value = ""
   }
 
   const handleCroppedImage = (croppedImage) => {
     setAppointmentTypeForm({ ...appointmentTypeForm, image: croppedImage })
+    setImagePreview(croppedImage)
     setShowImageCropModal(false)
     setTempImage(null)
   }
@@ -77,6 +94,13 @@ const AppointmentTypeModal = ({
     setTempImage(imageUrl)
     setShowMediaLibraryModal(false)
     setShowImageCropModal(true)
+  }
+
+  const handleRemoveImage = (e) => {
+    e.stopPropagation()
+    setAppointmentTypeForm({ ...appointmentTypeForm, image: null })
+    setImagePreview(null)
+    setTempImage(null)
   }
 
   if (!isOpen) return null
@@ -109,17 +133,18 @@ const AppointmentTypeModal = ({
                 className="relative aspect-video bg-surface-card rounded-xl border-2 border-dashed border-border hover:border-border transition-colors cursor-pointer overflow-hidden group"
                 onClick={() => setShowImageSourceModal(true)}
               >
-                {appointmentTypeForm.image?.url ? (
+                {getCurrentImageUrl() ? (
                   <>
-                    <img src={appointmentTypeForm.image?.url} alt="Preview" className="w-full h-full object-cover" />
+                    <img
+                      src={getCurrentImageUrl()}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                    />
                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <span className="text-white text-sm font-medium">Change Image</span>
                     </div>
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setAppointmentTypeForm({ ...appointmentTypeForm, image: null })
-                      }}
+                      onClick={handleRemoveImage}
                       className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <X className="w-4 h-4" />
@@ -160,6 +185,7 @@ const AppointmentTypeModal = ({
                   className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary"
                 />
               </div>
+
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
                   Category
@@ -171,8 +197,11 @@ const AppointmentTypeModal = ({
                   name="category"
                   value={appointmentTypeForm.category}
                   onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, category: e.target.value })}
-                  options={appointmentCategories.map(c => ({ value: c, label: c }))}
-                  placeholder="Select category"
+                  options={appointmentCategories.map(c => ({
+                    value: c._id,
+                    label: c.categoryName
+                  }))}
+                  placeholder="Select a category"
                   className="bg-surface-card px-4 py-2.5 border-border"
                 />
               </div>
@@ -209,7 +238,8 @@ const AppointmentTypeModal = ({
                     value={appointmentTypeForm.duration}
                     onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, duration: Math.floor(Number(e.target.value)) })}
                     onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
-                    min={5} max={480}
+                    min={5}
+                    max={480}
                     className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
                   />
                   <span className="text-sm text-content-muted">min</span>
@@ -228,7 +258,8 @@ const AppointmentTypeModal = ({
                     value={appointmentTypeForm.interval}
                     onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, interval: Math.floor(Number(e.target.value)) })}
                     onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
-                    min={5} max={120}
+                    min={5}
+                    max={120}
                     className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
                   />
                   <span className="text-sm text-content-muted">min</span>
@@ -249,7 +280,8 @@ const AppointmentTypeModal = ({
                   value={appointmentTypeForm.slot}
                   onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, slot: Math.floor(Number(e.target.value)) })}
                   onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
-                  min={0} max={studioCapacity}
+                  min={0}
+                  max={studioCapacity}
                   className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
                 />
               </div>
@@ -268,7 +300,8 @@ const AppointmentTypeModal = ({
                   value={appointmentTypeForm.maxSimultaneous}
                   onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, maxSimultaneous: Math.floor(Number(e.target.value)) })}
                   onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
-                  min={1} max={studioCapacity}
+                  min={1}
+                  max={studioCapacity}
                   className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-primary"
                 />
               </div>

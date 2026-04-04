@@ -281,7 +281,7 @@ export default function Communications() {
   const { user } = useSelector((state) => state.auth) || {};
   const { studio } = useSelector((state) => state.studios) || {};
   const chatState = useSelector((state) => state.chats) || {};
-  const { messages: reduxMessages = [], loading: chatLoading } = chatState;
+  const { messages: reduxMessages = [], loading: chatLoading, chats: reduxChats = [] } = chatState;
   const { members: membersData = [] } = useSelector((state) => state.member) || {};
 
   // ==========================================
@@ -2692,8 +2692,8 @@ export default function Communications() {
                       />
                     ) : (
                       <InitialsAvatar
-                        firstName={selectedChat.name?.split(" ")[0] || ""}
-                        lastName={selectedChat.name?.split(" ").slice(1).join(" ") || ""}
+                        firstName={selectedChat.studio?.studioName?.split(" ")[0] || ""}
+                        // lastName={selectedChat.name?.split(" ").slice(1).join(" ") || ""}
                         size="md"
                         isStaff={chatType === "company" && selectedChat.id !== 100}
                       />

@@ -1,69 +1,78 @@
-const mongoose = require('mongoose')
-const { AppointmentModel, AppointmentCategoryModel } = require('../models/AppointmentModel');
-const { MemberModel, StaffModel } = require('../models/Discriminators');
+const mongoose = require('mongoose');
+const cloudinary = require('../utils/Cloudinary');
+const { AppointmentModel, AppointmentCategoryModel, AppointmentTypeModel } = require('../models/AppointmentModel');
+const { MemberModel } = require('../models/Discriminators');
 const StudioModel = require('../models/StudioModel');
-const ServiceModel = require('../models/ServiceModel')
 const { NotFoundError, UnAuthorizedError, BadRequestError } = require('../middleware/error/httpErrors');
 const LeadModel = require('../models/LeadModel');
 const { notifyUser } = require('../utils/NotificationService');
+const { uploadToCloudinary } = require('../utils/CloudinaryUpload');
 
-// createAppointment
-
-
+// ========================
+// CREATE APPOINTMENT (Member self-booking)
+// ========================
 const createAppointment = async (req, res, next) => {
     try {
-        const userId = req.user?._id
+        const userId = req.user?._id;
+        let { appointmentTypeId, date, timeSlotId, view, bookingType = "single", frequency, occurrences } = req.body;
 
+        if (!appointmentTypeId || !date || !timeSlotId) throw new BadRequestError("Missing required Field");
 
-        let { serviceId, date, timeSlotId, view } = req.body;
+        // Get appointment type details
+        const appointmentType = await AppointmentTypeModel.findById(appointmentTypeId);
+        if (!appointmentType) throw new NotFoundError("Invalid appointment type ID");
 
-        if (!serviceId || !date || !timeSlotId) throw new BadRequestError("Missing required Field")
-
-        const serviceData = await ServiceModel.findById(serviceId)
-        if (!serviceData) throw new NotFoundError("Invalid serviceId ID")
-
-        const member = await MemberModel.findById(userId)
-        if (!member) throw new NotFoundError("Invalid Member Id ")
+        const member = await MemberModel.findById(userId);
+        if (!member) throw new NotFoundError("Invalid Member Id");
         const studioId = member?.studio;
 
+        const studio = await StudioModel.findById(studioId);
+        if (!studio) throw new NotFoundError("Invalid Studio Id");
 
-        const studio = await StudioModel.findById(studioId)
-        if (!studio) throw new NotFoundError("Invalid Studio Id")
-
+        // Check if time slot is already booked
         const existingAppointment = await AppointmentModel.findOne({
             studio: studioId,
             date,
             "timeSlot.start": timeSlotId.start,
             "timeSlot.isBlocked": timeSlotId.isBlocked,
-        })
+        });
 
-        if (existingAppointment) throw new BadRequestError("TimeSlot already Booked")
+        if (existingAppointment) throw new BadRequestError("TimeSlot already Booked");
+
         const today = new Date();
         const selectedDate = new Date(date);
-        let status = "pending";
+        let status = "scheduled";
+        
         if (selectedDate < new Date(today.getFullYear(), today.getMonth(), today.getDate())) {
             status = "completed";
             view = 'past';
         }
+
+        // Check contingent usage
+        if (appointmentType.contingentUsage > (member.contingentBalance || 0)) {
+            throw new BadRequestError("Insufficient contingent balance");
+        }
+
         // SINGLE BOOKING
         if (bookingType === "single") {
             const appointment = await AppointmentModel.create({
-                member: memberId,
+                member: userId,
                 studio: studioId,
-                serviceId: serviceId,
+                appointmentType: appointmentTypeId,
                 date,
                 timeSlot: timeSlotId,
-                view,
+                view: view || "upcoming",
                 bookingType: "single",
                 status,
             });
 
-            await MemberModel.findByIdAndUpdate(memberId, {
+            await MemberModel.findByIdAndUpdate(userId, {
                 $push: { appointments: appointment._id },
+                $inc: { contingentBalance: -appointmentType.contingentUsage }
             });
 
-            serviceData.contingentUsage -= 1;
-            await serviceData.save();
+            const memberEmail = await MemberModel.findById(userId).select('email');
+            await notifyUser(userId, [memberEmail.email], "Appointment Booked", `Your appointment for ${appointmentType.name} on ${date} has been booked successfully.`, 'appointment_booked');
 
             return res.status(201).json({
                 success: true,
@@ -73,52 +82,50 @@ const createAppointment = async (req, res, next) => {
 
         // RECURRING BOOKING
         if (bookingType === "recurring") {
-            if (!frequency || !occurrences)
-                throw new BadRequestError("Missing recurring details");
+            if (!frequency || !occurrences) throw new BadRequestError("Missing recurring details");
 
-            // const recurringGroupId = new mongoose.Types.ObjectId();
             let appointments = [];
             let currentDate = new Date(date);
+            const totalContingentNeeded = appointmentType.contingentUsage * occurrences;
+            const recurringGroupId = new mongoose.Types.ObjectId();
+
+            if (totalContingentNeeded > (member.contingentBalance || 0)) {
+                throw new BadRequestError("Insufficient contingent balance for recurring bookings");
+            }
 
             for (let i = 0; i < occurrences; i++) {
                 appointments.push({
-                    member: memberId,
+                    member: userId,
                     studio: studioId,
-                    serviceId: serviceId,
+                    appointmentType: appointmentTypeId,
                     date: new Date(currentDate),
                     timeSlot: timeSlotId,
-                    view,
+                    view: view || "upcoming",
                     bookingType: "recurring",
                     frequency,
                     occurrences,
-                    // recurringGroupId,
+                    recurringGroupId,
                     status,
                 });
 
                 if (frequency === "daily")
                     currentDate.setDate(currentDate.getDate() + 1);
-
-                if (frequency === "weekly")
+                else if (frequency === "weekly")
                     currentDate.setDate(currentDate.getDate() + 7);
-
-                if (frequency === "monthly")
+                else if (frequency === "monthly")
                     currentDate.setMonth(currentDate.getMonth() + 1);
             }
 
-            const createdAppointments =
-                await AppointmentModel.insertMany(appointments);
+            const createdAppointments = await AppointmentModel.insertMany(appointments);
 
-            await MemberModel.findByIdAndUpdate(memberId, {
+            await MemberModel.findByIdAndUpdate(userId, {
                 $push: {
                     appointments: {
                         $each: createdAppointments.map(a => a._id),
                     },
                 },
+                $inc: { contingentBalance: -totalContingentNeeded }
             });
-            if (serviceData.contingentUsage < occurrences)
-                throw new BadRequestError("No remaining contingent");
-            serviceData.contingentUsage -= occurrences;
-            await serviceData.save();
 
             return res.status(201).json({
                 success: true,
@@ -126,44 +133,29 @@ const createAppointment = async (req, res, next) => {
             });
         }
 
-        await MemberModel.findByIdAndUpdate(userId, {
-            $push: { appointments: appointment._id }
-        }, { new: true })
-
-        serviceData.contingentUsage -= 1;
-        await serviceData.save();
-        const members = await MemberModel.find(userId, { email: 1 });
-        const emails = members.map(m => m.email);
-
-        await notifyUser(userId, emails, "Appointment Booked", `Your appointment for ${serviceData.name} on ${date} has been booked successfully.`, 'appointment_booked')
-        return res.status(201).json({
-            success: true,
-            appointment
-        })
-
-    }
-    catch (error) {
+    } catch (error) {
         next(error);
     }
-}
+};
 
+// ========================
+// CREATE BLOCKED APPOINTMENT
+// ========================
 const createBlockedAppointment = async (req, res, next) => {
     try {
-        const userId = req.user?._id
-        let { startDate, endDate, timeSlot, serviceId, note } = req.body; // Changed to startDate/endDate
+        let { startDate, endDate, timeSlot, appointmentTypeId, note } = req.body;
 
         if (!startDate || !endDate || !timeSlot || !timeSlot.start || !timeSlot.end) {
             throw new BadRequestError("Missing required fields for blocked appointment");
         }
 
-        const service = await ServiceModel.findById(serviceId);
-        if (!service) throw new NotFoundError("Invalid service id");
+        const appointmentType = await AppointmentTypeModel.findById(appointmentTypeId);
+        if (!appointmentType) throw new NotFoundError("Invalid appointment type id");
 
         const studioId = req.user?.studio;
         const studio = await StudioModel.findById(studioId);
         if (!studio) throw new NotFoundError("Invalid Studio Id");
 
-        // Create blocked appointments for each date in the range
         const start = new Date(startDate);
         const end = new Date(endDate);
         const appointments = [];
@@ -171,7 +163,6 @@ const createBlockedAppointment = async (req, res, next) => {
         for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
             const currentDate = date.toISOString().split('T')[0];
 
-            // Check if slot is already booked or blocked for this date
             const existingAppointment = await AppointmentModel.findOne({
                 studio: studioId,
                 date: currentDate,
@@ -180,9 +171,8 @@ const createBlockedAppointment = async (req, res, next) => {
             });
 
             if (!existingAppointment) {
-                // Create blocked appointment for this date
                 const appointment = await AppointmentModel.create({
-                    serviceId: serviceId,
+                    appointmentType: appointmentTypeId,
                     studio: studioId,
                     date: currentDate,
                     timeSlot: {
@@ -201,13 +191,14 @@ const createBlockedAppointment = async (req, res, next) => {
             success: true,
             appointments: appointments
         });
-    }
-    catch (error) {
+    } catch (error) {
         next(error);
     }
 };
 
-
+// ========================
+// CREATE APPOINTMENT BY STAFF
+// ========================
 const createAppointmentByStaff = async (req, res, next) => {
     try {
         const userId = req.user?._id;
@@ -215,7 +206,7 @@ const createAppointmentByStaff = async (req, res, next) => {
         const studioId = req.user?.studio;
 
         const {
-            serviceId,
+            appointmentTypeId,
             date,
             timeSlotId,
             view,
@@ -224,30 +215,33 @@ const createAppointmentByStaff = async (req, res, next) => {
             occurrences = 1,
         } = req.body;
 
-        if (!serviceId || !date || !timeSlotId)
+        if (!appointmentTypeId || !date || !timeSlotId)
             throw new BadRequestError("Missing required field");
 
-        const serviceData = await ServiceModel.findById(serviceId);
-        if (!serviceData)
-            throw new NotFoundError("Invalid serviceId ID");
+        const appointmentType = await AppointmentTypeModel.findById(appointmentTypeId);
+        if (!appointmentType) throw new NotFoundError("Invalid appointment type ID");
 
         const member = await MemberModel.findById(memberId);
-        if (!member)
-            throw new NotFoundError("Invalid Member ID");
+        if (!member) throw new NotFoundError("Invalid Member ID");
 
         const existingAppointment = await AppointmentModel.findOne({
             studio: studioId,
             date,
             "timeSlot.start": timeSlotId.start,
             "timeSlot.isBlocked": timeSlotId.isBlocked,
-        })
-        if (existingAppointment) throw new BadRequestError("TimeSlot already Booked")
+        });
+        if (existingAppointment) throw new BadRequestError("TimeSlot already Booked");
+
         const today = new Date();
         const selectedDate = new Date(date);
         let status = "confirmed";
+        
         if (selectedDate < new Date(today.getFullYear(), today.getMonth(), today.getDate())) {
             status = "completed";
-            view = 'past';
+        }
+
+        if (appointmentType.contingentUsage > (member.contingentBalance || 0)) {
+            throw new BadRequestError("Member has insufficient contingent balance");
         }
 
         // SINGLE BOOKING
@@ -255,23 +249,22 @@ const createAppointmentByStaff = async (req, res, next) => {
             const appointment = await AppointmentModel.create({
                 member: memberId,
                 studio: studioId,
-                serviceId: serviceId,
+                appointmentType: appointmentTypeId,
                 date,
                 timeSlot: timeSlotId,
-                view,
+                view: view || "upcoming",
                 bookingType: "single",
                 status,
+                createdBy: userId
             });
 
             await MemberModel.findByIdAndUpdate(memberId, {
                 $push: { appointments: appointment._id },
+                $inc: { contingentBalance: -appointmentType.contingentUsage }
             });
 
-            serviceData.contingentUsage -= 1;
-            await serviceData.save();
-            const members = await MemberModel.find(memberId, { email: 1 });
-            const emails = members.map(m => m.email);
-            await notifyUser(memberId, emails, "Appointment Booked", `You appointment ${appointment._id} on ${new Date(appointment.date).toLocaleDateString()} booked by staff.`, 'appointment-booked');
+            await notifyUser(memberId, [member.email], "Appointment Booked", `Your appointment for ${appointmentType.name} on ${new Date(appointment.date).toLocaleDateString()} has been booked by staff.`, 'appointment-booked');
+
             return res.status(201).json({
                 success: true,
                 appointment,
@@ -280,40 +273,42 @@ const createAppointmentByStaff = async (req, res, next) => {
 
         // RECURRING BOOKING
         if (bookingType === "recurring") {
-            if (!frequency || !occurrences)
-                throw new BadRequestError("Missing recurring details");
+            if (!frequency || !occurrences) throw new BadRequestError("Missing recurring details");
 
-            // const recurringGroupId = new mongoose.Types.ObjectId();
             let appointments = [];
             let currentDate = new Date(date);
+            const totalContingentNeeded = appointmentType.contingentUsage * occurrences;
+            const recurringGroupId = new mongoose.Types.ObjectId();
+
+            if (totalContingentNeeded > (member.contingentBalance || 0)) {
+                throw new BadRequestError("Insufficient contingent balance for recurring bookings");
+            }
 
             for (let i = 0; i < occurrences; i++) {
                 appointments.push({
                     member: memberId,
                     studio: studioId,
-                    serviceId: serviceId,
+                    appointmentType: appointmentTypeId,
                     date: new Date(currentDate),
                     timeSlot: timeSlotId,
-                    view,
+                    view: view || "upcoming",
                     bookingType: "recurring",
                     frequency,
                     occurrences,
-                    // recurringGroupId,
+                    recurringGroupId,
                     status,
+                    createdBy: userId
                 });
 
                 if (frequency === "daily")
                     currentDate.setDate(currentDate.getDate() + 1);
-
-                if (frequency === "weekly")
+                else if (frequency === "weekly")
                     currentDate.setDate(currentDate.getDate() + 7);
-
-                if (frequency === "monthly")
+                else if (frequency === "monthly")
                     currentDate.setMonth(currentDate.getMonth() + 1);
             }
 
-            const createdAppointments =
-                await AppointmentModel.insertMany(appointments);
+            const createdAppointments = await AppointmentModel.insertMany(appointments);
 
             await MemberModel.findByIdAndUpdate(memberId, {
                 $push: {
@@ -321,92 +316,74 @@ const createAppointmentByStaff = async (req, res, next) => {
                         $each: createdAppointments.map(a => a._id),
                     },
                 },
+                $inc: { contingentBalance: -totalContingentNeeded }
             });
-            if (serviceData.contingentUsage < occurrences)
-                throw new BadRequestError("No remaining contingent");
-            serviceData.contingentUsage -= occurrences;
-            await serviceData.save();
 
-            const members = await MemberModel.find(memberId, { email: 1 });
-            const emails = members.map(m => m.email);
-            await notifyUser(memberId, emails, "Appointment Booked", `Your upcoming appointments ${createdAppointments._id} are created  by staff.`, 'appointment-booked');
+            await notifyUser(memberId, [member.email], "Appointment Booked", `Your upcoming appointments have been created by staff.`, 'appointment-booked');
+
             return res.status(201).json({
                 success: true,
                 appointments: createdAppointments,
             });
         }
 
-
     } catch (error) {
         next(error);
     }
 };
 
+// ========================
+// CREATE TRIAL BOOKING BY STAFF (for Leads)
+// ========================
 const createBookingTrailByStaff = async (req, res, next) => {
     try {
         const userId = req.user?._id;
         const studioId = req.user?.studio;
         const { leadId } = req.params;
 
-        const {
-            serviceId,
-            date,
-            timeSlotId,
-        } = req.body;
+        const { appointmentTypeId, date, timeSlotId } = req.body;
 
-        if (!serviceId || !date || !timeSlotId)
+        if (!appointmentTypeId || !date || !timeSlotId)
             throw new BadRequestError("Missing required field");
 
-
-        console.log("BODY:", req.body);
-        console.log("PARAMS:", req.params);
-
-        const serviceData = await ServiceModel.findById(serviceId);
-        if (!serviceData)
-            throw new NotFoundError("Invalid serviceId ID");
+        const appointmentType = await AppointmentTypeModel.findById(appointmentTypeId);
+        if (!appointmentType) throw new NotFoundError("Invalid appointment type ID");
 
         const lead = await LeadModel.findById(leadId);
-        if (!lead)
-            throw new NotFoundError("Invalid Member ID");
+        if (!lead) throw new NotFoundError("Invalid Lead ID");
 
         const existingAppointment = await AppointmentModel.findOne({
             studio: studioId,
             date,
             "timeSlot.start": timeSlotId.start,
             "timeSlot.isBlocked": timeSlotId.isBlocked,
-        })
-        if (existingAppointment) throw new BadRequestError("TimeSlot already Booked")
+        });
+        if (existingAppointment) throw new BadRequestError("TimeSlot already Booked");
+
         const today = new Date();
         const selectedDate = new Date(date);
-
         let status = "confirmed";
 
         if (selectedDate < new Date(today.getFullYear(), today.getMonth(), today.getDate())) {
             status = "completed";
-            view = 'past';
         }
-
-
-        // SINGLE BOOKING
 
         const appointment = await AppointmentModel.create({
             lead: leadId,
             studio: studioId,
-            serviceId: serviceId,
+            appointmentType: appointmentTypeId,
             date,
             timeSlot: timeSlotId,
             view: "upcoming",
             bookingType: "single",
             status,
             isTrial: true,
+            createdBy: userId
+        });
 
-        })
         await LeadModel.findByIdAndUpdate(leadId, {
             $push: { appointments: appointment._id },
         });
-
-        serviceData.contingentUsage -= 1;
-        await serviceData.save();
 
         return res.status(201).json({
             success: true,
@@ -415,27 +392,38 @@ const createBookingTrailByStaff = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-}
+};
 
+// ========================
+// GET MY APPOINTMENTS (Member)
+// ========================
 const getMyAppointment = async (req, res, next) => {
     try {
-        const userId = req.user?._id
-        const appointment = await AppointmentModel.find({ member: userId })
-            .populate('serviceId', 'name')
+        const userId = req.user?._id;
+        const appointments = await AppointmentModel.find({ member: userId })
+            .populate('appointmentType', 'name duration calenderColor contingentUsage')
             .populate('studio', 'studioName')
-            .sort({ createdAt: -1 })
-        if (!appointment || appointment.length === 0) throw new NotFoundError("No Appointment Booked")
+            .sort({ createdAt: -1 });
+        
+        if (!appointments || appointments.length === 0) {
+            return res.status(200).json({
+                success: true,
+                appointments: []
+            });
+        }
+        
         return res.status(200).json({
             success: true,
-            appointment
-        })
+            appointments
+        });
+    } catch (error) {
+        return next(error);
     }
-    catch (error) {
-        return next(error)
-    }
-}
+};
 
-
+// ========================
+// CANCEL APPOINTMENT
+// ========================
 const cancelAppointment = async (req, res, next) => {
     try {
         const { appointmentId } = req.params;
@@ -444,8 +432,7 @@ const cancelAppointment = async (req, res, next) => {
             throw new NotFoundError("Invalid Appointment ID");
         }
 
-        // Find appointment by ID only, no ownership check
-        const appointment = await AppointmentModel.findById(appointmentId);
+        const appointment = await AppointmentModel.findById(appointmentId).populate('appointmentType');
 
         if (!appointment) {
             throw new NotFoundError("Appointment not found");
@@ -453,27 +440,35 @@ const cancelAppointment = async (req, res, next) => {
 
         if (appointment.status === "canceled") {
             return res.status(400).json({
+                success: false,
                 message: "Appointment is already canceled",
             });
         }
 
         if (appointment.status === "completed") {
             return res.status(400).json({
+                success: false,
                 message: "Completed appointments cannot be canceled",
+            });
+        }
+
+        if (appointment.member && appointment.appointmentType && appointment.status !== "canceled") {
+            await MemberModel.findByIdAndUpdate(appointment.member, {
+                $inc: { contingentBalance: appointment.appointmentType.contingentUsage }
             });
         }
 
         appointment.status = "canceled";
         appointment.view = "past";
         await appointment.save();
-        const members = await AppointmentModel.find({ members })
 
-        const member = await MemberModel.find(members, { email: 1 })
-        const emails = member.map(m => m.email)
+        if (appointment.member) {
+            const member = await MemberModel.findById(appointment.member).select('email');
+            await notifyUser(appointment.member, [member.email], "Appointment Canceled", `Your appointment has been canceled.`, 'appointment-canceled');
+        }
 
-
-        await notifyUser(member, emails, "Appointment canceled", `You ${appointment._id} appointment has been canceled by staff.`, 'appointment-canceled');
         return res.status(200).json({
+            success: true,
             message: "Appointment successfully canceled",
             appointment,
         });
@@ -482,25 +477,30 @@ const cancelAppointment = async (req, res, next) => {
     }
 };
 
+// ========================
+// GET ALL APPOINTMENTS (Staff/Admin)
+// ========================
 const allAppointments = async (req, res, next) => {
     try {
-        const appointment = await AppointmentModel.find()
-            .populate('member', 'firstName lastName')
-            .populate('lead', 'firstName lastName')
+        const appointments = await AppointmentModel.find()
+            .populate('member', 'firstName lastName email')
+            .populate('lead', 'firstName lastName email')
             .populate('studio', 'studioName')
-            .populate('serviceId', 'name')
+            .populate('appointmentType', 'name duration calenderColor')
             .sort({ createdAt: -1 });
-        if (!appointment || appointment.length === 0) throw new NotFoundError("No Appointment Booked")
+        
         return res.status(200).json({
             success: true,
-            appointments: appointment
-        })
+            appointments: appointments
+        });
+    } catch (error) {
+        next(error);
     }
-    catch (error) {
-        next(error)
-    }
-}
+};
 
+// ========================
+// GET APPOINTMENTS BY MEMBER ID
+// ========================
 const appointmentByMemberId = async (req, res, next) => {
     try {
         const { memberId } = req.params;
@@ -511,47 +511,41 @@ const appointmentByMemberId = async (req, res, next) => {
 
         const now = new Date();
 
-        // Find only appointments with date >= today
-        const appointment = await AppointmentModel.find({
+        const appointments = await AppointmentModel.find({
             member: memberId,
             date: { $gte: now }
         })
             .populate('member', 'firstName lastName')
-            .populate('serviceId', 'name')
+            .populate('appointmentType', 'name duration calenderColor')
             .populate('studio', 'studioName')
-        //   .sort({ date: -1 }); // soonest first
+            .sort({ date: 1 });
 
         return res.status(200).json({
             success: true,
-            appointment: appointment || [],
+            appointments: appointments || [],
         });
     } catch (error) {
         next(error);
     }
 };
 
-
-
-// update appointment
+// ========================
+// UPDATE APPOINTMENT BY ID
+// ========================
 const updateAppointmentById = async (req, res, next) => {
     try {
-        const userId = req.user?._id;
         const { appointmentId } = req.params;
-        const { serviceId, date, timeSlotId } = req.body;
+        const { appointmentTypeId, date, timeSlotId } = req.body;
 
-        // Build update data properly
         const updateData = {
             view: 'upcoming',
             status: 'confirmed'
         };
 
-        // Only add fields if they are provided
-        if (serviceId) updateData.serviceId = serviceId;
+        if (appointmentTypeId) updateData.appointmentType = appointmentTypeId;
         if (date) updateData.date = date;
 
-        // Handle timeSlotId properly - it should be the full timeSlot object
         if (timeSlotId) {
-            // Ensure timeSlotId has start and end times
             if (timeSlotId.start && timeSlotId.end) {
                 updateData.timeSlot = {
                     start: timeSlotId.start,
@@ -560,7 +554,6 @@ const updateAppointmentById = async (req, res, next) => {
                     isBlocked: timeSlotId.isBlocked || false
                 };
             } else if (timeSlotId.start) {
-                // If only start is provided, calculate end time
                 const duration = timeSlotId.duration || 60;
                 const [hours, minutes] = timeSlotId.start.split(':').map(Number);
                 const endDate = new Date(2000, 0, 1, hours, minutes + duration);
@@ -573,7 +566,6 @@ const updateAppointmentById = async (req, res, next) => {
                     isBlocked: timeSlotId.isBlocked || false
                 };
             } else {
-                // If timeSlotId is provided but doesn't have start time, keep existing timeSlot
                 const existingAppointment = await AppointmentModel.findById(appointmentId);
                 if (existingAppointment && existingAppointment.timeSlot) {
                     updateData.timeSlot = existingAppointment.timeSlot;
@@ -588,7 +580,7 @@ const updateAppointmentById = async (req, res, next) => {
             appointmentId,
             { $set: updateData },
             { new: true }
-        );
+        ).populate('appointmentType', 'name duration');
 
         if (!updatedAppointment) throw new BadRequestError("Invalid data");
 
@@ -601,97 +593,426 @@ const updateAppointmentById = async (req, res, next) => {
     }
 };
 
-// delete Appointment
+// ========================
+// DELETE APPOINTMENT BY ID
+// ========================
 const deleteAppointmentById = async (req, res, next) => {
     try {
-        const userId = req.user?._id
-        const { appointmentId } = req.params
+        const { appointmentId } = req.params;
 
-        const appointment = await AppointmentModel.findById(appointmentId)
+        const appointment = await AppointmentModel.findById(appointmentId).populate('appointmentType');
 
-        if (!appointment) throw new NotFoundError("Invalid Appointment Id")
+        if (!appointment) throw new NotFoundError("Invalid Appointment Id");
 
-        await MemberModel.findByIdAndUpdate(appointment.member, {
-            $pull: { appointments: appointment._id }
-        }, { new: true })
+        if (appointment.member && appointment.appointmentType && appointment.status !== "canceled" && appointment.status !== "completed") {
+            await MemberModel.findByIdAndUpdate(appointment.member, {
+                $inc: { contingentBalance: appointment.appointmentType.contingentUsage }
+            });
+        }
 
-        await AppointmentModel.findByIdAndDelete(appointmentId)
+        if (appointment.member) {
+            await MemberModel.findByIdAndUpdate(appointment.member, {
+                $pull: { appointments: appointment._id }
+            }, { new: true });
+        }
+
+        if (appointment.lead) {
+            await LeadModel.findByIdAndUpdate(appointment.lead, {
+                $pull: { appointments: appointment._id }
+            }, { new: true });
+        }
+
+        await AppointmentModel.findByIdAndDelete(appointmentId);
+        
         return res.status(200).json({
             success: true,
             message: "Appointment Deleted Successfully"
-        })
-
+        });
+    } catch (error) {
+        next(error);
     }
-    catch (error) {
-        next(error)
-    }
-}
+};
 
-
-const approvedAppointment = async (req, res, next) => {
-    try {
-        const { appointmentId } = req.params
-        const userId = req.user?._id
-
-        const appointment = await AppointmentModel.findById(appointmentId)
-        if (!appointment) throw new NotFoundError("Invalid Appointment Id")
-
-        const updatedAppointment = await AppointmentModel.findByIdAndUpdate(appointmentId, {
-            $set: { status: "approved", view: "upcoming", approvedBy: userId }
-        }, { new: true })
-
-        return res.status(200).json({
-            success: true,
-            appointment: updatedAppointment
-        })
-    }
-    catch (error) {
-        next(error)
-    }
-}
-const rejectedAppointment = async (req, res, next) => {
-    try {
-        const { appointmentId } = req.params
-        const userId = req.user?._id
-
-        const appointment = await AppointmentModel.findById(appointmentId)
-        if (!appointment) throw new NotFoundError("Invalid Appointment Id")
-
-        const updatedAppointment = await AppointmentModel.findByIdAndUpdate(appointmentId, {
-            $set: { status: "rejected", view: "canceled", rejectedBy: userId }
-        }, { new: true })
-
-        return res.status(200).json({
-            success: true,
-            appointment: updatedAppointment
-        })
-    }
-    catch (error) {
-        next(error)
-    }
-}
-
-
+// ========================
+// GET ALL PENDING APPOINTMENTS
+// ========================
 const getAllPendingAppointment = async (req, res, next) => {
     try {
-        const userId = req.user?._id;
-        const studioId = req.user?.studio
-        const appointments = await AppointmentModel.find({ studio: studioId, status: 'pending' })
-            .populate('member', 'firstName lastName')
+        const studioId = req.user?.studio;
+        const appointments = await AppointmentModel.find({ 
+            studio: studioId, 
+            status: { $in: ['scheduled', 'pending'] }
+        })
+            .populate('member', 'firstName lastName email')
+            .populate('lead', 'firstName lastName email')
             .populate('studio', 'studioName')
+            .populate('appointmentType', 'name');
 
-        if (appointments.length === 0) throw new NotFoundError("No Appointment Found")
         return res.status(200).json({
             success: true,
             count: appointments.length,
             appointments: appointments
-        })
+        });
+    } catch (error) {
+        next(error);
     }
-    catch (error) {
-        next(error)
-    }
-}
+};
 
+// ========================
+// APPROVE APPOINTMENT
+// ========================
+const approvedAppointment = async (req, res, next) => {
+    try {
+        const { appointmentId } = req.params;
+        const userId = req.user?._id;
+
+        const appointment = await AppointmentModel.findById(appointmentId);
+        if (!appointment) throw new NotFoundError("Invalid Appointment Id");
+
+        const updatedAppointment = await AppointmentModel.findByIdAndUpdate(appointmentId, {
+            $set: { status: "confirmed", view: "upcoming", approvedBy: userId, approvedAt: new Date() }
+        }, { new: true });
+
+        return res.status(200).json({
+            success: true,
+            appointment: updatedAppointment
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// ========================
+// REJECT APPOINTMENT
+// ========================
+const rejectedAppointment = async (req, res, next) => {
+    try {
+        const { appointmentId } = req.params;
+        const userId = req.user?._id;
+
+        const appointment = await AppointmentModel.findById(appointmentId);
+        if (!appointment) throw new NotFoundError("Invalid Appointment Id");
+
+        const updatedAppointment = await AppointmentModel.findByIdAndUpdate(appointmentId, {
+            $set: { status: "rejected", view: "canceled", rejectedBy: userId, rejectedAt: new Date() }
+        }, { new: true });
+
+        return res.status(200).json({
+            success: true,
+            appointment: updatedAppointment
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// ========================
+// APPOINTMENT TYPES CRUD
+// ========================
+
+// Get all appointment types for a studio
+const getAppointmentTypes = async (req, res, next) => {
+    try {
+        const studioId = req.user?.studio;
+
+        if (!studioId) {
+            throw new UnAuthorizedError("You are not assigned to any studio");
+        }
+
+        const appointmentTypes = await AppointmentTypeModel.find({ studioId })
+            .populate('category', 'categoryName description')
+            .sort({ createdAt: -1 });
+
+        return res.status(200).json({
+            success: true,
+            count: appointmentTypes.length,
+            types: appointmentTypes
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Get single appointment type by ID
+const getAppointmentTypeById = async (req, res, next) => {
+    try {
+        const { typeId } = req.params;
+        const studioId = req.user?.studio;
+
+        if (!studioId) {
+            throw new UnAuthorizedError("You are not assigned to any studio");
+        }
+
+        const appointmentType = await AppointmentTypeModel.findOne({
+            _id: typeId,
+            studioId
+        }).populate('category', 'categoryName description');
+
+        if (!appointmentType) {
+            throw new NotFoundError("Appointment type not found");
+        }
+
+        return res.status(200).json({
+            success: true,
+            type: appointmentType
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Create appointment type
+const createAppointmentTypes = async (req, res, next) => {
+    try {
+        const studioId = req.user?.studio;
+        const userId = req.user?._id;
+
+        if (!studioId) {
+            throw new UnAuthorizedError("You are not assigned to any studio");
+        }
+
+        const {
+            name,
+            categoryId,
+            contingentUsage,
+            description,
+            duration,
+            interval,
+            slot,
+            maxParallel,
+            calenderColor,
+        } = req.body;
+
+        if (!name) throw new BadRequestError("Name is required");
+        if (!categoryId) throw new BadRequestError("Category ID is required");
+        if (!duration || duration < 5) throw new BadRequestError("Duration must be at least 5 minutes");
+        if (!interval || interval < 5) throw new BadRequestError("Interval must be at least 5 minutes");
+        if (slot === undefined || slot === null || slot === "") throw new BadRequestError("Slots required is required");
+        if (!maxParallel || maxParallel < 1) throw new BadRequestError("Max parallel must be at least 1");
+        if (contingentUsage === undefined || contingentUsage === null || contingentUsage === "") throw new BadRequestError("Contingent usage is required");
+
+        const category = await AppointmentCategoryModel.findById(categoryId);
+        if (!category) throw new NotFoundError("Invalid category Id");
+
+        const existingType = await AppointmentTypeModel.findOne({
+            studioId,
+            name: { $regex: new RegExp(`^${name}$`, 'i') }
+        });
+        if (existingType) throw new BadRequestError("Appointment type with this name already exists");
+
+        let imageData = null;
+        if (req.file) {
+            const image = await uploadToCloudinary(req.file.buffer);
+            imageData = {
+                url: image.secure_url,
+                public_id: image.public_id
+            };
+        }
+
+        const type = await AppointmentTypeModel.create({
+            studioId: studioId,
+            name,
+            category: categoryId,
+            contingentUsage: contingentUsage || 1,
+            description: description || "",
+            duration: duration || 30,
+            interval: interval || 30,
+            slot: slot || 1,
+            maxParallel: maxParallel || 1,
+            calenderColor: calenderColor || "#FF843E",
+            image: imageData,
+            createdBy: userId
+        });
+
+        await StudioModel.findByIdAndUpdate(studioId, {
+            $push: { appointmentTypes: type._id }
+        }, { new: true });
+
+        const populatedType = await AppointmentTypeModel.findById(type._id)
+            .populate('category', 'categoryName description');
+
+        return res.status(201).json({
+            success: true,
+            message: "Appointment type created successfully",
+            type: populatedType
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Update appointment type
+const updateAppointmentTypes = async (req, res, next) => {
+    try {
+        const { typeId } = req.params;
+        const studioId = req.user?.studio;
+        const userId = req.user?._id;
+
+        const {
+            name,
+            categoryId,
+            contingentUsage,
+            description,
+            duration,
+            interval,
+            slot,
+            maxParallel,
+            calenderColor
+        } = req.body;
+
+        if (!studioId) {
+            throw new UnAuthorizedError("You are not assigned to any studio");
+        }
+
+        const appointmentType = await AppointmentTypeModel.findOne({
+            _id: typeId,
+            studioId
+        });
+
+        if (!appointmentType) {
+            throw new NotFoundError("Appointment type not found");
+        }
+
+        if (categoryId) {
+            const category = await AppointmentCategoryModel.findById(categoryId);
+            if (!category) throw new NotFoundError("Invalid category Id");
+            appointmentType.category = categoryId;
+        }
+
+        if (name && name !== appointmentType.name) {
+            const existingType = await AppointmentTypeModel.findOne({
+                studioId,
+                name: { $regex: new RegExp(`^${name}$`, 'i') },
+                _id: { $ne: typeId }
+            });
+            if (existingType) {
+                throw new BadRequestError("Appointment type with this name already exists");
+            }
+            appointmentType.name = name;
+        }
+
+        if (req.file) {
+            if (appointmentType.image?.public_id) {
+                await cloudinary.uploader.destroy(appointmentType.image.public_id);
+            }
+            const image = await uploadToCloudinary(req.file.buffer);
+            appointmentType.image = {
+                url: image.secure_url,
+                public_id: image.public_id
+            };
+        }
+
+        if (contingentUsage !== undefined) appointmentType.contingentUsage = contingentUsage;
+        if (description !== undefined) appointmentType.description = description;
+        if (duration !== undefined) appointmentType.duration = duration;
+        if (interval !== undefined) appointmentType.interval = interval;
+        if (slot !== undefined) appointmentType.slot = slot;
+        if (maxParallel !== undefined) appointmentType.maxParallel = maxParallel;
+        if (calenderColor !== undefined) appointmentType.calenderColor = calenderColor;
+
+        appointmentType.updatedBy = userId;
+        appointmentType.updatedAt = Date.now();
+
+        await appointmentType.save();
+
+        const updatedType = await AppointmentTypeModel.findById(appointmentType._id)
+            .populate('category', 'categoryName description');
+
+        return res.status(200).json({
+            success: true,
+            message: "Appointment type updated successfully",
+            type: updatedType
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Delete appointment type
+const deleteAppointmentTypes = async (req, res, next) => {
+    try {
+        const { typeId } = req.params;
+        const studioId = req.user?.studio;
+
+        if (!studioId) {
+            throw new UnAuthorizedError("You are not assigned to any studio");
+        }
+
+        const appointmentType = await AppointmentTypeModel.findOne({
+            _id: typeId,
+            studioId
+        });
+
+        if (!appointmentType) {
+            throw new NotFoundError("Appointment type not found");
+        }
+
+        if (appointmentType.image?.public_id) {
+            await cloudinary.uploader.destroy(appointmentType.image.public_id);
+        }
+
+        await AppointmentTypeModel.findByIdAndDelete(typeId);
+
+        await StudioModel.findByIdAndUpdate(studioId, {
+            $pull: { appointmentTypes: typeId }
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Appointment type deleted successfully"
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Bulk delete appointment types
+const bulkDeleteAppointmentTypes = async (req, res, next) => {
+    try {
+        const { typeIds } = req.body;
+        const studioId = req.user?.studio;
+
+        if (!studioId) {
+            throw new UnAuthorizedError("You are not assigned to any studio");
+        }
+
+        if (!typeIds || !Array.isArray(typeIds) || typeIds.length === 0) {
+            throw new BadRequestError("Please provide an array of appointment type IDs to delete");
+        }
+
+        const appointmentTypes = await AppointmentTypeModel.find({
+            _id: { $in: typeIds },
+            studioId
+        });
+
+        if (appointmentTypes.length === 0) {
+            throw new NotFoundError("No appointment types found to delete");
+        }
+
+        for (const type of appointmentTypes) {
+            if (type.image?.public_id) {
+                await cloudinary.uploader.destroy(type.image.public_id);
+            }
+        }
+
+        const result = await AppointmentTypeModel.deleteMany({
+            _id: { $in: typeIds },
+            studioId
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: `${result.deletedCount} appointment type(s) deleted successfully`,
+            deletedCount: result.deletedCount
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// ========================
+// MODULE EXPORTS
+// ========================
 module.exports = {
     createAppointment,
     getMyAppointment,
@@ -705,5 +1026,12 @@ module.exports = {
     deleteAppointmentById,
     getAllPendingAppointment,
     approvedAppointment,
-    rejectedAppointment
-}
+    rejectedAppointment,
+
+    createAppointmentTypes,
+    updateAppointmentTypes,
+    deleteAppointmentTypes,
+    getAppointmentTypes,
+    getAppointmentTypeById,
+    bulkDeleteAppointmentTypes
+};

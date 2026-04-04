@@ -339,7 +339,7 @@ const fetchStaffAllChats = async (req, res, next) => {
         })
             .populate('member', 'firstName lastName img')  // for studio-member chats
             .populate('users', 'firstName lastName img role')  // for 1-1 & group
-            .populate('studio', 'name')
+            .populate('studio', 'studioName')
             .sort({ updatedAt: -1 });
 
         // Add metadata about chat type
