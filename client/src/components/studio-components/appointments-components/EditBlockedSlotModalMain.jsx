@@ -3,11 +3,13 @@ import { useState, useEffect } from "react"
 import { X, Check, AlertTriangle } from "lucide-react"
 import { appointmentTypesData } from "../../../utils/studio-states"
 import DatePickerField from '../../shared/DatePickerField'
+import { useTranslation } from "react-i18next"
 
 /* 
   Modal for editing blocked time slots
 */
 const EditBlockedSlotModalMain = ({ isOpen, onClose, initialBlock, onSubmit, onDelete }) => {
+  const { t } = useTranslation()
   // Get all appointment types (regular + trial training)
   const allAppointmentTypes = [
     ...appointmentTypesData.filter(t => !t.isTrialType),
@@ -175,7 +177,7 @@ const EditBlockedSlotModalMain = ({ isOpen, onClose, initialBlock, onSubmit, onD
           {/* Header */}
           <div className="px-6 py-4 border-b border-border">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-content-primary">Edit Blocked Time Slot</h2>
+              <h2 className="text-lg font-semibold text-content-primary">{t("studioCalendar.editBlock.title")}</h2>
               <button onClick={onClose} className="p-2 hover:bg-surface-button text-content-muted hover:text-content-primary rounded-lg transition-colors">
                 <X size={20} />
               </button>
@@ -188,32 +190,32 @@ const EditBlockedSlotModalMain = ({ isOpen, onClose, initialBlock, onSubmit, onD
               {/* Start & End Date */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-content-secondary mb-2">Start Date</label>
+                  <label className="block text-sm font-medium text-content-secondary mb-2">{t("studioCalendar.editBlock.startDate")}</label>
                   <div className="w-full flex items-center justify-between bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5">
                     <span className={blockData.startDate ? "text-content-primary" : "text-content-faint"}>
-                      {blockData.startDate ? formatDateDisplay(blockData.startDate) : "Select date"}
+                      {blockData.startDate ? formatDateDisplay(blockData.startDate) : t("studioCalendar.editBlock.selectDate")}
                     </span>
                     <DatePickerField value={blockData.startDate} onChange={(val) => setBlockData({ ...blockData, startDate: val })} />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-content-secondary mb-2">End Date</label>
+                  <label className="block text-sm font-medium text-content-secondary mb-2">{t("studioCalendar.editBlock.endDate")}</label>
                   <div className="w-full flex items-center justify-between bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5">
                     <span className={blockData.endDate ? "text-content-primary" : "text-content-faint"}>
-                      {blockData.endDate ? formatDateDisplay(blockData.endDate) : "Select date"}
+                      {blockData.endDate ? formatDateDisplay(blockData.endDate) : t("studioCalendar.editBlock.selectDate")}
                     </span>
                     <DatePickerField value={blockData.endDate} onChange={(val) => setBlockData({ ...blockData, endDate: val })} />
                   </div>
                 </div>
               </div>
               {!isDateValid() && (
-                <p className="text-accent-red text-xs">Start date cannot be after end date</p>
+                <p className="text-accent-red text-xs">{t("studioCalendar.editBlock.dateError")}</p>
               )}
 
               {/* Start & End Time */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-content-secondary mb-2">Start Time</label>
+                  <label className="block text-sm font-medium text-content-secondary mb-2">{t("studioCalendar.editBlock.startTime")}</label>
                   <input
                     type="time"
                     name="startTime"
@@ -224,7 +226,7 @@ const EditBlockedSlotModalMain = ({ isOpen, onClose, initialBlock, onSubmit, onD
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-content-secondary mb-2">End Time</label>
+                  <label className="block text-sm font-medium text-content-secondary mb-2">{t("studioCalendar.editBlock.endTime")}</label>
                   <input
                     type="time"
                     name="endTime"
@@ -236,19 +238,19 @@ const EditBlockedSlotModalMain = ({ isOpen, onClose, initialBlock, onSubmit, onD
                 </div>
               </div>
               {!isTimeValid() && (
-                <p className="text-accent-red text-xs">Start time must be before end time on the same day</p>
+                <p className="text-accent-red text-xs">{t("studioCalendar.editBlock.timeError")}</p>
               )}
 
               {/* Appointment Types to Block */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-medium text-content-secondary">Block Appointment Types</label>
+                  <label className="block text-sm font-medium text-content-secondary">{t("studioCalendar.editBlock.blockTypes")}</label>
                   <button
                     type="button"
                     onClick={handleSelectAll}
                     className="text-xs text-primary hover:text-primary-hover transition-colors"
                   >
-                    {areAllSelected ? "Deselect All" : "Select All"}
+                    {areAllSelected ? t("studioCalendar.deselectAll") : t("studioCalendar.selectAll")}
                   </button>
                 </div>
                 <div className="bg-surface-dark border border-border rounded-xl p-3 space-y-1">
@@ -279,18 +281,18 @@ const EditBlockedSlotModalMain = ({ isOpen, onClose, initialBlock, onSubmit, onD
                   ))}
                 </div>
                 {!hasSelectedTypes && (
-                  <p className="text-accent-red text-xs mt-2">Please select at least one appointment type</p>
+                  <p className="text-accent-red text-xs mt-2">{t("studioCalendar.editBlock.selectOneType")}</p>
                 )}
               </div>
 
               {/* Note */}
               <div>
-                <label className="block text-sm font-medium text-content-secondary mb-2">Note (Optional)</label>
+                <label className="block text-sm font-medium text-content-secondary mb-2">{t("studioCalendar.editBlock.noteLabel")}</label>
                 <textarea
                   name="note"
                   value={blockData.note}
                   onChange={handleChange}
-                  placeholder="Add a note about this blocked time"
+                  placeholder={t("studioCalendar.editBlock.notePlaceholder")}
                   className="w-full bg-surface-dark border border-border text-content-primary resize-none rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary transition-colors min-h-[80px]"
                 />
               </div>
@@ -303,7 +305,7 @@ const EditBlockedSlotModalMain = ({ isOpen, onClose, initialBlock, onSubmit, onD
                 onClick={handleDeleteClick}
                 className="px-4 py-2.5 text-sm font-medium text-accent-red hover:text-accent-red hover:bg-accent-red/10 rounded-xl transition-colors"
               >
-                Delete
+                {t("common.delete")}
               </button>
               <div className="flex-1" />
               <button
@@ -311,7 +313,7 @@ const EditBlockedSlotModalMain = ({ isOpen, onClose, initialBlock, onSubmit, onD
                 onClick={onClose}
                 className="px-5 py-2.5 text-sm font-medium text-content-muted hover:text-content-primary bg-surface-button hover:bg-surface-button-hover rounded-xl transition-colors"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 type="submit"
@@ -322,7 +324,7 @@ const EditBlockedSlotModalMain = ({ isOpen, onClose, initialBlock, onSubmit, onD
                     : "text-content-faint bg-surface-button cursor-not-allowed"
                 }`}
               >
-                Save Changes
+                {t("studioCalendar.editBlock.saveChanges")}
               </button>
             </div>
           </form>
@@ -341,10 +343,10 @@ const EditBlockedSlotModalMain = ({ isOpen, onClose, initialBlock, onSubmit, onD
                 <AlertTriangle size={24} className="text-accent-red" />
               </div>
               <h3 className="text-lg font-semibold text-content-primary text-center mb-2">
-                Delete Blocked Time Slot?
+                {t("studioCalendar.editBlock.deleteTitle")}
               </h3>
               <p className="text-content-muted text-sm text-center">
-                Are you sure you want to delete this blocked time slot? This action cannot be undone.
+                {t("studioCalendar.editBlock.deleteConfirm")}
               </p>
             </div>
             <div className="px-6 py-4 border-t border-border flex justify-end gap-3">
@@ -352,14 +354,12 @@ const EditBlockedSlotModalMain = ({ isOpen, onClose, initialBlock, onSubmit, onD
                 onClick={() => setShowDeleteConfirm(false)}
                 className="px-5 py-2.5 text-sm font-medium text-content-muted hover:text-content-primary bg-surface-button hover:bg-surface-button-hover rounded-xl transition-colors"
               >
-                Go Back
+                {t("common.back")}
               </button>
               <button
                 onClick={handleConfirmDelete}
                 className="px-5 py-2.5 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-xl transition-colors"
-              >
-                Delete
-              </button>
+              >{t("common.delete")}</button>
             </div>
           </div>
         </div>

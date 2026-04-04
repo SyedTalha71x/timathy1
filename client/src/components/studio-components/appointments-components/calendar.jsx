@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState, forwardRef, useImperativeHand
 import dayGridPlugin from "@fullcalendar/daygrid"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
+import allLocales from "@fullcalendar/core/locales-all"
 import { X } from "lucide-react"
 
 import CreateAppointmentModal from "../../shared/appointments/CreateAppointmentModal"
@@ -25,6 +26,7 @@ import { useNavigate } from "react-router-dom"
 import { useDispatch, useSelector } from "react-redux"
 import { fetchAllMember } from "../../../features/member/memberSlice"
 import { fetchAllAppointments } from "../../../features/appointments/AppointmentSlice"
+import { useTranslation } from "react-i18next"
 
 // Helper function to format date as YYYY-MM-DD in local timezone (avoiding UTC shift issues)
 const formatDateLocal = (date) => {
@@ -49,6 +51,7 @@ const Calendar = forwardRef(({
   calendarSettings = DEFAULT_CALENDAR_SETTINGS,
 }, ref) => {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation()
   // Read CSS variable value for dynamic event coloring
   const getCssVar = (varName) => {
     if (typeof document === 'undefined') return '';
@@ -401,7 +404,7 @@ const Calendar = forwardRef(({
         if (isBlockedEvent) {
           title = "🔒 BLOCKED";
         } else if (viewMode === "free") {
-          title = "Free Slot";
+          title = t("studioCalendar.freeSlot");
         }
 
         return {
@@ -476,7 +479,7 @@ const Calendar = forwardRef(({
     }
     setIsEditMemberModalOpen(false);
     setSelectedMemberForEdit(null);
-    toast.success("Member details updated");
+    toast.success(t("studioCalendar.toast.memberUpdated"));
   };
 
   // Handler for adding a relation
@@ -502,7 +505,7 @@ const Calendar = forwardRef(({
     setNewRelationMain({
       name: "", relation: "", category: "family", type: "manual", selectedMemberId: null,
     });
-    toast.success("Relation added");
+    toast.success(t("studioCalendar.toast.relationAdded"));
   };
 
   // Handler for deleting a relation
@@ -514,7 +517,7 @@ const Calendar = forwardRef(({
         [category]: prev[memberId][category].filter(r => r.id !== relationId)
       }
     }));
-    toast.success("Relation deleted");
+    toast.success(t("studioCalendar.toast.relationDeleted"));
   };
 
   const formatDateRange = useCallback(() => {
@@ -528,18 +531,18 @@ const Calendar = forwardRef(({
       const start = new Date(view.currentStart)
       const end = new Date(view.currentEnd)
       end.setDate(end.getDate() - 1)
-      const startMonth = start.toLocaleDateString("en-US", { month: "short" })
-      const endMonth = end.toLocaleDateString("en-US", { month: "short" })
+      const startMonth = start.toLocaleDateString(i18n.language, { month: "short" })
+      const endMonth = end.toLocaleDateString(i18n.language, { month: "short" })
       const year = start.getFullYear()
       return startMonth === endMonth
         ? `${startMonth} ${start.getDate()} - ${end.getDate()}, ${year}`
         : `${startMonth} ${start.getDate()} - ${endMonth} ${end.getDate()}, ${year}`
     } else if (viewType === "timeGridDay") {
       const currentDate = new Date(view.currentStart)
-      return currentDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+      return currentDate.toLocaleDateString(i18n.language, { month: "short", day: "numeric", year: "numeric" })
     } else if (viewType === "dayGridMonth") {
       const currentDate = new Date(view.currentStart)
-      return currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })
+      return currentDate.toLocaleDateString(i18n.language, { month: "long", year: "numeric" })
     }
     return currentDateDisplay
   }, [currentDateDisplay])
@@ -729,7 +732,7 @@ const Calendar = forwardRef(({
 
       if (appointmentDate && !isNaN(appointmentDate)) {
         const options = { weekday: "short", day: "numeric", month: "short", year: "numeric" };
-        formattedDate = appointmentDate.toLocaleDateString("en-US", options);
+        formattedDate = appointmentDate.toLocaleDateString(i18n.language, options);
       }
 
       const fullName = appointment.name
@@ -823,7 +826,7 @@ const Calendar = forwardRef(({
 
   const handleAppointmentSubmit = (appointmentData) => {
     const dateObj = new Date(appointmentData.date + "T12:00:00");
-    const formattedDate = `${dateObj.toLocaleString("en-US", { weekday: "short" })} | ${formatDate(dateObj)}`;
+    const formattedDate = `${dateObj.toLocaleString(i18n.language, { weekday: "short" })} | ${formatDate(dateObj)}`;
     setAppointmentsMain(prev => {
       const newId = Math.max(0, ...prev.map(a => a.id)) + 1;
       const newAppointment = {
@@ -840,7 +843,7 @@ const Calendar = forwardRef(({
     const newTrial = {
       id: Math.max(0, ...appointmentsMain.map(a => a.id)) + 1, ...trialData,
       status: "pending", isTrial: true, isCancelled: false, isPast: false,
-      date: `${new Date(trialData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(trialData.date))}`,
+      date: `${new Date(trialData.date).toLocaleString(i18n.language, { weekday: "short" })} | ${formatDate(new Date(trialData.date))}`,
     }
     setAppointmentsMain([...appointmentsMain, newTrial])
 
@@ -890,7 +893,7 @@ const Calendar = forwardRef(({
           ...appointment,
           startTime: event.start.toTimeString().split(" ")[0].substring(0, 5),
           endTime: new Date(event.start.getTime() + duration).toTimeString().split(" ")[0].substring(0, 5),
-          date: `${event.start.toLocaleString("en-US", { weekday: "short" })} | ${formatDate(event.start)}`,
+          date: `${event.start.toLocaleString(i18n.language, { weekday: "short" })} | ${formatDate(event.start)}`,
           // Store original time for Upcoming list sorting - it should keep showing at original position
           _pendingMove: {
             originalStartTime: originalAppointment?.startTime,
@@ -1027,7 +1030,7 @@ const Calendar = forwardRef(({
 
   const handleDeleteBlockedSlot = () => {
     if (!selectedAppointment) return
-    if (!window.confirm("Are you sure you want to delete this blocked time slot?")) return
+    if (!window.confirm(t("studioCalendar.editBlock.deleteConfirm"))) return
     setAppointmentsMain(appointmentsMain.filter((a) => a.id !== selectedAppointment.id))
     setSelectedAppointment(null); setIsAppointmentActionModalOpen(false)
 
@@ -1107,12 +1110,12 @@ const Calendar = forwardRef(({
     console.log("Lead updated:", updatedLeadData);
     setIsEditLeadModalOpen(false);
     setSelectedLeadForEdit(null);
-    toast.success("Lead details have been updated successfully");
+    toast.success(t("studioCalendar.toast.leadUpdated"));
   };
 
   const handleAddAppointmentSubmit = (data) => {
     const dateObj = new Date(data.date + "T12:00:00");
-    const formattedDate = `${dateObj.toLocaleString("en-US", { weekday: "short" })} | ${formatDate(dateObj)}`;
+    const formattedDate = `${dateObj.toLocaleString(i18n.language, { weekday: "short" })} | ${formatDate(dateObj)}`;
     setAppointmentsMain(prev => {
       const newId = Math.max(0, ...prev.map(a => a.id)) + 1;
       return [...prev, {
@@ -1690,7 +1693,8 @@ const Calendar = forwardRef(({
               events={calendarEvents}
               height="auto"
               contentHeight="auto"
-              locale="en"
+              locale={i18n.language}
+              locales={allLocales}
               selectable={true}
               headerToolbar={false}
               editable={true}
@@ -1743,8 +1747,7 @@ const Calendar = forwardRef(({
                   dayHeaderContent: (args) => {
                     const date = new Date(args.date);
                     const dateStr = formatDateLocal(date);
-                    const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-                    const weekday = weekdays[date.getDay()];
+                    const weekday = date.toLocaleDateString(i18n.language, { weekday: 'long' });
                     const day = date.getDate();
 
                     // Check for holidays (weekends are hidden via hiddenDays)
@@ -1765,14 +1768,13 @@ const Calendar = forwardRef(({
                   dayHeaderContent: (args) => {
                     const date = new Date(args.date);
                     const dateStr = formatDateLocal(date);
-                    const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-                    const weekday = weekdays[date.getDay()];
+                    const weekday = date.toLocaleDateString(i18n.language, { weekday: 'long' });
                     const day = date.getDate();
 
                     // Check for closed days (including weekends now that hiddenDays is disabled for day view)
                     const closedInfo = isStudioClosedOnDate(dateStr);
                     const isClosed = closedInfo.closed;
-                    const closedLabel = closedInfo.isWeekend ? 'Closed' : closedInfo.reason;
+                    const closedLabel = closedInfo.isWeekend ? t('studioCalendar.closed') : closedInfo.reason;
 
                     return (
                       <div style={{ textAlign: 'center', lineHeight: '1.1', userSelect: 'none' }}>
@@ -1787,10 +1789,8 @@ const Calendar = forwardRef(({
                 dayGridMonth: {
                   dayHeaderContent: (args) => {
                     const date = new Date(args.date);
-                    const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-                    const dayIndex = date.getDay();
-                    const adjustedIndex = dayIndex === 0 ? 6 : dayIndex - 1;
-                    return <span style={{ userSelect: 'none' }}>{weekdays[adjustedIndex]}</span>;
+                    const weekday = date.toLocaleDateString(i18n.language, { weekday: 'long' });
+                    return <span style={{ userSelect: 'none' }}>{weekday}</span>;
                   }
                 }
               }}
@@ -1865,12 +1865,8 @@ const Calendar = forwardRef(({
                     // Don't trigger if clicking on an appointment tile
                     if (e.target.closest('.month-apt-tile')) return
 
-                    // Block booking on closed days
-                    if (isClosed) {
-                      const toastMessage = closedInfo.isWeekend ? 'Closed' : closedInfo.reason;
-                      toast.error(`${toastMessage} - Studio closed`)
-                      return
-                    }
+                    // Closed days are not clickable
+                    if (isClosed) return
 
                     const startDate = new Date(date)
                     startDate.setHours(9, 0, 0, 0)
@@ -1886,7 +1882,7 @@ const Calendar = forwardRef(({
                   }
 
                   // Show "Closed" for weekends, holiday name for holidays
-                  const closedLabel = closedInfo.isWeekend ? 'Closed' : closedInfo.reason;
+                  const closedLabel = closedInfo.isWeekend ? t('studioCalendar.closed') : closedInfo.reason;
 
                   return (
                     <div
@@ -2036,13 +2032,11 @@ const Calendar = forwardRef(({
                 const viewType = calendarRef.current?.getApi()?.view?.type
 
                 if (viewType === "dayGridMonth") {
-                  const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-                  const dayIndex = date.getDay();
-                  const adjustedIndex = dayIndex === 0 ? 6 : dayIndex - 1;
-                  return <div style={{ textAlign: "center", lineHeight: "1", padding: "8px 0", fontSize: "12px", fontWeight: "600", userSelect: "none" }}><span>{weekdays[adjustedIndex]}</span></div>
+                  const weekday = date.toLocaleDateString(i18n.language, { weekday: 'long' });
+                  return <div style={{ textAlign: "center", lineHeight: "1", padding: "8px 0", fontSize: "12px", fontWeight: "600", userSelect: "none" }}><span>{weekday}</span></div>
                 }
 
-                const weekday = date.toLocaleDateString("en-US", { weekday: "short" })
+                const weekday = date.toLocaleDateString(i18n.language, { weekday: "short" })
                 const day = date.getDate()
                 return <div style={{ textAlign: "center", lineHeight: "1", padding: "2px 0", fontSize: "11px", userSelect: "none" }}><span>{weekday} {day}</span></div>
               }}
@@ -2124,7 +2118,7 @@ const Calendar = forwardRef(({
           id: Math.max(0, ...appointmentsMain.map(a => a.id)) + 1,
           name: "BLOCKED",
           time: `${blockData.startTime} - ${blockData.endTime}`,
-          date: `${new Date(blockData.startDate).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(blockData.startDate))}`,
+          date: `${new Date(blockData.startDate).toLocaleString(i18n.language, { weekday: "short" })} | ${formatDate(new Date(blockData.startDate))}`,
           color: "bg-[#dc2626]",
           startTime: blockData.startTime,
           endTime: blockData.endTime,
@@ -2178,7 +2172,7 @@ const Calendar = forwardRef(({
         setBlockedEditData(null);
       }} onSubmit={(blockData) => {
         // Use formatDate (with dashes) for calendar compatibility
-        const newDateString = `${new Date(blockData.startDate).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(blockData.startDate))}`
+        const newDateString = `${new Date(blockData.startDate).toLocaleString(i18n.language, { weekday: "short" })} | ${formatDate(new Date(blockData.startDate))}`
         setAppointmentsMain(appointmentsMain.map((apt) => apt.id === blockedEditData.id ? {
           ...apt,
           startTime: blockData.startTime,
@@ -2198,7 +2192,7 @@ const Calendar = forwardRef(({
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={handleCloseAllAppointmentsModal}>
           <div className="bg-surface-card rounded-xl shadow-xl w-full max-w-md max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-              <h3 className="text-lg font-medium text-content-primary">{new Date(selectedDayDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</h3>
+              <h3 className="text-lg font-medium text-content-primary">{new Date(selectedDayDate).toLocaleDateString(i18n.language, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</h3>
               <button onClick={handleCloseAllAppointmentsModal} className="p-2 hover:bg-surface-hover text-content-muted hover:text-content-primary rounded-lg transition-colors">
                 <X size={18} />
               </button>

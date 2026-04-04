@@ -3,6 +3,7 @@
 /* eslint-disable react/prop-types */
 import React from "react";
 import { X, Info } from "lucide-react";
+import { useTranslation } from "react-i18next"
 
 export default function AddBillingPeriodModalMain({
   open,
@@ -12,6 +13,7 @@ export default function AddBillingPeriodModalMain({
   onAdd,
   availableBillingPeriods = [] // Add this prop to receive available periods
 }) {
+  const { t } = useTranslation()
   if (!open) return null;
 
   // Sample future billing periods - in real app, these would come from your database
@@ -32,7 +34,7 @@ export default function AddBillingPeriodModalMain({
         <div className="p-6">
           {/* Header */}
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-medium text-content-primary">Add Future Billing Period</h2>
+            <h2 className="text-lg font-medium text-content-primary">{t("studioCalendar.billing.addTitle")}</h2>
             <button
               onClick={onClose}
               className="p-2 hover:bg-surface-button text-content-primary rounded-lg"
@@ -52,7 +54,7 @@ export default function AddBillingPeriodModalMain({
                 onChange={(e) => setNewBillingPeriodMain(e.target.value)}
                 className="w-full bg-surface-dark text-content-primary rounded-xl px-4 py-2 text-sm border border-border focus:border-primary focus:outline-none"
               >
-                <option value="">Choose a billing period...</option>
+                <option value="">{t("studioCalendar.billing.choosePeriod")}</option>
                 {periods.map((period, index) => (
                   <option key={index} value={period}>
                     {period}
@@ -60,15 +62,14 @@ export default function AddBillingPeriodModalMain({
                 ))}
               </select>
               <p className="text-xs text-content-faint mt-1">
-                Only future billing periods are available for selection
+                {t("studioCalendar.billing.futureOnly")}
               </p>
             </div>
 
             <div className="p-3 bg-primary/10 border border-primary/30 rounded-xl">
               <p className="text-primary text-sm">
                 <Info className="inline mr-1" size={14} />
-                New billing periods will start with 0 used appointments and 0 total appointments. 
-                You can edit these values after creation.
+                {t("studioCalendar.billing.infoText")}
               </p>
             </div>
           </div>

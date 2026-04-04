@@ -3,6 +3,7 @@
 /* eslint-disable react/prop-types */
 import { X } from "lucide-react"
 import { useState, useEffect } from "react"
+import { useTranslation } from "react-i18next"
 
 // =============================================================================
 // UNIFIED NOTIFY MEMBER/LEAD MODAL
@@ -77,6 +78,7 @@ const NotifyModalMain = ({
     }
   }, [isOpen])
 
+  const { t, i18n } = useTranslation()
   if (!isOpen) return null
 
   // =============================================
@@ -99,7 +101,7 @@ const NotifyModalMain = ({
     if (pendingEventInfo?.event?.start) {
       const start = pendingEventInfo.event.start
       const end = pendingEventInfo.event.end
-      dateStr = start.toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
+      dateStr = start.toLocaleDateString(i18n.language, { weekday: "long", day: "numeric", month: "long", year: "numeric" })
       const startT = start.toTimeString().substring(0, 5)
       const endT = end ? end.toTimeString().substring(0, 5) : ""
       timeStr = endT ? `${startT} - ${endT}` : startT
@@ -133,11 +135,11 @@ const NotifyModalMain = ({
   
   // Singular/Plural labels
   const entityLabel = isLead 
-    ? (isPlural ? "leads" : "lead") 
-    : (isPlural ? "members" : "member")
+    ? (isPlural ? t("studioCalendar.notify.leads") : t("studioCalendar.notify.lead")) 
+    : (isPlural ? t("studioCalendar.notify.members") : t("studioCalendar.notify.member"))
   const EntityLabel = isLead 
-    ? (isPlural ? "Leads" : "Lead") 
-    : (isPlural ? "Members" : "Member")
+    ? (isPlural ? t("studioCalendar.notify.leads") : t("studioCalendar.notify.lead")) 
+    : (isPlural ? t("studioCalendar.notify.members") : t("studioCalendar.notify.member"))
   
   const hl = "font-semibold text-primary"
 
@@ -178,12 +180,12 @@ const NotifyModalMain = ({
       if (isRecurring && recurringInfo) {
         return (
           <p className="text-content-primary text-sm">
-            New <span className={hl}>recurring appointment</span> for{" "}
+            New <span className={hl}>{t("studioCalendar.notify.recurringAppointment")}</span> for{" "}
             <span className={hl}>{displayName}</span> starting{" "}
             <span className={hl}>{d}</span>{" "}
             ({recurringInfo.occurrences} occurrences, {recurringInfo.frequency}).
             <br /><br />
-            Do you want to notify the {entityLabel} about this booking?
+            {t("studioCalendar.notify.askNotifyBooking", { entity: entityLabel })}
           </p>
         )
       }
@@ -191,12 +193,12 @@ const NotifyModalMain = ({
       if (resolved.isTrial) {
         return (
           <p className="text-content-primary text-sm">
-            New <span className={hl}>Trial Training</span> for{" "}
+            New <span className={hl}>{t("studioCalendar.filterLabels.trialTraining")}</span> for{" "}
             <span className={hl}>{displayName}</span> on{" "}
             <span className={hl}>{d}</span> at{" "}
             <span className={hl}>{t}</span>.
             <br /><br />
-            Do you want to notify the {entityLabel} about this booking?
+            {t("studioCalendar.notify.askNotifyBooking", { entity: entityLabel })}
           </p>
         )
       }
@@ -219,7 +221,7 @@ const NotifyModalMain = ({
             </>
           )}
           <br /><br />
-          Do you want to notify the {entityLabel} about this booking?
+          {t("studioCalendar.notify.askNotifyBooking", { entity: entityLabel })}
         </p>
       )
     }
@@ -243,11 +245,11 @@ const NotifyModalMain = ({
               {type && <span className="text-content-muted"> ({type})</span>} appointment on{" "}
               <span className={hl}>{d}</span> at{" "}
               <span className={hl}>{t}</span>{" "}
-              will be <span className={hl}>cancelled</span>.
+              will be <span className={hl}>{t("studioCalendar.notify.cancelled")}</span>.
             </>
           )}
           <br /><br />
-          Do you want to notify the {entityLabel} about this cancellation?
+          {t("studioCalendar.notify.askNotifyCancellation", { entity: entityLabel })}
         </p>
       )
     }
@@ -272,7 +274,7 @@ const NotifyModalMain = ({
           </>
         )}
         <br /><br />
-        Do you want to notify the {entityLabel} about this change?
+        {t("studioCalendar.notify.askNotifyChange", { entity: entityLabel })}
       </p>
     )
   }
@@ -295,7 +297,7 @@ const NotifyModalMain = ({
       >
         {/* Header */}
         <div className="px-6 py-4 border-b border-border flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-content-primary">{customTitle || `Notify ${EntityLabel}`}</h2>
+          <h2 className="text-lg font-semibold text-content-primary">{customTitle || t("studioCalendar.actionModal.notify", { type: EntityLabel })}</h2>
           <button onClick={handleClose} className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-dark rounded-lg">
             <X size={20} />
           </button>
@@ -319,7 +321,7 @@ const NotifyModalMain = ({
                   onChange={(e) => setEmailNotification(e.target.checked)}
                   className="notify-check"
                 />
-                <span className="text-content-primary text-sm">Email Notification</span>
+                <span className="text-content-primary text-sm">{t("studioCalendar.actionModal.emailNotification")}</span>
               </label>
 
               {/* App Push Notification - only for members, not leads */}
@@ -331,7 +333,7 @@ const NotifyModalMain = ({
                     onChange={(e) => setPushNotification(e.target.checked)}
                     className="notify-check"
                   />
-                  <span className="text-content-primary text-sm">App Push Notification</span>
+                  <span className="text-content-primary text-sm">{t("studioCalendar.actionModal.pushNotification")}</span>
                 </label>
               )}
             </div>

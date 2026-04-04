@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { X, Edit3, Trash2, Plus } from 'lucide-react';
 import { fetchAllAppointments, fetchAppointmentByMemberId } from '../../../features/appointments/AppointmentSlice'; // adjust path
+import { useTranslation } from "react-i18next"
 
 const getColorHex = (type) => {
   if (!type) return "#808080";
@@ -29,6 +30,7 @@ const AppointmentModalMain = ({
   handleCreateNewAppointmentMain
 }) => {
   const dispatch = useDispatch();
+  const { t, i18n } = useTranslation()
   const { appointmentsByMember, loading } = useSelector((state) => state.appointments);
   // const { services } = useSelector((state) => state.services)
 
@@ -44,11 +46,11 @@ const AppointmentModalMain = ({
 
   const appointments = appointmentsByMember[selectedMemberMain?._id] || [];
 
-  const formatAMPM = (time24) => {
+  const formatTime = (time24) => {
+    if (!time24) return "";
     const [hour, min] = time24.split(":").map(Number);
-    const ampm = hour >= 12 ? "PM" : "AM";
-    const hour12 = hour % 12 === 0 ? 12 : hour % 12;
-    return `${hour12}:${String(min).padStart(2, "0")} ${ampm}`;
+    const date = new Date(2000, 0, 1, hour, min);
+    return date.toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit" });
   };
 
 
@@ -71,7 +73,7 @@ const AppointmentModalMain = ({
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <h2 className="text-lg font-medium text-content-primary">
-            {selectedMemberMain.firstName}'s Appointments
+            {t("studioCalendar.showModal.title", { name: selectedMemberMain.firstName })}
           </h2>
           <button
             onClick={onClose}
@@ -97,7 +99,7 @@ const AppointmentModalMain = ({
             <div className="flex items-end gap-2">
               <span className="text-3xl font-bold text-content-primary">{remaining}</span>
               <span className="text-content-faint text-lg mb-0.5">/ {credits.total}</span>
-              <span className="text-content-faint text-sm mb-1 ml-1">remaining</span>
+              <span className="text-content-faint text-sm mb-1 ml-1">{t("studioCalendar.showModal.remaining")}</span>
             </div>
             <div className="mt-3 h-1.5 bg-surface-button rounded-full overflow-hidden">
               <div
@@ -110,10 +112,10 @@ const AppointmentModalMain = ({
 
         {/* Appointments List */}
         <div className="p-4 overflow-y-auto max-h-[50vh]">
-          <h3 className="text-sm font-medium text-content-muted mb-3">Upcoming Appointments</h3>
+          <h3 className="text-sm font-medium text-content-muted mb-3">{t("studioCalendar.showModal.upcoming")}</h3>
 
           {loading ? (
-            <div className="text-center py-8">Loading appointments...</div>
+            <div className="text-center py-8">{t("studioCalendar.showModal.loading")}</div>
           ) : appointments.length > 0 ? (
             <div className="space-y-3">
               {appointments.map((appointment) => {
@@ -133,14 +135,14 @@ const AppointmentModalMain = ({
                       <div>
                         <p className="font-medium text-sm text-white">{appointment.serviceId.name}</p>
                         <p className="text-sm text-white/70 mt-1">
-                          {new Date(appointment.date).toLocaleDateString([], {
+                          {new Date(appointment.date).toLocaleDateString(i18n.language, {
                             month: "short",
                             day: "numeric",
                             year: "numeric"
                           })}
                         </p>
                         <p className="text-xs text-white/70">
-                          {formatAMPM(appointment.timeSlot?.start)} - {formatAMPM(appointment.timeSlot?.end)}
+                          {formatTime(appointment.timeSlot?.start)} - {formatTime(appointment.timeSlot?.end)}
                         </p>
                       </div>
                       <div className="flex gap-2">

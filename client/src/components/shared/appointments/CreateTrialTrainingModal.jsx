@@ -10,6 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchAllLeadsThunk } from "../../../features/lead/leadSlice";
 import { fetchStudioServices } from "../../../features/services/servicesSlice";
 import { createBookingTrialThunk } from "../../../features/appointments/AppointmentSlice";
+import { useTranslation } from "react-i18next"
 
 // Helper function to extract hex color from various formats
 const getColorHex = (type) => {
@@ -23,6 +24,7 @@ const getColorHex = (type) => {
 
 // Lead Tag Component - Shows selected lead with special note icon and relations
 const LeadTag = ({ lead, onRemove, onOpenEditLeadModal, relationsCount = 0, isLocked = false }) => {
+  const { t } = useTranslation()
   const handleEditNote = (memberData, tab) => {
     // For leads, pass the lead ID to onOpenEditLeadModal
     if (onOpenEditLeadModal) {
@@ -68,7 +70,7 @@ const LeadTag = ({ lead, onRemove, onOpenEditLeadModal, relationsCount = 0, isLo
       <button
         onClick={handleRelationsClick}
         className="flex items-center gap-1 text-xs text-primary hover:text-primary-hover bg-primary/10 hover:bg-primary/20 px-1.5 py-0.5 rounded transition-colors"
-        title="View Relations"
+        title={t("studioCalendar.actionModal.viewRelations")}
       >
         <Users size={12} />
         <span>{relationsCount}</span>
@@ -89,6 +91,7 @@ const LeadTag = ({ lead, onRemove, onOpenEditLeadModal, relationsCount = 0, isLo
 
 // Appointment Type Dropdown (same as CreateAppointmentModal/EditAppointmentModal)
 const AppointmentTypeDropdown = ({ value, onChange, appointmentTypes = [] }) => {
+  const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -113,7 +116,7 @@ const AppointmentTypeDropdown = ({ value, onChange, appointmentTypes = [] }) => 
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: getColorHex(selectedType) }} />
             <span className="text-content-primary">{selectedType.name}</span>
           </div>
-        ) : <span className="text-content-faint">Select type...</span>}
+        ) : <span className="text-content-faint">{t("studioCalendar.selectType")}</span>}
         <ChevronDown size={14} className={`text-content-faint transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
       {isOpen && (
@@ -152,6 +155,7 @@ const TrialTrainingModal = ({
   const { services } = useSelector((state) => state.services || {})
   const { leads } = useSelector((state) => state.leads)
   const dispatch = useDispatch()
+  const { t, i18n } = useTranslation()
 
   useEffect(() => {
     dispatch(fetchAllLeadsThunk())
@@ -162,11 +166,11 @@ const TrialTrainingModal = ({
 
 
   // Convert 24-hour time to AM/PM format
-  const formatAMPM = (time24) => {
+  const formatTime = (time24) => {
+    if (!time24) return "";
     const [hour, min] = time24.split(":").map(Number);
-    const ampm = hour >= 12 ? "PM" : "AM";
-    const hour12 = hour % 12 === 0 ? 12 : hour % 12;
-    return `${hour12}:${String(min).padStart(2, "0")} ${ampm}`;
+    const date = new Date(2000, 0, 1, hour, min);
+    return date.toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit" });
   };
   // generate slots randomly
   // Generate time slots for a day based on studio hours and appointment duration
@@ -203,7 +207,7 @@ const TrialTrainingModal = ({
         allSlots.push({
           start: startTime,
           end: endTime,
-          time: `${formatAMPM(startTime)} - ${formatAMPM(endTime)}` // for dropdown display
+          time: `${formatTime(startTime)} - ${formatTime(endTime)}` // for dropdown display
         });
 
         hour = tempHour;
@@ -361,12 +365,12 @@ const TrialTrainingModal = ({
   const handleBook = () => {
     // Get trial training duration from appointmentTypesMain
     if (!selectedLead) {
-      alert("Please select a lead.");
+      alert(t("studioCalendar.trialModal.alertSelectLead"));
       return;
     }
 
     if (!trialData.appointmentType) {
-      alert("Please select an appointment type.");
+      alert(t("studioCalendar.trialModal.alertSelectType"));
       return;
     }
 
@@ -374,13 +378,13 @@ const TrialTrainingModal = ({
     const selectedType = services.find(t => t.name === trialData.appointmentType);
 
     if (!selectedType || !selectedType._id) {
-      alert("Invalid appointment type selected.");
+      alert(t("studioCalendar.trialModal.alertInvalidType"));
       return;
     }
 
     // Make sure timeSlot has the correct structure
     if (!trialData.timeSlot || !trialData.timeSlot.start) {
-      alert("Please select a valid time slot.");
+      alert(t("studioCalendar.trialModal.alertSelectTime"));
       return;
     }
 
@@ -454,7 +458,7 @@ const TrialTrainingModal = ({
       <div className="bg-surface-card w-full max-w-lg rounded-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-content-primary">Book Trial Training</h2>
+          <h2 className="text-lg font-semibold text-content-primary">{t("studioCalendar.bookTrialTraining")}</h2>
           <button onClick={onClose} className="p-2 hover:bg-surface-button text-content-muted hover:text-content-primary rounded-lg">
             <X size={20} />
           </button>
@@ -464,7 +468,7 @@ const TrialTrainingModal = ({
         <div className="p-6 max-h-[65vh] overflow-y-auto space-y-5">
           {/* Lead Selection */}
           <div>
-            <label className="block text-sm font-medium text-content-secondary mb-2">Lead</label>
+            <label className="block text-sm font-medium text-content-secondary mb-2">{t("studioCalendar.lead")}</label>
             <div ref={containerRef} className="relative">
               <div
                 className="bg-surface-dark rounded-xl px-3 py-2.5 min-h-[52px] flex flex-wrap items-center gap-2 cursor-text"
@@ -488,12 +492,12 @@ const TrialTrainingModal = ({
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onFocus={() => setIsSearchFocused(true)}
                       onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-                      placeholder="Search leads"
+                      placeholder={t("studioCalendar.trialModal.searchLeads")}
                       className="flex-1 min-w-[120px] bg-transparent text-sm text-content-primary placeholder-content-faint outline-none"
                     />
                   </>
                 ) : (
-                  <span className="text-content-faint text-sm">No lead selected</span>
+                  <span className="text-content-faint text-sm">{t("studioCalendar.trialModal.noLeadSelected")}</span>
                 )}
               </div>
 
@@ -521,7 +525,7 @@ const TrialTrainingModal = ({
               {/* No results / Create new lead - only show if not locked */}
               {!isLeadLocked && isSearchFocused && searchQuery.trim() && filteredLeads.length === 0 && !selectedLead && (
                 <div className="absolute left-0 right-0 mt-1 bg-surface-base border border-border rounded-xl shadow-xl z-[1000] p-3">
-                  <p className="text-sm text-content-faint text-center mb-2">No leads found</p>
+                  <p className="text-sm text-content-faint text-center mb-2">{t("studioCalendar.trialModal.noLeadsFound")}</p>
                 </div>
               )}
             </div>
@@ -533,7 +537,7 @@ const TrialTrainingModal = ({
                 onClick={() => setIsAddLeadModalOpen(true)}
                 className="mt-2 w-full flex items-center justify-center text-sm gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-xl transition-colors"
               >
-                <span>+</span> Create New Lead
+                {t("studioCalendar.trialModal.createNewLead")}
               </button>
             )}
           </div>
@@ -544,14 +548,14 @@ const TrialTrainingModal = ({
               <Clock size={16} className="text-white" />
             </div>
             <div>
-              <p className="text-sm font-medium text-trial">Trial Training</p>
-              <p className="text-xs text-content-muted">Duration: {getTrialDuration()} minutes</p>
+              <p className="text-sm font-medium text-trial">{t("studioCalendar.filterLabels.trialTraining")}</p>
+              <p className="text-xs text-content-muted">{t("studioCalendar.trialModal.duration", { minutes: getTrialDuration() })}</p>
             </div>
           </div>
 
           {/* Appointment Type */}
           <div>
-            <label className="block text-sm font-medium text-content-secondary mb-2">Appointment Type</label>
+            <label className="block text-sm font-medium text-content-secondary mb-2">{t("studioCalendar.appointmentType")}</label>
             <AppointmentTypeDropdown
               value={trialData.appointmentType}
               onChange={(type) => updateTrialData("appointmentType", type)}
@@ -562,14 +566,14 @@ const TrialTrainingModal = ({
           {/* Date and Time */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-content-faint mb-2">Date</label>
+              <label className="block text-xs text-content-faint mb-2">{t("studioCalendar.blockConfirm.date")}</label>
               <div className="w-full flex items-center justify-between bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5">
-                <span className={trialData.date ? "text-content-primary" : "text-content-faint"}>{trialData.date ? (() => { const [y, m, d] = trialData.date.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                <span className={trialData.date ? "text-content-primary" : "text-content-faint"}>{trialData.date ? (() => { const [y, m, d] = trialData.date.split('-'); return `${d}.${m}.${y}` })() : t("studioCalendar.editBlock.selectDate")}</span>
                 <DatePickerField value={trialData.date} onChange={(val) => updateTrialData("date", val)} />
               </div>
             </div>
             <div>
-              <label className="block text-xs text-content-faint mb-2">Time Slot</label>
+              <label className="block text-xs text-content-faint mb-2">{t("studioCalendar.editModal.timeSlot")}</label>
               <div className="relative">
                 <select
                   value={trialData.timeSlot.start}
@@ -584,7 +588,7 @@ const TrialTrainingModal = ({
                   }}
                   className="w-full bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5"
                 >
-                  <option value="">Select time...</option>
+                  <option value="">{t("studioCalendar.selectTime")}</option>
                   {availableSlots.map((slot, idx) => (
                     <option key={idx} value={slot.start}>{slot.time}</option>
                   ))}
@@ -592,7 +596,7 @@ const TrialTrainingModal = ({
                 <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-content-faint pointer-events-none" />
               </div>
               {trialData.date && availableSlots.length === 0 && (
-                <p className="text-xs text-accent-yellow mt-1">No available slots for this date</p>
+                <p className="text-xs text-accent-yellow mt-1">{t("studioCalendar.trialModal.noSlots")}</p>
               )}
             </div>
           </div>
@@ -604,14 +608,14 @@ const TrialTrainingModal = ({
             onClick={onClose}
             className="flex-1 py-2.5 text-sm font-medium text-content-muted bg-surface-button hover:bg-surface-button-hover rounded-xl transition-colors"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             disabled={!selectedLead || !trialData.date || !trialData.timeSlot || !trialData.appointmentType}
             onClick={handleBook}
             className="flex-1 py-2.5 text-sm font-medium text-white bg-trial hover:bg-trial/80 disabled:bg-surface-button disabled:cursor-not-allowed rounded-xl transition-colors"
           >
-            Book Trial Training
+            {t("studioCalendar.bookTrialTraining")}
           </button>
         </div>
 
@@ -624,7 +628,7 @@ const TrialTrainingModal = ({
           entityType="lead"
           entityName={leadFullName}
           isTrial={true}
-          date={pendingTrialData?.date && new Date(pendingTrialData.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+          date={pendingTrialData?.date && new Date(pendingTrialData.date).toLocaleDateString(i18n.language, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
           time={pendingTrialData?.time || ""}
         />
       </div>

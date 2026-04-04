@@ -8,6 +8,7 @@ import DatePickerField from '../DatePickerField';
 import NotifyModalMain from '../NotifyModal';
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAllMember } from "../../../features/member/memberSlice";
+import { useTranslation } from "react-i18next"
 
 const MAX_PARTICIPANTS = 5;
 
@@ -45,6 +46,7 @@ const InitialsAvatar = ({ firstName, lastName, size = 32, className = "" }) => {
 
 // Member Tag Component - Larger with Special Note Icon and Relations
 const MemberTag = ({ member, onRemove, onEditMemberNote, relationsCount = 0 }) => {
+  const { t } = useTranslation()
   const handleEditNote = (memberData, tab) => {
     if (onEditMemberNote) {
       onEditMemberNote(memberData, tab || "note");
@@ -81,7 +83,7 @@ const MemberTag = ({ member, onRemove, onEditMemberNote, relationsCount = 0 }) =
       <button
         onClick={handleRelationsClick}
         className="flex items-center gap-1 text-xs text-primary hover:text-primary-hover bg-primary/10 hover:bg-primary/20 px-1.5 py-0.5 rounded transition-colors"
-        title="View Relations"
+        title={t("studioCalendar.actionModal.viewRelations")}
       >
         <Users size={12} />
         <span>{relationsCount}</span>
@@ -98,9 +100,10 @@ const MemberTag = ({ member, onRemove, onEditMemberNote, relationsCount = 0 }) =
 
 // Member Tag Input Component
 const MemberTagInput = ({
-  members, setMembers, searchMembers, placeholder = "Search members...",
+  members, setMembers, searchMembers, placeholder = "",
   maxMembers = MAX_PARTICIPANTS, onEditMemberNote, memberRelations = {}
 }) => {
+  const { t } = useTranslation()
   const [inputValue, setInputValue] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
@@ -165,11 +168,11 @@ const MemberTagInput = ({
         ))}
         {!isFull && (
           <input ref={inputRef} type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)}
-            placeholder={members.length === 0 ? placeholder : "Add more..."} className="flex-1 min-w-[120px] bg-transparent text-sm text-content-primary placeholder-content-faint outline-none" />
+            placeholder={members.length === 0 ? placeholder : t("studioCalendar.search.addMore")} className="flex-1 min-w-[120px] bg-transparent text-sm text-content-primary placeholder-content-faint outline-none" />
         )}
       </div>
       <div className="flex items-center justify-between mt-1.5">
-        <div className={`text-xs ${isFull ? 'text-primary' : 'text-content-faint'}`}>{members.length} / {maxMembers} participants</div>
+        <div className={`text-xs ${isFull ? 'text-primary' : 'text-content-faint'}`}>{members.length} / {maxMembers} {t("studioCalendar.createModal.participants")}</div>
       </div>
       {showDropdown && !isFull && (
         <div className="absolute left-0 right-0 mt-1 bg-surface-base border border-border rounded-xl shadow-xl z-[1000] max-h-48 overflow-y-auto">
@@ -179,7 +182,7 @@ const MemberTagInput = ({
                 <InitialsAvatar firstName={member.firstName} lastName={member.lastName} size={32} />}
               <div><div className="text-sm text-content-primary">{member.name || `${member.firstName} ${member.lastName}`}</div></div>
             </button>
-          )) : <div className="p-3 text-sm text-content-faint text-center">No members found</div>}
+          )) : <div className="p-3 text-sm text-content-faint text-center">{t("studioCalendar.createModal.noMembers")}</div>}
         </div>
       )}
     </div>
@@ -188,6 +191,7 @@ const MemberTagInput = ({
 
 // Appointment Type Dropdown - FIXED to accept appointmentTypes prop correctly
 const AppointmentTypeDropdown = ({ value, onChange, appointmentTypes = [], showTrialTypes = false }) => {
+  const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -215,7 +219,7 @@ const AppointmentTypeDropdown = ({ value, onChange, appointmentTypes = [], showT
             <span className="text-content-primary">{selectedType.name}</span>
             <span className="text-content-faint text-xs">({selectedType.duration} min)</span>
           </div>
-        ) : <span className="text-content-faint">Select type...</span>}
+        ) : <span className="text-content-faint">{t("studioCalendar.selectType")}</span>}
         <ChevronDown size={14} className={`text-content-faint transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
       {isOpen && (
@@ -252,17 +256,18 @@ const AddAppointmentModal = ({
 }) => {
   const { members } = useSelector((state) => state.member || []);
   const dispatch = useDispatch();
+  const { t, i18n } = useTranslation()
   
   useEffect(() => {
     dispatch(fetchAllMember());
   }, [dispatch]);
 
   // Convert 24-hour time to AM/PM format
-  const formatAMPM = (time24) => {
+  const formatTime = (time24) => {
+    if (!time24) return "";
     const [hour, min] = time24.split(":").map(Number);
-    const ampm = hour >= 12 ? "PM" : "AM";
-    const hour12 = hour % 12 === 0 ? 12 : hour % 12;
-    return `${hour12}:${String(min).padStart(2, "0")} ${ampm}`;
+    const date = new Date(2000, 0, 1, hour, min);
+    return date.toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit" });
   };
 
   // Generate time slots for a day based on studio hours and appointment duration
@@ -298,7 +303,7 @@ const AddAppointmentModal = ({
         allSlots.push({
           start: startTime,
           end: endTime,
-          time: `${formatAMPM(startTime)} - ${formatAMPM(endTime)}`
+          time: `${formatTime(startTime)} - ${formatTime(endTime)}`
         });
 
         hour = tempHour;
@@ -477,13 +482,13 @@ const AddAppointmentModal = ({
 
   const handleBook = () => {
     if (!appointmentData.appointmentTypeId || appointmentData.members.length === 0 || !appointmentData.timeSlot.start) {
-      alert("Please complete all fields");
+      alert(t("studioCalendar.createModal.alertComplete"));
       return;
     }
 
     const selectedType = appointmentTypesMain.find(t => t._id === appointmentData.appointmentTypeId);
     if (!selectedType || !selectedType._id) {
-      alert("Invalid service selected");
+      alert(t("studioCalendar.createModal.alertInvalidService"));
       return;
     }
 
@@ -537,17 +542,17 @@ const AddAppointmentModal = ({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[999] p-4" onClick={onClose}>
       <div className="bg-surface-card w-full max-w-lg rounded-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
         <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-content-primary">New Appointment</h2>
+          <h2 className="text-lg font-semibold text-content-primary">{t("studioCalendar.createModal.title")}</h2>
           <button onClick={onClose} className="p-2 hover:bg-surface-button text-content-muted hover:text-content-primary rounded-lg"><X size={20} /></button>
         </div>
         <div className="p-6 max-h-[65vh] overflow-y-auto space-y-5">
           <div>
-            <label className="block text-sm font-medium text-content-secondary mb-2 flex items-center gap-2"><Users size={14} className="text-content-faint" />Participants</label>
+            <label className="block text-sm font-medium text-content-secondary mb-2 flex items-center gap-2"><Users size={14} className="text-content-faint" />{t("studioCalendar.createModal.participants")}</label>
             <MemberTagInput members={appointmentData.members} setMembers={(m) => updateAppointment("members", m)}
-              searchMembers={handleSearchMembers} onEditMemberNote={handleEditMemberNote} memberRelations={memberRelations} />
+              searchMembers={handleSearchMembers} onEditMemberNote={handleEditMemberNote} memberRelations={memberRelations} placeholder={t("studioCalendar.createModal.searchMembers")} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-content-secondary mb-2">Appointment Type</label>
+            <label className="block text-sm font-medium text-content-secondary mb-2">{t("studioCalendar.appointmentType")}</label>
             <AppointmentTypeDropdown 
               value={appointmentData.appointmentTypeId || appointmentData.type} 
               onChange={handleTypeChange} 
@@ -557,15 +562,15 @@ const AddAppointmentModal = ({
 
           {/* Booking Type Toggle */}
           <div>
-            <label className="block text-sm font-medium text-content-secondary mb-2">Booking Type</label>
+            <label className="block text-sm font-medium text-content-secondary mb-2">{t("studioCalendar.createModal.bookingType")}</label>
             <div className="flex bg-surface-dark p-1 rounded-xl">
               <button type="button" onClick={() => setShowRecurringOptions(false)}
                 className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${!showRecurringOptions ? "bg-primary text-white" : "text-content-muted hover:text-content-primary"}`}>
-                Single
+                {t("studioCalendar.createModal.singleBooking")}
               </button>
               <button type="button" onClick={() => setShowRecurringOptions(true)}
                 className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${showRecurringOptions ? "bg-primary text-white" : "text-content-muted hover:text-content-primary"}`}>
-                Recurring
+                {t("studioCalendar.createModal.recurring")}
               </button>
             </div>
           </div>
@@ -574,14 +579,14 @@ const AddAppointmentModal = ({
           {!showRecurringOptions && (
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-content-faint mb-2">Date</label>
+                <label className="block text-xs text-content-faint mb-2">{t("studioCalendar.blockConfirm.date")}</label>
                 <div className="w-full flex items-center justify-between bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5">
-                  <span className={appointmentData.date ? "text-content-primary" : "text-content-faint"}>{appointmentData.date ? (() => { const [y, m, d] = appointmentData.date.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                  <span className={appointmentData.date ? "text-content-primary" : "text-content-faint"}>{appointmentData.date ? (() => { const [y, m, d] = appointmentData.date.split('-'); return `${d}.${m}.${y}` })() : t("studioCalendar.editBlock.selectDate")}</span>
                   <DatePickerField value={appointmentData.date} onChange={(val) => updateAppointment("date", val)} />
                 </div>
               </div>
               <div>
-                <label className="block text-xs text-content-faint mb-2">Time Slot</label>
+                <label className="block text-xs text-content-faint mb-2">{t("studioCalendar.editModal.timeSlot")}</label>
                 <select
                   value={appointmentData.timeSlot.start}
                   onChange={(e) => {
@@ -595,7 +600,7 @@ const AddAppointmentModal = ({
                   }}
                   className="w-full bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5"
                 >
-                  <option value="">Select time...</option>
+                  <option value="">{t("studioCalendar.selectTime")}</option>
                   {availableSlots.map((slot, idx) => (
                     <option key={idx} value={slot.start}>{slot.time}</option>
                   ))}
@@ -608,9 +613,9 @@ const AddAppointmentModal = ({
           {showRecurringOptions && (
             <div className="space-y-4 bg-surface-dark rounded-xl p-4">
               <div>
-                <label className="block text-xs text-content-faint mb-2">Frequency</label>
+                <label className="block text-xs text-content-faint mb-2">{t("studioCalendar.createModal.frequency")}</label>
                 <div className="grid grid-cols-3 gap-1 bg-surface-card p-1 rounded-xl">
-                  {[{ v: "daily", l: "Daily" }, { v: "weekly", l: "Weekly" }, { v: "monthly", l: "Monthly" }].map(f => (
+                  {[{ v: "daily", l: t("studioCalendar.createModal.daily") }, { v: "weekly", l: t("studioCalendar.createModal.weekly") }, { v: "monthly", l: t("studioCalendar.createModal.monthly") }].map(f => (
                     <button key={f.v} type="button" onClick={() => updateRecurringOptions("frequency", f.v)}
                       className={`py-2 text-xs font-medium rounded-lg transition-colors ${recurringOptions.frequency === f.v ? "bg-primary text-white" : "text-content-muted hover:text-content-primary"}`}>{f.l}</button>
                   ))}
@@ -619,9 +624,9 @@ const AddAppointmentModal = ({
 
               <div className={`grid gap-4 ${recurringOptions.frequency === "weekly" ? "grid-cols-2" : "grid-cols-1"}`}>
                 <div>
-                  <label className="block text-xs text-content-faint mb-2">Start Date</label>
+                  <label className="block text-xs text-content-faint mb-2">{t("studioCalendar.editBlock.startDate")}</label>
                   <div className="w-full flex items-center justify-between bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5">
-                    <span className={recurringOptions.startDate ? "text-content-primary" : "text-content-faint"}>{recurringOptions.startDate ? (() => { const [y, m, d] = recurringOptions.startDate.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                    <span className={recurringOptions.startDate ? "text-content-primary" : "text-content-faint"}>{recurringOptions.startDate ? (() => { const [y, m, d] = recurringOptions.startDate.split('-'); return `${d}.${m}.${y}` })() : t("studioCalendar.editBlock.selectDate")}</span>
                     <DatePickerField value={recurringOptions.startDate} onChange={(val) => {
                       setRecurringOptions(prev => {
                         const next = { ...prev, startDate: val };
@@ -635,16 +640,16 @@ const AddAppointmentModal = ({
                 </div>
                 {recurringOptions.frequency === "weekly" && (
                   <div>
-                    <label className="block text-xs text-content-faint mb-2">Day of Week</label>
+                    <label className="block text-xs text-content-faint mb-2">{t("studioCalendar.createModal.dayOfWeek")}</label>
                     <select value={recurringOptions.dayOfWeek} onChange={(e) => updateRecurringOptions("dayOfWeek", e.target.value)}
                       className="w-full bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5 text-content-primary appearance-none focus:outline-none focus:border-primary">
-                      <option value="1">Monday</option>
-                      <option value="2">Tuesday</option>
-                      <option value="3">Wednesday</option>
-                      <option value="4">Thursday</option>
-                      <option value="5">Friday</option>
-                      <option value="6">Saturday</option>
-                      <option value="0">Sunday</option>
+                      <option value="1">{t("studioCalendar.days.monday")}</option>
+                      <option value="2">{t("studioCalendar.days.tuesday")}</option>
+                      <option value="3">{t("studioCalendar.days.wednesday")}</option>
+                      <option value="4">{t("studioCalendar.days.thursday")}</option>
+                      <option value="5">{t("studioCalendar.days.friday")}</option>
+                      <option value="6">{t("studioCalendar.days.saturday")}</option>
+                      <option value="0">{t("studioCalendar.days.sunday")}</option>
                     </select>
                   </div>
                 )}
@@ -652,7 +657,7 @@ const AddAppointmentModal = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-content-faint mb-2">Time Slot</label>
+                  <label className="block text-xs text-content-faint mb-2">{t("studioCalendar.editModal.timeSlot")}</label>
                   <select
                     value={appointmentData.timeSlot.start}
                     onChange={(e) => {
@@ -666,14 +671,14 @@ const AddAppointmentModal = ({
                     }}
                     className="w-full bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5"
                   >
-                    <option value="">Select time...</option>
+                    <option value="">{t("studioCalendar.selectTime")}</option>
                     {availableSlots.map((slot, idx) => (
                       <option key={idx} value={slot.start}>{slot.time}</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs text-content-faint mb-2">Occurrences</label>
+                  <label className="block text-xs text-content-faint mb-2">{t("studioCalendar.createModal.occurrences")}</label>
                   <input type="number" min={1} max={52} value={recurringOptions.occurrences}
                     onChange={(e) => updateRecurringOptions("occurrences", parseInt(e.target.value) || 1)}
                     className="w-full bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5 text-content-primary focus:outline-none focus:border-primary" />
@@ -681,22 +686,19 @@ const AddAppointmentModal = ({
               </div>
 
               <div className="text-xs text-content-faint">
-                {recurringOptions.frequency === "daily" && "Creates an appointment every day starting from the selected date."}
-                {recurringOptions.frequency === "weekly" && "Creates an appointment every week on the selected day."}
+                {recurringOptions.frequency === "daily" && t("studioCalendar.createModal.descDaily")}
+                {recurringOptions.frequency === "weekly" && t("studioCalendar.createModal.descWeekly")}
                 {recurringOptions.frequency === "monthly" && recurringOptions.startDate && (() => {
                   const day = new Date(recurringOptions.startDate).getDate();
-                  const s = ["th", "st", "nd", "rd"];
-                  const v = day % 100;
-                  const suffix = s[(v - 20) % 10] || s[v] || s[0];
-                  return `Creates an appointment on the ${day}${suffix} of each month.`;
+                  return t("studioCalendar.createModal.descMonthly", { day });
                 })()}
-                {recurringOptions.frequency === "monthly" && !recurringOptions.startDate && "Creates an appointment on the same day each month. Select a start date."}
+                {recurringOptions.frequency === "monthly" && !recurringOptions.startDate && t("studioCalendar.createModal.descMonthlyNoDate")}
               </div>
             </div>
           )}
         </div>
         <div className="px-6 py-4 border-t border-border flex gap-3">
-          <button onClick={onClose} className="flex-1 py-2.5 text-sm font-medium text-content-muted bg-surface-button hover:bg-surface-button-hover rounded-xl">Cancel</button>
+          <button onClick={onClose} className="flex-1 py-2.5 text-sm font-medium text-content-muted bg-surface-button hover:bg-surface-button-hover rounded-xl">{t("common.cancel")}</button>
           <button disabled={
             !appointmentData.appointmentTypeId ||
             !appointmentData.members.length ||
@@ -705,7 +707,7 @@ const AddAppointmentModal = ({
               : (!recurringOptions.startDate || !appointmentData.timeSlot.start))
           }
             onClick={handleBook} className="flex-1 py-2.5 text-sm font-medium text-white bg-primary hover:bg-primary-hover disabled:bg-surface-button rounded-xl">
-            {showRecurringOptions ? "Book Series" : "Book Appointment"}
+            {showRecurringOptions ? t("studioCalendar.createModal.bookSeries") : t("studioCalendar.bookAppointment")}
           </button>
         </div>
       </div>
@@ -720,14 +722,14 @@ const AddAppointmentModal = ({
         date={
           showRecurringOptions
             ? recurringOptions.startDate &&
-            new Date(recurringOptions.startDate).toLocaleDateString('en-US', {
+            new Date(recurringOptions.startDate).toLocaleDateString(i18n.language, {
               weekday: 'long',
               month: 'long',
               day: 'numeric',
               year: 'numeric'
             })
             : pendingAppointmentData?.date &&
-            new Date(pendingAppointmentData.date).toLocaleDateString('en-US', {
+            new Date(pendingAppointmentData.date).toLocaleDateString(i18n.language, {
               weekday: 'long',
               month: 'long',
               day: 'numeric',

@@ -3,8 +3,10 @@
 import React from "react"
 import { useState, useEffect } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 function MiniCalendar({ onDateSelect, selectedDate, externalDate }) {
+  const { i18n } = useTranslation()
   const [currentDate, setCurrentDate] = useState(new Date());
   const today = new Date();
   
@@ -43,7 +45,13 @@ function MiniCalendar({ onDateSelect, selectedDate, externalDate }) {
   const firstDayOfMonth = firstDayOfMonthRaw === 0 ? 6 : firstDayOfMonthRaw - 1;
   
   // Days starting from Monday
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const days = (() => {
+    const d = new Date(2024, 0, 1); // Monday
+    return Array.from({ length: 7 }, (_, i) => {
+      d.setDate(1 + i);
+      return d.toLocaleDateString(i18n.language, { weekday: "narrow" });
+    });
+  })();
   
   const handlePrevMonth = () => {
     setCurrentDate(
@@ -126,10 +134,7 @@ function MiniCalendar({ onDateSelect, selectedDate, externalDate }) {
           <ChevronLeft size={14} />
         </button>
         <h2 className="text-content-primary text-xs font-semibold col-span-5 text-center">
-          {currentDate.toLocaleString("en-US", {
-            month: "long",
-            year: "numeric",
-          })}
+          {currentDate.toLocaleString(i18n.language, { month: "long", year: "numeric" })}
         </h2>
         <button
           onClick={handleNextMonth}
@@ -142,7 +147,7 @@ function MiniCalendar({ onDateSelect, selectedDate, externalDate }) {
       <div className="grid grid-cols-7 gap-0.5 text-center">
         {days.map((day) => (
           <div key={day} className="text-content-muted font-medium text-[10px] py-0.5">
-            {day.charAt(0)}
+            {day}
           </div>
         ))}
         

@@ -37,6 +37,7 @@ import EditAppointmentModal from "../../components/shared/appointments/EditAppoi
 import { createPortal } from "react-dom"
 import TrainingPlansModalMain from "../../components/shared/training/TrainingPlanModal"
 import { useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import EditMemberModalMain from "../../components/studio-components/members-components/EditMemberModal"
 import EditLeadModal from "../../components/studio-components/lead-studio-components/edit-lead-modal"
 import { MemberSpecialNoteIcon } from "../../components/shared/special-note/shared-special-note-icon"
@@ -47,6 +48,7 @@ import { fetchAllLeadsThunk } from "../../features/lead/leadSlice"
 
 export default function Appointments() {
   const dispatch = useDispatch();
+  const { t, i18n } = useTranslation();
   const { appointments = [], appointmentTypes: appointmentTypesData = [] } = useSelector((state) => state.appointments) || {}
   const { leads } = useSelector((state) => state.leads)
   const { members } = useSelector((state) => state.member)
@@ -740,7 +742,7 @@ export default function Appointments() {
     console.log("Lead updated:", updatedLeadData);
     setIsEditLeadModalOpen(false);
     setSelectedLeadForEdit(null);
-    toast.success("Lead details have been updated successfully");
+    toast.success(t("studioCalendar.toast.leadUpdated"));
   };
 
   // Handler to open EditMemberModal from appointment modals (for special notes and relations)
@@ -793,7 +795,7 @@ export default function Appointments() {
 
     setIsEditMemberModalOpen(false);
     setSelectedMemberForEdit(null);
-    toast.success("Member details have been updated successfully");
+    toast.success(t("studioCalendar.toast.memberUpdated"));
   };
 
   // Handler to add a new relation
@@ -1029,7 +1031,7 @@ export default function Appointments() {
                 onChange={(e) => setNoteText(e.target.value)}
                 rows={4}
                 className="w-full bg-surface-card text-content-primary text-sm rounded-xl px-4 py-3 border border-border focus:border-primary focus:outline-none resize-none"
-                placeholder="Enter special note..."
+                placeholder={t("studioCalendar.specialNotePlaceholder")}
               />
             </div>
 
@@ -1103,7 +1105,7 @@ export default function Appointments() {
 
   const formatMobileDateDisplay = (date) => {
     const options = { weekday: 'short', day: 'numeric', month: 'short' }
-    return date.toLocaleDateString('de-DE', options)
+    return date.toLocaleDateString(i18n.language, options)
   }
 
   // Check if current selected date is a closed day
@@ -1213,7 +1215,7 @@ export default function Appointments() {
           {/* Header with navigation controls */}
           <div className="flex items-center justify-between mb-4 flex-shrink-0 relative pr-4">
             <div className="flex items-center gap-3">
-              <h1 className="text-xl sm:text-2xl oxanium_font font-bold text-content-primary">Appointments</h1>
+              <h1 className="text-xl sm:text-2xl oxanium_font font-bold text-content-primary">{t("studioCalendar.title")}</h1>
             </div>
 
             {/* Calendar Navigation - Centered over calendar days (offset for sidebar + time column) - Desktop */}
@@ -1222,7 +1224,7 @@ export default function Appointments() {
               <button onClick={() => calendarRef.current?.toggleFreeSlots()}
                 className={`text-sm px-3 py-2 rounded-xl flex items-center gap-1.5 transition-colors font-medium whitespace-nowrap ${calendarViewMode === "free" ? "bg-primary hover:bg-primary-hover text-white" : "bg-surface-button hover:bg-surface-hover text-content-secondary"}`}>
                 <CalendarCheck size={16} />
-                {calendarViewMode === "all" ? "Free Slots" : "All Slots"}
+                {calendarViewMode === "all" ? t("studioCalendar.freeSlots") : t("studioCalendar.allSlots")}
               </button>
 
               {/* Navigation Arrows */}
@@ -1243,21 +1245,15 @@ export default function Appointments() {
                 <button
                   onClick={() => { calendarRef.current?.changeView("timeGridDay"); setCurrentView("timeGridDay"); }}
                   className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${currentView === "timeGridDay" ? "bg-primary text-white" : "text-content-muted hover:text-content-primary"}`}
-                >
-                  Day
-                </button>
+                >{t("studioCalendar.view.day")}</button>
                 <button
                   onClick={() => { calendarRef.current?.changeView("timeGridWeek"); setCurrentView("timeGridWeek"); }}
                   className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${currentView === "timeGridWeek" ? "bg-primary text-white" : "text-content-muted hover:text-content-primary"}`}
-                >
-                  Week
-                </button>
+                >{t("studioCalendar.view.week")}</button>
                 <button
                   onClick={() => { calendarRef.current?.changeView("dayGridMonth"); setCurrentView("dayGridMonth"); }}
                   className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${currentView === "dayGridMonth" ? "bg-primary text-white" : "text-content-muted hover:text-content-primary"}`}
-                >
-                  Month
-                </button>
+                >{t("studioCalendar.view.month")}</button>
               </div>
             </div>
 
@@ -1270,7 +1266,7 @@ export default function Appointments() {
                   className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-xl text-sm flex items-center gap-2 transition-colors"
                 >
                   <Plus size={16} />
-                  Book
+                  {t("studioCalendar.book")}
                   <ChevronDown size={14} className={`transition-transform ${isBookDropdownOpen ? "rotate-180" : ""}`} />
                 </button>
                 {isBookDropdownOpen && (
@@ -1280,14 +1276,14 @@ export default function Appointments() {
                       className="w-full px-4 py-2.5 text-left text-sm text-content-primary hover:bg-surface-dark transition-colors flex items-center gap-2"
                     >
                       <div className="w-2 h-2 rounded-full bg-primary"></div>
-                      Book Appointment
+                      {t("studioCalendar.bookAppointment")}
                     </button>
                     <button
                       onClick={() => { setIsTrialModalOpen(true); setIsBookDropdownOpen(false); }}
                       className="w-full px-4 py-2.5 text-left text-sm text-content-primary hover:bg-surface-dark transition-colors flex items-center gap-2"
                     >
                       <div className="w-2 h-2 rounded-full bg-trial"></div>
-                      Book Trial Training
+                      {t("studioCalendar.bookTrialTraining")}
                     </button>
                     <div className="border-t border-border"></div>
                     <button
@@ -1295,7 +1291,7 @@ export default function Appointments() {
                       className="w-full px-4 py-2.5 text-left text-sm text-content-primary hover:bg-surface-dark transition-colors flex items-center gap-2"
                     >
                       <div className="w-2 h-2 rounded-full bg-content-faint"></div>
-                      Block Time Slot
+                      {t("studioCalendar.blockTimeSlot")}
                     </button>
                   </div>
                 )}
@@ -1334,7 +1330,7 @@ export default function Appointments() {
               className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 whitespace-nowrap ${calendarViewMode === "free" ? "bg-primary text-white" : "bg-surface-button text-content-muted"}`}
             >
               <CalendarCheck size={12} />
-              {calendarViewMode === "all" ? "Free" : "All"}
+              {calendarViewMode === "all" ? t("studioCalendar.free") : t("studioCalendar.all")}
             </button>
 
             {/* Mobile Filters Toggle */}
@@ -1343,7 +1339,7 @@ export default function Appointments() {
               className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 ${isMobileFiltersExpanded ? "bg-surface-hover text-content-primary" : "bg-surface-button text-content-muted"}`}
             >
               <ChevronDown size={12} className={`transition-transform ${isMobileFiltersExpanded ? 'rotate-180' : ''}`} />
-              Filters
+              {t('studioCalendar.filters')}
             </button>
           </div>
 
@@ -1351,12 +1347,12 @@ export default function Appointments() {
           <div className={`lg:hidden overflow-hidden transition-all duration-200 pr-4 ${isMobileFiltersExpanded ? 'max-h-[300px] opacity-100 mb-3' : 'max-h-0 opacity-0'}`}>
             <div className="bg-surface-base rounded-xl p-3">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-content-primary text-xs font-medium">Filter by type</span>
+                <span className="text-content-primary text-xs font-medium">{t("studioCalendar.filterByType")}</span>
                 <button
                   onClick={toggleAllFilters}
                   className="text-[10px] text-primary hover:text-primary-hover transition-colors"
                 >
-                  {Object.values(appointmentFilters).every((value) => value) ? "Deselect All" : "Select All"}
+                  {Object.values(appointmentFilters).every((value) => value) ? t("studioCalendar.deselectAll") : t("studioCalendar.selectAll")}
                 </button>
               </div>
               <div className="grid grid-cols-2 gap-1.5">
@@ -1372,22 +1368,22 @@ export default function Appointments() {
                   <input type="checkbox" checked={appointmentFilters["Trial Training"]} onChange={() => handleFilterChange("Trial Training")}
                     className="w-3 h-3 accent-primary bg-surface-button border-border rounded cursor-pointer" />
                   <div className="w-1.5 h-1.5 rounded-full bg-trial"></div>
-                  <span className="text-content-primary text-[11px]">Trial</span>
+                  <span className="text-content-primary text-[11px]">{t("studioCalendar.filterLabels.trial")}</span>
                 </label>
                 <label className="flex items-center gap-1.5 cursor-pointer">
                   <input type="checkbox" checked={appointmentFilters["Blocked Time Slots"]} onChange={() => handleFilterChange("Blocked Time Slots")}
                     className="w-3 h-3 accent-primary bg-surface-button border-border rounded cursor-pointer" />
-                  <span className="text-content-primary text-[11px]">Blocked</span>
+                  <span className="text-content-primary text-[11px]">{t("studioCalendar.filterLabels.blocked")}</span>
                 </label>
                 <label className="flex items-center gap-1.5 cursor-pointer">
                   <input type="checkbox" checked={appointmentFilters["Cancelled Appointments"]} onChange={() => handleFilterChange("Cancelled Appointments")}
                     className="w-3 h-3 accent-primary bg-surface-button border-border rounded cursor-pointer" />
-                  <span className="text-content-primary text-[11px]">Cancelled</span>
+                  <span className="text-content-primary text-[11px]">{t("studioCalendar.filterLabels.cancelled")}</span>
                 </label>
                 <label className="flex items-center gap-1.5 cursor-pointer">
                   <input type="checkbox" checked={appointmentFilters["Past Appointments"]} onChange={() => handleFilterChange("Past Appointments")}
                     className="w-3 h-3 accent-primary bg-surface-button border-border rounded cursor-pointer" />
-                  <span className="text-content-primary text-[11px]">Past</span>
+                  <span className="text-content-primary text-[11px]">{t("studioCalendar.filterLabels.past")}</span>
                 </label>
               </div>
             </div>
@@ -1400,7 +1396,7 @@ export default function Appointments() {
               onClick={toggleSidebar}
               className={`hidden lg:flex absolute z-20 bg-primary text-white p-1.5 rounded-full shadow-lg hover:bg-primary-hover transition-all duration-500 items-center justify-center ${isSidebarCollapsed ? 'left-0' : 'left-[296px]'}`}
               style={{ top: '8px' }}
-              aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}>
+              aria-label={isSidebarCollapsed ? t("header.expandSidebar") : t("header.collapseSidebar")}>
               {isSidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
             </button>
 
@@ -1437,9 +1433,7 @@ export default function Appointments() {
                             )}
                             {/* Leads: Show "Lead" tag instead of avatar */}
                             {filter.type === 'lead' && (
-                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/30 text-primary-hover font-medium flex-shrink-0">
-                                Lead
-                              </span>
+                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/30 text-primary-hover font-medium flex-shrink-0">{t("studioCalendar.lead")}</span>
                             )}
                             <span className="text-content-primary text-xs whitespace-nowrap">{filter.memberName}</span>
                             <button
@@ -1458,7 +1452,7 @@ export default function Appointments() {
                         <input
                           ref={searchInputRef}
                           type="text"
-                          placeholder={memberFilters.length > 0 ? "Add more..." : "Search members or leads..."}
+                          placeholder={memberFilters.length > 0 ? t("studioCalendar.search.addMore") : t("studioCalendar.search.placeholder")}
                           value={searchQuery}
                           onChange={(e) => {
                             setSearchQuery(e.target.value);
@@ -1477,7 +1471,7 @@ export default function Appointments() {
                               dispatch(setMemberFilters([]));
                             }}
                             className="p-1 hover:bg-surface-button rounded-lg transition-colors flex-shrink-0"
-                            title="Clear all filters"
+                            title={t("studioCalendar.search.clearAll")}
                           >
                             <X size={14} className="text-content-muted hover:text-content-primary" />
                           </button>
@@ -1510,14 +1504,14 @@ export default function Appointments() {
                               {/* Leads: Show "Lead" badge */}
                               {person.type === 'lead' && (
                                 <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary/20 border border-primary/40">
-                                  <span className="text-[9px] text-primary-hover font-bold">LEAD</span>
+                                  <span className="text-[9px] text-primary-hover font-bold">{t("studioCalendar.lead").toUpperCase()}</span>
                                 </div>
                               )}
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
                                   <p className="text-sm text-content-primary truncate">{person.firstName} {person.lastName}</p>
                                   <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${person.type === 'lead' ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-primary/20 text-primary border border-primary/30'}`}>
-                                    {person.type === 'lead' ? 'Lead' : 'Member'}
+                                    {person.type === 'lead' ? t('studioCalendar.lead') : t('studioCalendar.member')}
                                   </span>
                                 </div>
                                 {person.type === 'member' && person.email && <p className="text-xs text-content-faint truncate">{person.email}</p>}
@@ -1530,7 +1524,7 @@ export default function Appointments() {
                       {/* No results message */}
                       {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
                         <div className="absolute top-full left-0 right-0 mt-1 bg-surface-dark border border-border rounded-xl shadow-lg z-50 p-3">
-                          <p className="text-sm text-content-faint text-center">No members or leads found</p>
+                          <p className="text-sm text-content-faint text-center">{t("studioCalendar.search.noResults")}</p>
                         </div>
                       )}
                     </div>
@@ -1544,7 +1538,7 @@ export default function Appointments() {
                       className="flex items-center justify-between cursor-pointer"
                       onClick={() => setIsFiltersCollapsed(!isFiltersCollapsed)}
                     >
-                      <h3 className="text-content-primary font-semibold text-sm">Filters</h3>
+                      <h3 className="text-content-primary font-semibold text-sm">{t("studioCalendar.filters")}</h3>
                       <div className="flex items-center gap-2">
                         {!isFiltersCollapsed && (
                           <button
@@ -1554,7 +1548,7 @@ export default function Appointments() {
                             }}
                             className="text-xs text-primary hover:text-primary-hover transition-colors"
                           >
-                            {Object.values(appointmentFilters).every((value) => value) ? "Deselect All" : "Select All"}
+                            {Object.values(appointmentFilters).every((value) => value) ? t("studioCalendar.deselectAll") : t("studioCalendar.selectAll")}
                           </button>
                         )}
                         <button className="p-1 bg-surface-button hover:bg-surface-button rounded-lg cursor-pointer transition-colors text-content-primary">
@@ -1577,23 +1571,23 @@ export default function Appointments() {
                           <input type="checkbox" checked={appointmentFilters["Trial Training"]} onChange={() => handleFilterChange("Trial Training")}
                             className="w-3.5 h-3.5 accent-primary bg-surface-button border-border rounded cursor-pointer" />
                           <div className="w-2 h-2 rounded-full bg-trial"></div>
-                          <span className="text-content-primary text-xs">Trial Training</span>
+                          <span className="text-content-primary text-xs">{t("studioCalendar.filterLabels.trialTraining")}</span>
                         </label>
                         <div className="border-t border-border my-2"></div>
                         <label className="flex items-center gap-2 cursor-pointer w-full py-0.5">
                           <input type="checkbox" checked={appointmentFilters["Blocked Time Slots"]} onChange={() => handleFilterChange("Blocked Time Slots")}
                             className="w-3.5 h-3.5 accent-primary bg-surface-button border-border rounded cursor-pointer" />
-                          <span className="text-content-primary text-xs">Blocked</span>
+                          <span className="text-content-primary text-xs">{t("studioCalendar.filterLabels.blocked")}</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer w-full py-0.5">
                           <input type="checkbox" checked={appointmentFilters["Cancelled Appointments"]} onChange={() => handleFilterChange("Cancelled Appointments")}
                             className="w-3.5 h-3.5 accent-primary bg-surface-button border-border rounded cursor-pointer" />
-                          <span className="text-content-primary text-xs">Cancelled</span>
+                          <span className="text-content-primary text-xs">{t("studioCalendar.filterLabels.cancelled")}</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer w-full py-0.5">
                           <input type="checkbox" checked={appointmentFilters["Past Appointments"]} onChange={() => handleFilterChange("Past Appointments")}
                             className="w-3.5 h-3.5 accent-primary bg-surface-button border-border rounded cursor-pointer" />
-                          <span className="text-content-primary text-xs">Past</span>
+                          <span className="text-content-primary text-xs">{t("studioCalendar.filterLabels.past")}</span>
                         </label>
                       </div>
                     )}
@@ -1746,13 +1740,13 @@ export default function Appointments() {
               dispatch(deleteAppointmentThunk(id));
               setIsEditBlockedModalOpen(false);
               setBlockedEditData(null);
-              toast.success("Blocked time slot deleted");
+              toast.success(t("studioCalendar.toast.blockedDeleted"));
             }}
             onSubmit={(blockData) => {
               // Update the blocked slot with new data
               setIsEditBlockedModalOpen(false);
               setBlockedEditData(null);
-              toast.success("Blocked time slot updated");
+              toast.success(t("studioCalendar.toast.blockedUpdated"));
               dispatch(fetchAllAppointments());
             }}
           />
@@ -1847,7 +1841,7 @@ export default function Appointments() {
             className="flex items-center gap-2 bg-surface-card text-content-primary pl-3 pr-4 py-2.5 rounded-xl shadow-lg whitespace-nowrap"
           >
             <div className="w-2 h-2 rounded-full bg-trial"></div>
-            <span className="text-sm">Trial Training</span>
+            <span className="text-sm">{t("studioCalendar.filterLabels.trialTraining")}</span>
           </button>
           <button
             onClick={(e) => {
@@ -1869,7 +1863,7 @@ export default function Appointments() {
             setIsMobileFabOpen(!isMobileFabOpen)
           }}
           className={`bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 ${isMobileFabOpen ? 'rotate-45' : ''}`}
-          aria-label="Book appointment"
+          aria-label={t("studioCalendar.bookAppointment")}
         >
           <Plus size={22} />
         </button>

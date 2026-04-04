@@ -2,6 +2,7 @@
 /* eslint-disable react/prop-types */
 import React from "react";
 import { X, Calendar, Users, Clock } from "lucide-react";
+import { useTranslation } from "react-i18next"
 
 const TypeSelectionModalMain = ({ 
   isOpen, 
@@ -10,6 +11,7 @@ const TypeSelectionModalMain = ({
   selectedDate,  // Date object or string
   selectedTime   // Time string like "09:00" or "09:00 - 09:30"
 }) => {
+  const { t, i18n } = useTranslation();
   if (!isOpen) return null;
 
   // Calculate time from selectedDate if selectedTime is not provided
@@ -40,7 +42,7 @@ const TypeSelectionModalMain = ({
     if (isNaN(d.getTime())) return "";
     
     const options = { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' };
-    return d.toLocaleDateString('en-GB', options);
+    return d.toLocaleDateString(i18n.language, options);
   };
 
   // Format time for display
@@ -65,7 +67,7 @@ const TypeSelectionModalMain = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-white">New Event</h2>
+          <h2 className="text-lg font-semibold text-white">{t("studioCalendar.typeModal.title")}</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg transition-colors"
@@ -80,7 +82,7 @@ const TypeSelectionModalMain = ({
             <div className="flex items-center gap-3 text-sm">
               <div className="flex items-center gap-2 text-gray-400">
                 <Calendar size={14} />
-                <span className="text-white">{dateDisplay || "No date selected"}</span>
+                <span className="text-white">{dateDisplay || t("studioCalendar.typeModal.noDate")}</span>
               </div>
               {timeDisplay && (
                 <>
@@ -105,8 +107,8 @@ const TypeSelectionModalMain = ({
               <Calendar size={20} className="text-orange-500" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium">Book Appointment</p>
-              <p className="text-xs text-gray-500">Schedule a session with a member</p>
+              <p className="text-sm font-medium">{t("studioCalendar.bookAppointment")}</p>
+              <p className="text-xs text-gray-500">{t("studioCalendar.typeModal.appointmentDesc")}</p>
             </div>
             <div className="w-2 h-2 rounded-full bg-orange-500"></div>
           </button>
@@ -120,8 +122,8 @@ const TypeSelectionModalMain = ({
               <Users size={20} className="text-[#3F74FF]" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium">Book Trial Training</p>
-              <p className="text-xs text-gray-500">Schedule a trial for a lead</p>
+              <p className="text-sm font-medium">{t("studioCalendar.bookTrialTraining")}</p>
+              <p className="text-xs text-gray-500">{t("studioCalendar.typeModal.trialDesc")}</p>
             </div>
             <div className="w-2 h-2 rounded-full bg-[#3F74FF]"></div>
           </button>
@@ -135,8 +137,8 @@ const TypeSelectionModalMain = ({
               <Clock size={20} className="text-gray-400" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium">Block Time Slot</p>
-              <p className="text-xs text-gray-500">Block a time slot on the calendar</p>
+              <p className="text-sm font-medium">{t("studioCalendar.blockTimeSlot")}</p>
+              <p className="text-xs text-gray-500">{t("studioCalendar.typeModal.blockDesc")}</p>
             </div>
             <div className="w-2 h-2 rounded-full bg-gray-500"></div>
           </button>

@@ -2,6 +2,7 @@
 /* eslint-disable react/prop-types */
 import React from "react";
 import { X, Plus, Minus, Calendar } from "lucide-react";
+import { useTranslation } from "react-i18next"
 
 export default function CreditsModalMain({
   // New prop names
@@ -31,6 +32,7 @@ export default function CreditsModalMain({
   const setTempData = setTempCreditsMain || setTempContingentMain;
   const handleSave = handleSaveCreditsMain || handleSaveContingentMain;
 
+  const { t } = useTranslation()
   if (!isOpen) return null;
 
   // Calculate remaining (this is what users care about!)
@@ -67,9 +69,9 @@ export default function CreditsModalMain({
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <div>
-            <h2 className="text-lg font-medium text-content-primary">Credits</h2>
+            <h2 className="text-lg font-medium text-content-primary">{t("studioCalendar.credits.title")}</h2>
             <p className="text-content-faint text-sm">
-              {selectedMemberForAppointmentsMain?.name || "Member"}
+              {selectedMemberForAppointmentsMain?.name || t("studioCalendar.member")}
             </p>
           </div>
           <button
@@ -88,7 +90,7 @@ export default function CreditsModalMain({
               <span className="text-2xl text-content-faint mb-1">/ {tempData.total}</span>
             </div>
             <div className="text-content-muted text-sm mt-1">
-              credits remaining
+              {t("studioCalendar.credits.remaining")}
             </div>
           </div>
 
@@ -114,8 +116,8 @@ export default function CreditsModalMain({
           {/* Visual Progress */}
           <div className="bg-surface-dark rounded-xl p-3">
             <div className="flex justify-between text-xs text-content-faint mb-2">
-              <span>Used: {tempData.used}</span>
-              <span>Total: {tempData.total}</span>
+              <span>{t("studioCalendar.credits.used")}: {tempData.used}</span>
+              <span>{t("studioCalendar.credits.total")}: {tempData.total}</span>
             </div>
             <div className="h-2 bg-surface-button rounded-full overflow-hidden">
               <div 
@@ -155,7 +157,7 @@ export default function CreditsModalMain({
                   >
                     <span>{period.label}</span>
                     <span className={isSelected ? "text-primary" : "text-content-faint"}>
-                      {periodRemaining} left
+                      {periodRemaining} {t("studioCalendar.credits.left")}
                     </span>
                   </button>
                 );

@@ -10,6 +10,7 @@ import NotifyModalMain from '../NotifyModal';
 import { updateAppointmentThunk } from "../../../features/appointments/AppointmentSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAllMember } from "../../../features/member/memberSlice";
+import { useTranslation } from "react-i18next"
 
 // Helper function to extract hex color from various formats
 const getColorHex = (type) => {
@@ -36,10 +37,10 @@ const parseDateFromAppointment = (dateString) => {
 };
 
 // Helper to format date back to appointment format
-const formatDateForAppointment = (dateString) => {
+const formatDateForAppointment = (dateString, lang = 'en') => {
   if (!dateString) return "";
   const date = new Date(dateString);
-  const weekday = date.toLocaleString('en-US', { weekday: 'short' });
+  const weekday = date.toLocaleString(lang, { weekday: 'short' });
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const year = date.getFullYear();
@@ -139,6 +140,7 @@ const EditAppointmentModalMain = ({
   memberRelations = {},
   leadRelations = {},
 }) => {
+  const { t, i18n } = useTranslation()
   if (!selectedAppointmentMain) return null;
   const dispatch = useDispatch();
   const { members } = useSelector((state) => state.member || []);
@@ -242,12 +244,11 @@ const EditAppointmentModalMain = ({
     editType !== originalType;
 
   // Convert 24h -> AM/PM
-  const formatAMPM = (time24) => {
-    if (!time24) return '';
+  const formatTime = (time24) => {
+    if (!time24) return "";
     const [hour, min] = time24.split(":").map(Number);
-    const ampm = hour >= 12 ? "PM" : "AM";
-    const hour12 = hour % 12 === 0 ? 12 : hour % 12;
-    return `${hour12}:${String(min).padStart(2, "0")} ${ampm}`;
+    const date = new Date(2000, 0, 1, hour, min);
+    return date.toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit" });
   };
 
   // Generate slots
@@ -284,7 +285,7 @@ const EditAppointmentModalMain = ({
         allSlots.push({
           start: startTime,
           end: endTime,
-          time: `${formatAMPM(startTime)} - ${formatAMPM(endTime)}`
+          time: `${formatTime(startTime)} - ${formatTime(endTime)}`
         });
 
         hour = tempHour;
@@ -527,7 +528,7 @@ const EditAppointmentModalMain = ({
         {/* Header */}
         <div className="px-6 py-4 border-b border-border">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-content-primary">Edit Appointment</h2>
+            <h2 className="text-lg font-semibold text-content-primary">{t("studioCalendar.editModal.title")}</h2>
             <button onClick={handleClose} className="p-2 hover:bg-surface-button text-content-muted hover:text-content-primary rounded-lg transition-colors">
               <X size={20} />
             </button>
@@ -540,7 +541,7 @@ const EditAppointmentModalMain = ({
           <div>
             <label className="block text-sm font-medium text-content-secondary mb-2 flex items-center gap-2">
               <User size={14} className="text-content-faint" />
-              {isLead ? "Lead" : "Member"}
+              {isLead ? t("studioCalendar.lead") : t("studioCalendar.member")}
             </label>
             <div className="bg-surface-dark rounded-xl px-3 py-2.5 min-h-[52px] flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-2 bg-surface-hover border border-border rounded-xl px-2.5 py-1.5">
@@ -571,7 +572,7 @@ const EditAppointmentModalMain = ({
                 {/* Relations Button - for both members and leads */}
                 <button onClick={handleRelationsClick}
                   className="flex items-center gap-1 text-xs text-primary hover:text-primary-hover bg-primary/10 hover:bg-primary/20 px-1.5 py-0.5 rounded transition-colors"
-                  title="View Relations">
+                  title={t("studioCalendar.actionModal.viewRelations")}>
                   <Users size={12} />
                   <span>{getRelationsCount(memberData.id)}</span>
                 </button>
@@ -594,7 +595,7 @@ const EditAppointmentModalMain = ({
 
           {/* Appointment Type */}
           <div>
-            <label className="block text-sm font-medium text-content-secondary mb-2">Appointment Type</label>
+            <label className="block text-sm font-medium text-content-secondary mb-2">{t("studioCalendar.appointmentType")}</label>
             <AppointmentTypeDropdown
               value={editType}
               onChange={(type) => setEditType(type)}
@@ -606,14 +607,14 @@ const EditAppointmentModalMain = ({
           {/* Date and Time */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-content-faint mb-2">Date</label>
+              <label className="block text-xs text-content-faint mb-2">{t("studioCalendar.blockConfirm.date")}</label>
               <div className="w-full flex items-center justify-between bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5">
-                <span className={editDate ? "text-content-primary" : "text-content-faint"}>{editDate ? (() => { const [y, m, d] = editDate.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                <span className={editDate ? "text-content-primary" : "text-content-faint"}>{editDate ? (() => { const [y, m, d] = editDate.split('-'); return `${d}.${m}.${y}` })() : t("studioCalendar.editBlock.selectDate")}</span>
                 <DatePickerField value={editDate} onChange={setEditDate} />
               </div>
             </div>
             <div>
-              <label className="block text-xs text-content-faint mb-2">Time Slot</label>
+              <label className="block text-xs text-content-faint mb-2">{t("studioCalendar.editModal.timeSlot")}</label>
               <div className="relative">
                 <select
                   value={editTime.start}
@@ -641,8 +642,8 @@ const EditAppointmentModalMain = ({
               <div className="flex items-start gap-3">
                 <Clock className="w-5 h-5 text-accent-yellow flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-accent-yellow mb-2">Selected time unavailable</p>
-                  <p className="text-xs text-content-muted mb-3">Choose an alternative:</p>
+                  <p className="text-sm font-medium text-accent-yellow mb-2">{t("studioCalendar.editModal.timeUnavailable")}</p>
+                  <p className="text-xs text-content-muted mb-3">{t("studioCalendar.editModal.chooseAlternative")}</p>
                   <div className="grid grid-cols-2 gap-2">
                     {alternativeSlots.slice(0, 4).map((alt, idx) => (
                       <button key={idx} onClick={() => selectAlternative(alt)}
@@ -662,7 +663,7 @@ const EditAppointmentModalMain = ({
         <div className="px-6 py-4 border-t border-border flex gap-3">
           <button onClick={() => { setNotifyAction("cancel"); setShowNotifyModal(true); }}
             className="px-4 py-2.5 text-sm font-medium text-accent-red hover:text-accent-red hover:bg-accent-red/10 rounded-xl transition-colors">
-            Cancel Appointment
+            {t("studioCalendar.actionModal.cancelAppointment")}
           </button>
           <div className="flex-1" />
           <button onClick={handleClose}
@@ -675,9 +676,7 @@ const EditAppointmentModalMain = ({
             className={`px-5 py-2.5 text-sm font-medium rounded-xl transition-colors ${hasChanges
               ? "text-white bg-primary hover:bg-primary-hover"
               : "text-content-faint bg-surface-button cursor-not-allowed"
-              }`}>
-            Save Changes
-          </button>
+              }`}>{t("studioCalendar.editBlock.saveChanges")}</button>
         </div>
 
         {/* Notify Member/Lead Modal (shared component) */}
@@ -692,8 +691,8 @@ const EditAppointmentModalMain = ({
           isTrial={!!isLead}
           date={
             notifyAction === "cancel"
-              ? selectedAppointmentMain.date && new Date(getAppointmentDate()).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
-              : pendingChanges?.date && new Date(pendingChanges.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+              ? selectedAppointmentMain.date && new Date(getAppointmentDate()).toLocaleDateString(i18n.language, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+              : pendingChanges?.date && new Date(pendingChanges.date).toLocaleDateString(i18n.language, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
           }
           time={
             notifyAction === "cancel"

@@ -2,6 +2,7 @@
 /* eslint-disable react/prop-types */
 import React from "react";
 import { X, Plus, Lock, Info, CreditCard, TrendingUp, Calendar, Sparkles } from "lucide-react";
+import { useTranslation } from "react-i18next"
 
 export default function CreditsModalMain({
   // New prop names
@@ -31,6 +32,7 @@ export default function CreditsModalMain({
   const setTempData = setTempCreditsMain || setTempContingentMain;
   const handleSave = handleSaveCreditsMain || handleSaveContingentMain;
 
+  const { t } = useTranslation()
   if (!isOpen) return null;
 
   const usedPercentage = tempData.total > 0 
@@ -56,9 +58,9 @@ export default function CreditsModalMain({
               <CreditCard className="text-white" size={22} />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-content-primary">Manage Credits</h2>
+              <h2 className="text-lg font-semibold text-content-primary">{t("studioCalendar.credits.manage")}</h2>
               <p className="text-content-muted text-sm mt-0.5">
-                {selectedMemberForAppointmentsMain?.name || "Member"}
+                {selectedMemberForAppointmentsMain?.name || t("studioCalendar.member")}
               </p>
             </div>
           </div>
@@ -74,7 +76,7 @@ export default function CreditsModalMain({
           {/* Credits Overview Card */}
           <div className="bg-surface-dark rounded-xl p-5 border border-border">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-sm text-content-muted">Current Balance</span>
+              <span className="text-sm text-content-muted">{t("studioCalendar.credits.currentBalance")}</span>
               {isLowCredits && (
                 <span className="flex items-center gap-1.5 text-xs text-accent-yellow bg-accent-yellow/10 px-2.5 py-1 rounded-full border border-accent-yellow/20">
                   <Sparkles size={12} />
@@ -86,7 +88,7 @@ export default function CreditsModalMain({
             <div className="flex items-end gap-2 mb-4">
               <span className="text-4xl font-bold text-content-primary">{remaining}</span>
               <span className="text-content-faint text-lg mb-1">/ {tempData.total}</span>
-              <span className="text-content-faint text-sm mb-1.5 ml-1">credits remaining</span>
+              <span className="text-content-faint text-sm mb-1.5 ml-1">{t("studioCalendar.credits.remaining")}</span>
             </div>
 
             {/* Progress Bar */}
@@ -104,7 +106,7 @@ export default function CreditsModalMain({
                 />
               </div>
               <div className="flex justify-between mt-2 text-xs text-content-faint">
-                <span>{tempData.used} used</span>
+                <span>{tempData.used} {t("studioCalendar.credits.used")}</span>
                 <span>{usedPercentage}%</span>
               </div>
             </div>
@@ -171,8 +173,8 @@ export default function CreditsModalMain({
               <TrendingUp size={16} className="text-content-faint" />
               <h3 className="text-content-primary font-medium text-sm">
                 {selectedBillingPeriodMain === "current"
-                  ? `Current Period (${currentBillingPeriodMain})`
-                  : `Future Period (${selectedBillingPeriodMain})`}
+                  ? t("studioCalendar.credits.currentPeriod", { period: currentBillingPeriodMain })
+                  : t("studioCalendar.credits.futurePeriod", { period: selectedBillingPeriodMain })}
               </h3>
             </div>
 
@@ -204,7 +206,7 @@ export default function CreditsModalMain({
                   {selectedBillingPeriodMain === "current" && (
                     <span className="flex items-center gap-1 text-accent-yellow">
                       <Lock size={10} />
-                      <span className="text-[10px]">Locked</span>
+                      <span className="text-[10px]">{t("studioCalendar.credits.locked")}</span>
                     </span>
                   )}
                 </label>
@@ -230,11 +232,11 @@ export default function CreditsModalMain({
 
             {/* Remaining Summary */}
             <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
-              <span className="text-sm text-content-muted">Remaining Credits</span>
+              <span className="text-sm text-content-muted">{t("studioCalendar.credits.remainingCredits")}</span>
               <span className={`text-lg font-semibold ${
                 remaining <= 0 ? 'text-accent-red' : remaining <= 2 ? 'text-accent-yellow' : 'text-accent-green'
               }`}>
-                {remaining} credits
+                {remaining} {t("studioCalendar.credits.creditsUnit")}
               </span>
             </div>
           </div>

@@ -6,6 +6,7 @@ import { MemberSpecialNoteIcon } from '../../shared/special-note/shared-special-
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux'
 import { cancelAppointment, fetchAllAppointments } from '../../../features/appointments/AppointmentSlice'
+import { useTranslation } from "react-i18next"
 // Helper to parse date from appointment format "Mon | 27-01-2025" to Date object
 const parseDateFromAppointment = (dateString) => {
   if (!dateString) return null;
@@ -53,6 +54,7 @@ export default function AppointmentActionModal({
   appointmentsMain,
   setAppointmentsMain,
 }) {
+  const { t, i18n } = useTranslation()
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -235,7 +237,7 @@ export default function AppointmentActionModal({
                   <button
                     onClick={handleRelationsClick}
                     className="flex items-center gap-1 text-xs text-primary hover:text-primary-hover bg-primary/10 hover:bg-primary/20 px-1.5 py-0.5 rounded transition-colors"
-                    title="View Relations"
+                    title={t("studioCalendar.actionModal.viewRelations")}
                   >
                     <Users size={12} />
                     <span>{getRelationsCount()}</span>
@@ -257,45 +259,45 @@ export default function AppointmentActionModal({
           {isCancelled && (
             <div className="flex items-center gap-2 bg-accent-red/10 border border-accent-red/30 rounded-xl px-4 py-3">
               <Ban size={16} className="text-accent-red" />
-              <p className="text-accent-red text-sm font-medium">This appointment has been cancelled</p>
+              <p className="text-accent-red text-sm font-medium">{t("studioCalendar.actionModal.cancelled")}</p>
             </div>
           )}
 
           {appointmentData.isPast && !isCancelled && (
             <div className="flex items-center gap-2 bg-accent-yellow/10 border border-accent-yellow/30 rounded-xl px-4 py-3">
-              <p className="text-accent-yellow text-sm">This is a past appointment</p>
+              <p className="text-accent-yellow text-sm">{t("studioCalendar.actionModal.pastAppointment")}</p>
             </div>
           )}
 
           {/* Action Buttons */}
           <div className="space-y-2 pt-2">
-            {/* Edit Appointment - Orange (only show if not cancelled) */}
+            {/* {t("studioCalendar.actionModal.editAppointment")} - Orange (only show if not cancelled) */}
             {!isCancelled && (
               <button
                 onClick={onEdit}
                 className="w-full px-5 py-3 text-sm font-medium text-white rounded-xl transition-colors flex items-center justify-center bg-primary hover:bg-primary-hover cursor-pointer"
               >
-                <Edit className="mr-2" size={16} /> Edit Appointment
+                <Edit className="mr-2" size={16} /> {t("studioCalendar.actionModal.editAppointment")}
               </button>
             )}
 
-            {/* Cancel Appointment (only show if not cancelled) - directly shows notify modal */}
+            {/* {t("studioCalendar.actionModal.cancelAppointment")} (only show if not cancelled) - directly shows notify modal */}
             {!isCancelled && (
               <button
                 onClick={handleCancelClick}
                 className="w-full px-5 py-3 text-sm font-medium rounded-xl transition-colors flex items-center justify-center bg-surface-button hover:bg-surface-hover text-content-secondary cursor-pointer"
               >
-                <X className="mr-2" size={16} /> Cancel Appointment
+                <X className="mr-2" size={16} /> {t("studioCalendar.actionModal.cancelAppointment")}
               </button>
             )}
 
-            {/* Delete Appointment (only show if cancelled) */}
+            {/* {t("studioCalendar.actionModal.deleteAppointment")} (only show if cancelled) */}
             {isCancelled && (
               <button
                 onClick={handleDeleteClick}
                 className="w-full px-5 py-3 text-sm font-medium rounded-xl transition-colors flex items-center justify-center bg-surface-button hover:bg-surface-hover text-content-secondary cursor-pointer"
               >
-                <Trash2 className="mr-2" size={16} /> Delete Appointment
+                <Trash2 className="mr-2" size={16} /> {t("studioCalendar.actionModal.deleteAppointment")}
               </button>
             )}
 
@@ -327,7 +329,7 @@ export default function AppointmentActionModal({
                 <AlertTriangle size={24} className="text-accent-red" />
               </div>
               <h3 className="text-lg font-semibold text-content-primary text-center mb-2">
-                Delete Appointment?
+                {t("studioCalendar.actionModal.deleteAppointment")}?
               </h3>
               <p className="text-sm text-content-muted text-center mb-6">
                 This will permanently delete the cancelled appointment with{" "}
@@ -364,7 +366,7 @@ export default function AppointmentActionModal({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-border flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-content-primary">Notify {isLead ? "Lead" : "Member"}</h2>
+              <h2 className="text-lg font-semibold text-content-primary">{t("studioCalendar.actionModal.notify", { type: isLead ? t("studioCalendar.lead") : t("studioCalendar.member") })}</h2>
               <button onClick={handleCancelNotify} className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-button rounded-lg transition-colors">
                 <X size={20} />
               </button>
@@ -379,7 +381,7 @@ export default function AppointmentActionModal({
                     : appointmentData.type})
                 </span> appointment on{" "}
                 <span className="font-semibold text-primary">
-                  {appointmentData.date && parseDateFromAppointment(appointmentData.date)?.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                  {appointmentData.date && parseDateFromAppointment(appointmentData.date)?.toLocaleDateString(i18n.language, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                 </span> at{" "}
                 <span className="font-semibold text-primary">{appointmentData.time || `${appointmentData.startTime} - ${appointmentData.endTime}`}</span>{" "}
                 will be <span className="font-semibold text-accent-red">cancelled</span>.
@@ -396,7 +398,7 @@ export default function AppointmentActionModal({
                     onChange={(e) => setEmailNotification(e.target.checked)}
                     className="w-4 h-4 text-primary bg-surface-button border-border rounded focus:ring-primary focus:ring-2"
                   />
-                  <span className="text-content-primary text-sm">Email Notification</span>
+                  <span className="text-content-primary text-sm">{t("studioCalendar.actionModal.emailNotification")}</span>
                 </label>
 
                 {/* App Push Notification - only for members, not leads */}
@@ -408,7 +410,7 @@ export default function AppointmentActionModal({
                       onChange={(e) => setPushNotification(e.target.checked)}
                       className="w-4 h-4 text-primary bg-surface-button border-border rounded focus:ring-primary focus:ring-2"
                     />
-                    <span className="text-content-primary text-sm">App Push Notification</span>
+                    <span className="text-content-primary text-sm">{t("studioCalendar.actionModal.pushNotification")}</span>
                   </label>
                 )}
               </div>
@@ -434,7 +436,7 @@ export default function AppointmentActionModal({
                   onClick={() => handleConfirmCancel(true)}
                   className="w-full sm:w-auto px-5 py-2.5 bg-primary text-sm font-medium text-white rounded-xl hover:bg-primary-hover transition-colors"
                 >
-                  Yes, Notify {isLead ? "Lead" : "Member"}
+                  {t("studioCalendar.actionModal.yesNotify", { type: isLead ? t("studioCalendar.lead") : t("studioCalendar.member") })}
                 </button>
               </div>
             </div>

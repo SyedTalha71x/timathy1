@@ -5,16 +5,17 @@ import { Users, Clock, ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next"
 
-const parseTimeForDisplay = (timeStr) => {
+const parseTimeForDisplay = (timeStr, lang = 'en') => {
   if (!timeStr) return "";
-  const match = timeStr.match(/(\d+):(\d+)(am|pm)/i);
+  const match = timeStr.match(/(\d+):(\d+)(am|pm)?/i);
   if (match) {
     let hours = parseInt(match[1]);
     const minutes = parseInt(match[2]);
-    const period = match[3].toLowerCase();
-    const ampm = period === 'am' ? 'AM' : 'PM';
-    const displayHour = hours > 12 ? hours - 12 : hours;
-    return `${displayHour}:${String(minutes).padStart(2, '0')} ${ampm}`;
+    const period = match[3]?.toLowerCase();
+    if (period === 'pm' && hours !== 12) hours += 12;
+    if (period === 'am' && hours === 12) hours = 0;
+    const date = new Date(2000, 0, 1, hours, minutes);
+    return date.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
   }
   return timeStr;
 };
@@ -147,7 +148,7 @@ const UpcomingClassesWidget = ({
                     </div>
                     <div className="text-[10px] text-content-muted flex items-center gap-1">
                       <Clock size={10} className="flex-shrink-0" />
-                      <span>{formatClassDate(cls.date)} · {parseTimeForDisplay(cls.startTime)}</span>
+                      <span>{formatClassDate(cls.date)} · {parseTimeForDisplay(cls.startTime, i18n.language)}</span>
                     </div>
                     {cls.trainerName && (
                       <div className="text-[9px] text-content-faint mt-0.5 truncate">
