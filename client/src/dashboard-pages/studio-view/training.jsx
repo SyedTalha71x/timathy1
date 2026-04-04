@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { useState, useRef, useEffect, useCallback, useMemo } from "react"
+import { useTranslation } from "react-i18next"
 import toast from "../../components/shared/SharedToast"
 import {
   Play,
@@ -145,6 +146,7 @@ const ResponsiveTagList = ({ tags }) => {
 // MAIN TRAINING COMPONENT
 // ============================================================================
 export default function Training() {
+  const { t } = useTranslation()
   // -------------------------------------------------------------------------
   // STATE - Tab & Filter
   // -------------------------------------------------------------------------
@@ -333,12 +335,12 @@ export default function Training() {
       });
 
       if (newMembers.length === 0) {
-        toast.error("Selected members already have this plan assigned!");
+        toast.error(t("training.toast.alreadyAssigned"));
         return;
       }
 
       // Show info toast (instead of loading)
-      toast.info(`Assigning plan to ${newMembers.length} member${newMembers.length !== 1 ? 's' : ''}...`);
+      toast.info(t("training.toast.planAssigned", { count: newMembers.length }));
 
       // Assign plan to each member using the Redux thunk
       const assignPromises = newMembers.map(memberId =>
@@ -387,11 +389,11 @@ export default function Training() {
       setMemberSearchQuery("");
 
       // Show success toast
-      toast.success(`Training plan assigned to ${newMembers.length} member${newMembers.length !== 1 ? 's' : ''}!`);
+      toast.success(t("training.toast.planAssigned", { count: newMembers.length }));
 
     } catch (error) {
       console.error('Error assigning plan:', error);
-      toast.error(error.message || "Failed to assign training plan");
+      toast.error(error.message || t("training.toast.planCreateFailed"));
     } finally {
       setIsAssigning(false);
     }
@@ -411,10 +413,10 @@ export default function Training() {
         mtp => !(mtp.memberId === memberId && mtp.planId === planToAssign?._id)
       ));
 
-      toast.success("Training plan removed from member!");
+      toast.success(t("training.toast.planRemoved"));
     } catch (error) {
       console.error('Error removing plan:', error);
-      toast.error(error.message || "Failed to remove training plan");
+      toast.error(error.message || t("training.toast.planCreateFailed"));
     }
   };
 
@@ -518,11 +520,11 @@ export default function Training() {
       setIsCreatePlanModalOpen(false);
       resetPlanForm();
 
-      toast.success("Training plan created successfully!");
+      toast.success(t("training.toast.planCreated"));
 
     } catch (error) {
       console.error('Create plan error:', error);
-      toast.error(error.message || "Failed to create training plan");
+      toast.error(error.message || t("training.toast.planCreateFailed"));
     }
   };
 
@@ -549,7 +551,7 @@ export default function Training() {
     setIsEditPlanModalOpen(false)
     setEditingPlan(null)
     resetPlanForm()
-    toast.success("Training plan updated successfully!")
+    toast.success(t("training.toast.planUpdated"))
   }
 
   const resetPlanForm = () => {
@@ -585,7 +587,7 @@ export default function Training() {
     setTrainingPlans(updatedPlans)
     setIsAddToPlanModalOpen(false)
     setVideoToAdd(null)
-    toast.success("Exercise added to training plan!")
+    toast.success(t("training.toast.exerciseAdded"))
   }
 
   const handleAddExercise = (video) => {
@@ -717,7 +719,7 @@ export default function Training() {
           {/* Header */}
           <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
             <div>
-              <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Training</h1>
+              <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">{t("training.title")}</h1>
             </div>
           </div>
 
@@ -731,7 +733,7 @@ export default function Training() {
                 }`}
             >
               <Play size={16} className="inline mr-1 sm:mr-2" />
-              Training Videos
+              {t("training.tabs.videos")}
             </button>
             <button
               onClick={() => setActiveTab("plans")}
@@ -741,7 +743,7 @@ export default function Training() {
                 }`}
             >
               <Target size={16} className="inline mr-1 sm:mr-2" />
-              Training Plans
+              {t("training.tabs.plans")}
             </button>
           </div>
 
@@ -756,7 +758,7 @@ export default function Training() {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-content-muted" size={16} />
                   <input
                     type="text"
-                    placeholder="Search training videos..."
+                    placeholder={t("training.search.videosPlaceholder")}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-primary transition-colors [&::placeholder]:text-ellipsis [&::placeholder]:overflow-hidden"
@@ -773,7 +775,7 @@ export default function Training() {
                     : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                     }`}
                 >
-                  All
+                  {t("common.all")}
                 </button>
                 {categoriesData.map((category) => (
                   <button
@@ -836,7 +838,7 @@ export default function Training() {
                 <div className="text-center py-12">
                   <div className="text-content-muted mb-4">
                     <Search size={48} className="mx-auto mb-4" />
-                    <p>No videos found matching your criteria</p>
+                    <p>{t("training.empty.noVideos")}</p>
                   </div>
                 </div>
               )}
@@ -854,7 +856,7 @@ export default function Training() {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-content-muted" size={16} />
                   <input
                     type="text"
-                    placeholder="Search training plans..."
+                    placeholder={t("training.search.plansPlaceholder")}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-primary transition-colors [&::placeholder]:text-ellipsis [&::placeholder]:overflow-hidden"
@@ -865,7 +867,7 @@ export default function Training() {
                   className="hidden md:flex items-center gap-2 px-4 sm:px-6 py-2 cursor-pointer text-sm bg-primary hover:bg-primary-hover rounded-xl text-white font-medium transition-colors justify-center sm:justify-start"
                 >
                   <Plus size={18} />
-                  Create Plan
+                  {t("training.plans.createPlan")}
                 </button>
               </div>
 
@@ -878,7 +880,7 @@ export default function Training() {
                     : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                     }`}
                 >
-                  All
+                  {t("common.all")}
                 </button>
                 {/* "My Plans" option */}
                 <button
@@ -888,7 +890,7 @@ export default function Training() {
                     : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                     }`}
                 >
-                  My Plans
+                  {t("training.filters.myPlans")}
                 </button>
                 {/* Staff members */}
                 {transformedStaff.map((member) => (
@@ -933,12 +935,12 @@ export default function Training() {
                       {plan.workoutsPerWeek && (
                         <div className="flex items-center gap-2 text-sm text-content-muted">
                           <Calendar size={14} />
-                          <span>{plan.workoutsPerWeek}x per week</span>
+                          <span>{t("common.perWeek", { count: plan.workoutsPerWeek })}</span>
                         </div>
                       )}
                       <div className="flex items-center gap-2 text-sm text-content-muted">
                         <User size={14} />
-                        <span className="truncate">by {plan.creatorName}</span>
+                        <span className="truncate">{t("common.by", { name: plan.creatorName })}</span>
                       </div>
                     </div>
                     <div className="flex items-center justify-end gap-2">
@@ -977,7 +979,7 @@ export default function Training() {
                 <div className="text-center py-12">
                   <div className="text-content-muted mb-4">
                     <Target size={48} className="mx-auto mb-4" />
-                    <p>No training plans found</p>
+                    <p>{t("training.empty.noPlans")}</p>
                   </div>
                 </div>
               )}
@@ -1095,7 +1097,7 @@ export default function Training() {
         <button
           onClick={() => setIsCreatePlanModalOpen(true)}
           className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
-          aria-label="Create Training Plan"
+          aria-label={t("training.aria.createPlan")}
         >
           <Plus size={22} />
         </button>

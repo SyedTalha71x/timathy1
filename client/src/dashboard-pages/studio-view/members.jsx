@@ -36,6 +36,7 @@ import DefaultAvatar1 from "../../../public/gray-avatar-fotor-20250912192528.png
 import toast from "../../components/shared/SharedToast"
 import { IoIosMenu } from "react-icons/io"
 import { useNavigate, useLocation } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 
 import BirthdayBadge from "../../components/shared/BirthdayBadge"
 import SharedHistoryModal from "../../components/shared/SharedHistoryModal"
@@ -85,6 +86,7 @@ import { updateAppointmentThunk } from "../../features/appointments/AppointmentS
 
 const StatusTag = ({ status, reason = "", compact = false }) => {
   const [showTooltip, setShowTooltip] = useState(false);
+  const { t } = useTranslation();
 
   const getStatusColor = (status) => {
     if (status === 'archived') return 'bg-red-600';
@@ -94,10 +96,10 @@ const StatusTag = ({ status, reason = "", compact = false }) => {
   };
 
   const getStatusText = (status) => {
-    if (status === 'archived') return 'Archived';
-    if (status === 'active') return 'Active';
-    if (status === 'paused') return 'Paused';
-    return 'Unknown';
+    if (status === 'archived') return t('members.status.archived');
+    if (status === 'active') return t('members.status.active');
+    if (status === 'paused') return t('members.status.paused');
+    return t('members.status.unknown');
   };
 
   const bgColor = getStatusColor(status);
@@ -110,12 +112,12 @@ const StatusTag = ({ status, reason = "", compact = false }) => {
       <>
         {reason && (
           <div className="flex items-center gap-2">
-            <span className="text-yellow-400 font-medium">Reason:</span>
+            <span className="text-yellow-400 font-medium">{t('members.pause.reason')}</span>
             <span>{reason}</span>
           </div>
         )}
         {!reason && (
-          <span>Membership is paused</span>
+          <span>{t('members.pause.membershipPaused')}</span>
         )}
       </>
     );
@@ -206,8 +208,7 @@ const getMemberId = (member) => member?._id || member?.id;
 const getMemberTitle = (member) => member?.title || `${member?.firstName || ''} ${member?.lastName || ''}`.trim();
 
 export default function Members({ studioId: studioIdProp = null, mode = "studio", studioName: studioNameProp = null }) {
-  // const trainingVideos = trainingVideosData
-
+  const { t } = useTranslation();
   const navigate = useNavigate()
   const location = useLocation()
   const dispatch = useDispatch();
@@ -493,7 +494,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
       setAssessmentFromDocumentManagement(false)
     }
 
-    toast.success("Medical history saved successfully")
+    toast.success(t('members.toast.medicalHistorySaved'))
   }
 
   const handleEditAssessmentClick = (member, doc) => {
@@ -563,9 +564,9 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
   const [memberHistoryMain, setMemberHistoryMain] = useState({})
 
   const getActiveFiltersText = () => {
-    const statusText = filterOptions.find(opt => opt.id === filterStatus)?.label.split(' (')[0] || 'All Members';
-    const typeText = filterMemberType === 'all' ? 'All Types' :
-      filterMemberType === 'full' ? 'Full Members' : 'Temporary Members';
+    const statusText = filterOptions.find(opt => opt.id === filterStatus)?.label.split(' (')[0] || t('members.filters.allMembers', { count: '' });
+    const typeText = filterMemberType === 'all' ? t('members.filters.allTypes') :
+      filterMemberType === 'full' ? t('members.filters.fullMembers') : t('members.filters.temporaryMembers');
     return `${statusText} & ${typeText}`;
   };
 
@@ -754,7 +755,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
 
     setIsEditModalOpenMain(false)
     setSelectedMemberMain(null)
-    toast.success("Member details have been updated successfully")
+    toast.success(t('members.toast.memberUpdated'))
   }
 
   // 
@@ -762,9 +763,9 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
     const member = safeMembers.find((m) => getMemberId(m) === memberId)
     if (member && member.memberType === "temporary") {
       dispatch(archiveMember(memberId))
-      toast.success("Temporary member archived successfully")
+      toast.success(t('members.toast.tempArchived'))
     } else {
-      toast.error("Only temporary members can be archived")
+      toast.error(t('members.toast.archiveError'))
     }
   }
 
@@ -782,9 +783,9 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
     const member = safeMembers.find((m) => getMemberId(m) === memberId)
     if (member && member.memberType === "temporary") {
       dispatch(unarchiveMember(memberId))
-      toast.success("Temporary member unarchived successfully")
+      toast.success(t('members.toast.tempUnarchived'))
     } else {
-      toast.error("Only temporary members can be unarchived")
+      toast.error(t('members.toast.unarchiveError'))
     }
   }
 
@@ -948,10 +949,10 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
 
   // Sort options
   const sortOptions = [
-    { value: 'name', label: 'Name' },
-    { value: 'status', label: 'Status' },
-    { value: 'relations', label: 'Relations' },
-    { value: 'age', label: 'Age' },
+    { value: 'name', label: t('members.sort.name') },
+    { value: 'status', label: t('members.sort.status') },
+    { value: 'relations', label: t('members.sort.relations') },
+    { value: 'age', label: t('members.sort.age') },
   ];
 
   const handleSortOptionClick = (newSortBy) => {
@@ -985,10 +986,10 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
 
 
   const filterOptions = [
-    { id: "all", label: `All Members (${safeMembers.length})` },
-    { id: "active", label: `Active Members (${safeMembers.filter((m) => m.status === 'active').length})` },
-    { id: "paused", label: `Paused Members (${safeMembers.filter((m) => m.status === 'paused').length})` },
-    { id: "archived", label: `Archived Members (${safeMembers.filter((m) => m.status === 'archived').length})` },
+    { id: "all", label: t('members.filters.allMembers', { count: safeMembers.length }) },
+    { id: "active", label: t('members.filters.activeMembers', { count: safeMembers.filter((m) => m.status === 'active').length }) },
+    { id: "paused", label: t('members.filters.pausedMembers', { count: safeMembers.filter((m) => m.status === 'paused').length }) },
+    { id: "archived", label: t('members.filters.archivedMembers', { count: safeMembers.filter((m) => m.status === 'archived').length }) },
   ]
 
   // 
@@ -1123,7 +1124,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
 
     setIsMemberSpecialNoteModalOpen(false)
     setSelectedMemberForNote(null)
-    toast.success("Special note added successfully")
+    toast.success(t('members.toast.noteAdded'))
   }
 
   // 
@@ -1196,7 +1197,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
     const plan = myPlans.find((p) => p._id === planId);
     if (plan) {
       dispatch(assignPlanThunk({ memberId, planId })); // pass as object
-      toast.success(`Training plan "${plan.name}" assigned successfully!`);
+      toast.success(t('members.toast.trainingPlanAssigned', { name: plan.name }));
     }
   };
 
@@ -1206,7 +1207,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
       [memberId]: (prev[memberId] || []).filter((plan) => plan.id !== planId),
     }))
 
-    toast.success("Training plan removed successfully!")
+    toast.success(t('members.toast.trainingPlanRemoved'))
   }
   // 
   const handleManageContingentMain = (memberId) => {
@@ -1245,7 +1246,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
         updatedContingent[mid].future[selectedBillingPeriodMain] = { ...tempContingentMain }
       }
       setMemberContingent(updatedContingent)
-      toast.success("Contingent updated successfully")
+      toast.success(t('members.toast.contingentUpdated'))
     }
     setShowContingentModalMain(false)
   }
@@ -1267,7 +1268,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
 
       setNewBillingPeriodMain("");
       setShowAddBillingPeriodModalMain(false);
-      toast.success("New billing period added successfully");
+      toast.success(t('members.toast.billingPeriodAdded'));
     }
   };
 
@@ -1395,13 +1396,13 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
 
   const handleSendEmail = () => {
     console.log("Sending email:", emailData);
-    toast.success("Email sent successfully!");
+    toast.success(t('members.toast.emailSent'));
     handleCloseEmailModal();
   };
 
   const handleSaveEmailAsDraft = (draftData) => {
     console.log("Saving draft:", draftData);
-    toast.success("Draft saved!");
+    toast.success(t('members.toast.draftSaved'));
   };
 
   const handleTemplateSelect = (template) => {
@@ -1474,7 +1475,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
   // 
   const handleAddRelationMain = () => {
     if (!newRelationMain.name || !newRelationMain.relation) {
-      toast.error("Please fill in all fields")
+      toast.error(t('members.toast.fillAllFields'))
       return
     }
     const relationId = Date.now()
@@ -1497,7 +1498,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
     })
     setMemberRelationsMain(updatedRelations)
     setNewRelationMain({ name: "", relation: "", category: "family", type: "manual", selectedMemberId: null })
-    toast.success("Relation added successfully")
+    toast.success(t('members.toast.relationAdded'))
   }
 
   // 
@@ -1508,7 +1509,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
       (rel) => rel.id !== relationId,
     )
     setMemberRelationsMain(updatedRelations)
-    toast.success("Relation deleted successfully")
+    toast.success(t('members.toast.relationDeleted'))
   }
 
   const AdminBanner = () => {
@@ -1521,8 +1522,8 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
           </svg>
         </div>
         <div>
-          <p className="text-sm font-medium text-blue-300">Admin Mode – {studioNameProp || `Studio #${studioIdProp}`}</p>
-          <p className="text-xs text-content-muted">Viewing members for this studio. Changes are saved per-studio.</p>
+          <p className="text-sm font-medium text-blue-300">{t('members.admin.adminMode', { studio: studioNameProp || `Studio #${studioIdProp}` })}</p>
+          <p className="text-xs text-content-muted">{t('members.admin.adminDesc')}</p>
         </div>
       </div>
     )
@@ -1572,7 +1573,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
           {/* Error State */}
           {membersError && (
             <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-4">
-              <p className="text-red-400 text-sm">Failed to load members: {membersError}</p>
+              <p className="text-red-400 text-sm">{t('members.failedToLoad', { error: membersError })}</p>
             </div>
           )}
 
@@ -1582,7 +1583,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
               {/* Header */}
               <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
                 <div className="flex items-center gap-3">
-                  <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Members</h1>
+                  <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">{t('members.title')}</h1>
 
                   {/* Sort Button - Mobile: next to title */}
                   <div className="lg:hidden relative" ref={mobileSortDropdownRef}>
@@ -1601,7 +1602,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
                       <div className="absolute left-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[180px]">
                         <div className="py-1">
                           <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">
-                            Sort by
+                            {t('members.sort.sortBy')}
                           </div>
                           {sortOptions.map((option) => (
                             <button
@@ -1646,7 +1647,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
                         </button>
 
                         <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                          <span className="font-medium">Grid View</span>
+                          <span className="font-medium">{t('members.view.gridView')}</span>
                           <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">V</span>
                           <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
                         </div>
@@ -1664,7 +1665,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
                         </button>
 
                         <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                          <span className="font-medium">List View</span>
+                          <span className="font-medium">{t('members.view.listView')}</span>
                           <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">V</span>
                           <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
                         </div>
@@ -1689,7 +1690,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
                         </button>
 
                         <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                          <span className="font-medium">{isCompactView ? "Compact View" : "Detailed View"}</span>
+                          <span className="font-medium">{isCompactView ? t('members.view.compactView') : t('members.view.normalView')}</span>
                           <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
                         </div>
                       </div>
@@ -1749,7 +1750,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
                     <input
                       ref={searchInputRef}
                       type="text"
-                      placeholder={memberFilters.length > 0 ? "Add more..." : "Search members..."}
+                      placeholder={memberFilters.length > 0 ? t('members.searchAddMore') : t('members.searchPlaceholder')}
                       value={searchQuery}
                       onChange={(e) => {
                         setSearchQuery(e.target.value);
@@ -1767,7 +1768,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
                           dispatch(setMemberFiltersAction([]));
                         }}
                         className="p-1 hover:bg-surface-button rounded-lg transition-colors flex-shrink-0"
-                        title="Clear all filters"
+                        title={t('members.clearAllFilters')}
                       >
                         <X size={14} className="text-secondary hover:text-secondary-hover" />
                       </button>
@@ -1804,7 +1805,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
 
                   {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
                     <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 p-3">
-                      <p className="text-sm text-content-faint text-center">No members found</p>
+                      <p className="text-sm text-content-faint text-center">{t('members.noMembersFound')}</p>
                     </div>
                   )}
                 </div>
@@ -1818,7 +1819,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
                     className="flex items-center gap-2 text-secondary hover:text-secondary-hover transition-colors"
                   >
                     <Filter size={14} />
-                    <span className="text-xs sm:text-sm font-medium">Filters</span>
+                    <span className="text-xs sm:text-sm font-medium">{t('members.filters.title')}</span>
                     <ChevronDown
                       size={14}
                       className={`transition-transform duration-200 ${filtersExpanded ? 'rotate-180' : ''}`}
@@ -2010,20 +2011,20 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
                               </div>
 
                               <div className="col-span-3 flex justify-end gap-1 items-center">
-                                <button onClick={() => handleDocumentClick(member)} className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`} title="Documents">
+                                <button onClick={() => handleDocumentClick(member)} className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`} title={t('members.actions.documents')}>
                                   <FileText size={isCompactView ? 16 : 18} />
                                   <IconBadge count={(member.documents || []).length} />
                                 </button>
-                                <button onClick={() => handlePaymentClick(member)} className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`} title="Payment">
+                                <button onClick={() => handlePaymentClick(member)} className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`} title={t('members.actions.paymentDetails')}>
                                   <CreditCard size={isCompactView ? 16 : 18} />
                                 </button>
-                                <button onClick={() => handleHistoryClick(member)} className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`} title="History">
+                                <button onClick={() => handleHistoryClick(member)} className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`} title={t('members.actions.history')}>
                                   <History size={isCompactView ? 16 : 18} />
                                 </button>
-                                <button onClick={() => handleViewDetails(member)} className={`${isCompactView ? 'p-1.5' : 'p-2'} text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors`} title="View Details">
+                                <button onClick={() => handleViewDetails(member)} className={`${isCompactView ? 'p-1.5' : 'p-2'} text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors`} title={t('members.actions.details')}>
                                   <Eye size={isCompactView ? 16 : 18} />
                                 </button>
-                                <button onClick={() => handleEditMember(member)} className={`${isCompactView ? 'p-1.5' : 'p-2'} text-primary hover:text-primary-hover hover:bg-white/5 rounded-lg transition-colors`} title="Edit">
+                                <button onClick={() => handleEditMember(member)} className={`${isCompactView ? 'p-1.5' : 'p-2'} text-primary hover:text-primary-hover hover:bg-white/5 rounded-lg transition-colors`} title={t('members.actions.edit')}>
                                   <Pencil size={isCompactView ? 16 : 18} />
                                 </button>
                               </div>
@@ -2172,7 +2173,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
                                       <button
                                         onClick={() => handleChatClick(member)}
                                         className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                        title="Chat"
+                                        title={t('members.actions.chat')}
                                       >
                                         <MessageCircle size={14} />
                                       </button>
@@ -2180,7 +2181,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
                                     <button
                                       onClick={() => handleCalendarClick(member)}
                                       className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                      title="Appointments"
+                                      title={t('members.actions.appointments')}
                                     >
                                       <Calendar size={14} />
                                     </button>
@@ -2188,7 +2189,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
                                       <button
                                         onClick={() => handleTrainingPlansClickMain(member)}
                                         className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                        title="Training Plans"
+                                        title={t('members.actions.trainingPlans')}
                                       >
                                         <Dumbbell size={14} />
                                       </button>
@@ -2198,7 +2199,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
                                       <button
                                         onClick={() => handleDocumentClick(member)}
                                         className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                        title="Documents"
+                                        title={t('members.actions.documents')}
                                       >
                                         <FileText size={14} />
                                       </button>
@@ -2207,7 +2208,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
                                     <button
                                       onClick={() => handlePaymentClick(member)}
                                       className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                      title="Payment Details"
+                                      title={t('members.actions.paymentDetails')}
                                     >
                                       <CreditCard size={14} />
                                     </button>
@@ -2216,28 +2217,28 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
                                     <button
                                       onClick={() => handleHistoryClick(member)}
                                       className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                      title="History"
+                                      title={t('members.actions.history')}
                                     >
                                       <History size={14} />
                                     </button>
                                     <button
                                       onClick={() => handleViewDetails(member)}
                                       className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                      title="Details"
+                                      title={t('members.actions.details')}
                                     >
                                       <Eye size={14} />
                                     </button>
                                     <button
                                       onClick={() => handleEditMember(member)}
                                       className="p-1.5 text-primary hover:text-primary-hover rounded-lg transition-colors flex items-center justify-center"
-                                      title="Edit"
+                                      title={t('members.actions.edit')}
                                     >
                                       <Pencil size={14} />
                                     </button>
                                     <button
                                       onClick={() => handleEditMemberNote(member)}
                                       className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                      title="Add Note"
+                                      title={t('members.actions.addNote')}
                                     >
                                       <StickyNote size={14} />
                                     </button>
@@ -2525,7 +2526,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
                                       <button
                                         onClick={() => handleChatClick(member)}
                                         className="p-2 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                        title="Start Chat"
+                                        title={t('members.actions.startChat')}
                                       >
                                         <MessageCircle size={16} />
                                       </button>
@@ -2533,7 +2534,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
                                     <button
                                       onClick={() => handleCalendarClick(member)}
                                       className="p-2 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                      title="View Appointments"
+                                      title={t('members.actions.viewAppointments')}
                                     >
                                       <Calendar size={16} />
                                     </button>
@@ -2541,7 +2542,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
                                       <button
                                         onClick={() => handleTrainingPlansClickMain(member)}
                                         className="p-2 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                        title="Training Plans"
+                                        title={t('members.actions.trainingPlans')}
                                       >
                                         <Dumbbell size={16} />
                                       </button>
@@ -2551,7 +2552,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
                                       <button
                                         onClick={() => handleDocumentClick(member)}
                                         className="p-2 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                        title="Document Management"
+                                        title={t('members.actions.documentManagement')}
                                       >
                                         <FileText size={16} />
                                       </button>
@@ -2560,14 +2561,14 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
                                     <button
                                       onClick={() => handlePaymentClick(member)}
                                       className="p-2 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                      title="Payment Details"
+                                      title={t('members.actions.paymentDetails')}
                                     >
                                       <CreditCard size={16} />
                                     </button>
                                     <button
                                       onClick={() => handleHistoryClick(member)}
                                       className="p-2 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                      title="View History"
+                                      title={t('members.actions.viewHistory')}
                                     >
                                       <History size={16} />
                                     </button>
@@ -2759,8 +2760,8 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
         onViewAssessment={(doc) => handleViewAssessmentClick(selectedMemberForDocuments, doc)}
         onDocumentsUpdate={handleDocumentsUpdate}
         sections={[
-          { id: "general", label: "General", icon: File },
-          { id: "medicalHistory", label: "Medical History", icon: ClipboardList },
+          { id: "general", label: t('members.documents.general'), icon: File },
+          { id: "medicalHistory", label: t('members.documents.medicalHistory'), icon: ClipboardList },
         ]}
       />
 
@@ -2787,8 +2788,8 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
         onConfirm={handleSepaNotifyConfirm}
         customTitle={
           pendingPaymentDetails?.signatureStatus === "signed"
-            ? "SEPA Mandate Confirmation"
-            : "SEPA Mandate – Signature Required"
+            ? t('members.sepa.mandateConfirmation')
+            : t('members.sepa.signatureRequired')
         }
         hideBack
         hidePush={pendingPaymentDetails?.signatureStatus === "signed"}
@@ -2941,7 +2942,7 @@ export default function Members({ studioId: studioIdProp = null, mode = "studio"
       <button
         onClick={() => setShowCreateTempMemberModal(true)}
         className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
-        aria-label="Create Temporary Member"
+        aria-label={t('members.createTempMember')}
       >
         <Plus size={22} />
       </button>

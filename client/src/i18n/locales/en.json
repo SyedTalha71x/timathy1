@@ -1633,7 +1633,15 @@
         "title": "Title",
         "dueDate": "Due Date",
         "recent": "Recently Added"
-      }
+      },
+      "toast": {
+        "taskPinned": "Task pinned",
+        "taskUnpinned": "Task unpinned",
+        "taskDeleted": "Task deleted successfully",
+        "taskDuplicated": "Task duplicated",
+        "taskCreated": "Task created successfully"
+      },
+      "quickAddPlaceholder": "New task… (Press Enter to add)"
     },
     "notes": {
       "title": "Notes",
@@ -1707,7 +1715,10 @@
         "noteAdded": "Note added successfully",
         "noteAddedAndMoved": "Note added and lead moved",
         "reordered": "Leads reordered",
-        "updated": "Lead updated successfully!"
+        "updated": "Lead updated successfully!",
+        "relationAdded": "Relation added successfully",
+        "relationDeleted": "Relation deleted successfully",
+        "fillAllFields": "Please fill in all fields"
       },
       "view": "View",
       "noteStatuses": {
@@ -1843,6 +1854,35 @@
           "documents": "Documents",
           "viewHistory": "View History"
         }
+      },
+      "dragConfirmation": {
+        "toTrialTitle": "Move to Trial Training?",
+        "fromTrialTitle": "Move Lead from Trial Training?",
+        "toTrialDesc": "Moving {{name}} to Trial Training Arranged.",
+        "fromTrialDesc": "Are you sure you want to move {{name}} from Trial Training Arranged?",
+        "yesBookTrial": "Yes, and Book Trial Training",
+        "yesWithoutBooking": "Yes, Without Booking",
+        "yesMoveLead": "Yes, Move Lead"
+      },
+      "adminMode": {
+        "banner": "Admin Mode — {{studio}}",
+        "description": "Viewing leads for this studio. Changes are saved per-studio.",
+        "failedToLoad": "Failed to load leads: {{error}}"
+      },
+      "trialAppointments": {
+        "deleteTitle": "Delete Trial Appointment",
+        "deleteMessage": "Are you sure you want to delete this trial appointment? This action cannot be undone.",
+        "trialBooked": "Trial training booked and lead moved to Trial Training Arranged!",
+        "trialBookedSuccess": "Trial training booked successfully!",
+        "trialDeleted": "Trial appointment deleted successfully!"
+      },
+      "documents": {
+        "general": "General",
+        "medicalHistory": "Medical History"
+      },
+      "contractPrompt": {
+        "contractDraft": "Contract saved as draft. Lead will be converted when contract is activated.",
+        "contractCreated": "Contract created successfully! Lead has been converted to member."
       }
     },
     "exercises": {
@@ -3266,6 +3306,56 @@
       "marketplace": "Marketplace",
       "analytics": "Analytics",
       "configuration": "Configuration"
+    },
+    "staff": {
+      "title": "Staff",
+      "createStaff": "Create Staff",
+      "search": {
+        "placeholder": "Search staff...",
+        "addMore": "Add more...",
+        "noResults": "No staff found"
+      },
+      "gridView": "Grid View",
+      "listView": "List View",
+      "compactView": "Compact View",
+      "detailedView": "Detailed View",
+      "staffPlanning": "Staff Planning",
+      "vacationCalendar": "Vacation Calendar",
+      "planning": "Planning",
+      "vacation": "Vacation",
+      "sort": {
+        "sortBy": "Sort by",
+        "name": "Name",
+        "staffRole": "Staff Role"
+      },
+      "adminMode": {
+        "banner": "Admin Mode — {{studio}}",
+        "description": "Viewing staff for this studio. Changes are saved per-studio.",
+        "failedToLoad": "Failed to load staff: {{error}}"
+      },
+      "deleteModal": {
+        "title": "Delete Staff",
+        "message": "Are you sure you want to delete {{name}}? This action cannot be undone."
+      },
+      "actions": {
+        "documents": "Documents",
+        "vacationContingent": "Vacation Contingent",
+        "history": "History",
+        "viewDetails": "View Details"
+      },
+      "documents": {
+        "general": "General",
+        "medicalHistory": "Medical History"
+      },
+      "toast": {
+        "deleted": "Staff deleted successfully",
+        "vacationUpdated": "Vacation contingent updated successfully",
+        "vacationUpdateFailed": "Failed to update vacation contingent",
+        "vacationRequested": "Vacation request submitted for approval",
+        "medicalHistorySaved": "Medical history saved successfully",
+        "emailSent": "Email sent successfully!",
+        "draftSaved": "Draft saved!"
+      }
     }
   },
   "documents": {
@@ -4684,6 +4774,634 @@
       "friday": "Friday",
       "saturday": "Saturday",
       "sunday": "Sunday"
+    }
+  },
+  "helpCenter": {
+    "title": "Help Center",
+    "subtitle": "How can we help you?",
+    "searchPlaceholder": "Search our help center...",
+    "noSearchResults": "No results found for \"{{query}}\"",
+    "filters": {
+      "recentlyUpdated": "Recently Updated",
+      "mostPopular": "Most Popular",
+      "trending": "Trending"
+    },
+    "featured": "Featured & Frequently Read Articles",
+    "browseCategories": "Browse All Categories",
+    "articlesOn": "Articles on:",
+    "articleCount": "{{count}} articles",
+    "minRead": "{{count}} min read",
+    "categories": "Categories",
+    "lastUpdated": "Last updated:",
+    "time": "Time:",
+    "additionalHelp": "Follow the instructions carefully to resolve your issue. If you need additional help, please contact our customer support team through the chat option.",
+    "feedback": {
+      "question": "Was this article helpful?",
+      "thankYou": "Thanks for your feedback!",
+      "sorry": "Sorry to hear that. Consider contacting support for more help."
+    },
+    "navigation": {
+      "previous": "Previous",
+      "next": "Next",
+      "backToCategory": "Back to {{category}}"
+    },
+    "stillNeedHelp": {
+      "title": "Still need help?",
+      "subtitle": "Our support team is ready to assist you",
+      "contactSupport": "Contact Support"
+    },
+    "footer": {
+      "notFinding": "Not finding what you are looking for?",
+      "chatOrEmail": "Chat with us or send us an email."
+    }
+  },
+  "mediaLibrary": {
+    "title": "Media Library",
+    "searchPlaceholder": "Search all designs...",
+    "desktopOnly": "Desktop Only",
+    "desktopOnlyDesc": "Creating and editing designs is only available on desktop devices for the best experience.",
+    "createDesign": "Create Design",
+    "folders": "Folders",
+    "newFolder": "New Folder",
+    "dropHint": "Drop \"{{name}}\" on a folder to move it",
+    "dropOnFolder": "Drop on folder to move",
+    "allDesigns": "All Designs",
+    "searchResults": "Search Results for \"{{query}}\"",
+    "clearSearch": "Clear Search",
+    "designs": {
+      "noDesignsFound": "No designs found",
+      "noDesignsYet": "No designs yet",
+      "noDesignsMatching": "No designs matching \"{{query}}\"",
+      "createFirst": "Create your first design to get started",
+      "desktopOnlyCreation": "Design creation is only available on desktop"
+    },
+    "drafts": {
+      "title": "Drafts",
+      "draft": "Draft",
+      "noDrafts": "No drafts saved",
+      "continue": "Continue",
+      "deleteDraft": "Delete Draft",
+      "yesterday": "Yesterday",
+      "daysAgo": "{{count}} days ago",
+      "layers": "{{count}} layers"
+    },
+    "deleteDesign": {
+      "titleDraft": "Delete Draft",
+      "titleDesign": "Delete Design",
+      "confirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
+    },
+    "deleteFolder": {
+      "title": "Delete \"{{name}}\"",
+      "hasDesigns": "This folder contains {{count}} design",
+      "hasDesigns_other": "This folder contains {{count}} designs",
+      "isEmpty": "This folder is empty",
+      "deleteOnly": "Delete folder only",
+      "moveDesigns": "Move designs to another folder",
+      "deleteAll": "Delete folder and designs",
+      "permanentlyDelete": "Permanently delete {{count}} design",
+      "permanentlyDelete_other": "Permanently delete {{count}} designs",
+      "confirmEmpty": "Are you sure you want to delete this empty folder?",
+      "cannotDeleteDefault": "Cannot delete the default folder"
+    },
+    "moveDesigns": {
+      "title": "Move Designs",
+      "selectFolder": "Select a folder for {{count}} design",
+      "selectFolder_other": "Select a folder for {{count}} designs",
+      "designCount": "{{count}} designs"
+    },
+    "preview": {
+      "title": "Preview",
+      "noPreview": "No preview available"
+    },
+    "untitledDesign": "Untitled Design",
+    "default": "Default"
+  },
+  "members": {
+    "title": "Members",
+    "searchPlaceholder": "Search members...",
+    "searchAddMore": "Add more...",
+    "noMembersFound": "No members found",
+    "clearAllFilters": "Clear all filters",
+    "createTempMember": "Create Temporary Member",
+    "failedToLoad": "Failed to load members: {{error}}",
+    "status": {
+      "active": "Active",
+      "paused": "Paused",
+      "archived": "Archived",
+      "unknown": "Unknown"
+    },
+    "pause": {
+      "reason": "Reason:",
+      "membershipPaused": "Membership is paused"
+    },
+    "filters": {
+      "title": "Filters",
+      "allMembers": "All Members ({{count}})",
+      "activeMembers": "Active Members ({{count}})",
+      "pausedMembers": "Paused Members ({{count}})",
+      "archivedMembers": "Archived Members ({{count}})",
+      "allTypes": "All Types",
+      "fullMembers": "Full Members",
+      "temporaryMembers": "Temporary Members"
+    },
+    "sort": {
+      "sortBy": "Sort by",
+      "name": "Name",
+      "status": "Status",
+      "relations": "Relations",
+      "age": "Age"
+    },
+    "view": {
+      "gridView": "Grid View",
+      "listView": "List View",
+      "compactView": "Compact View",
+      "normalView": "Normal View"
+    },
+    "actions": {
+      "chat": "Chat",
+      "startChat": "Start Chat",
+      "appointments": "Appointments",
+      "viewAppointments": "View Appointments",
+      "trainingPlans": "Training Plans",
+      "documents": "Documents",
+      "documentManagement": "Document Management",
+      "paymentDetails": "Payment Details",
+      "history": "History",
+      "viewHistory": "View History",
+      "details": "Details",
+      "edit": "Edit",
+      "addNote": "Add Note"
+    },
+    "documents": {
+      "general": "General",
+      "medicalHistory": "Medical History"
+    },
+    "admin": {
+      "adminMode": "Admin Mode – {{studio}}",
+      "adminDesc": "Viewing members for this studio. Changes are saved per-studio."
+    },
+    "sepa": {
+      "mandateConfirmation": "SEPA Mandate Confirmation",
+      "signatureRequired": "SEPA Mandate – Signature Required",
+      "signedMessage": "The SEPA mandate for <1>{{name}}</1> has been signed and the PDF has been stored in the documents.<3/>Do you want to send the SEPA mandate confirmation via email?",
+      "unsignedMessage": "Payment details for <1>{{name}}</1> have been saved but the mandate has <3>not been signed yet</3>.<5/>The member needs to sign the mandate in their app. The SEPA mandate PDF will be generated and stored automatically after signing.<7/>Do you want to send a push notification to the member to sign?"
+    },
+    "toast": {
+      "memberUpdated": "Member details have been updated successfully",
+      "tempArchived": "Temporary member archived successfully",
+      "archiveError": "Only temporary members can be archived",
+      "tempUnarchived": "Temporary member unarchived successfully",
+      "unarchiveError": "Only temporary members can be unarchived",
+      "noteAdded": "Special note added successfully",
+      "contingentUpdated": "Contingent updated successfully",
+      "billingPeriodAdded": "New billing period added successfully",
+      "trainingPlanAssigned": "Training plan \"{{name}}\" assigned successfully!",
+      "trainingPlanRemoved": "Training plan removed successfully!",
+      "relationAdded": "Relation added successfully",
+      "relationDeleted": "Relation deleted successfully",
+      "fillAllFields": "Please fill in all fields",
+      "medicalHistorySaved": "Medical history saved successfully",
+      "emailSent": "Email sent successfully!",
+      "draftSaved": "Draft saved!"
+    }
+  },
+  "medicalHistory": {
+    "title": "Medical History",
+    "createForm": "Create Medical History",
+    "searchPlaceholder": "Search forms...",
+    "sort": {
+      "sortBy": "Sort by",
+      "date": "Date",
+      "name": "Name",
+      "questions": "Questions",
+      "sections": "Sections",
+      "customOrder": "Custom Order"
+    },
+    "view": {
+      "gridView": "Grid View",
+      "listView": "List View"
+    },
+    "card": {
+      "sectionsCount": "{{count}} Sections",
+      "questionsCount": "{{count}} Questions",
+      "created": "Created:",
+      "updated": "Updated:",
+      "previewForm": "Preview Form"
+    },
+    "empty": {
+      "noForms": "No forms created yet. Click on \"Create Medical History\" to get started.",
+      "noMatch": "No forms match your search criteria. Try adjusting your filters."
+    },
+    "toast": {
+      "formCreated": "Form created successfully",
+      "formUpdated": "Form updated successfully",
+      "formDeleted": "Form Deleted Successfully",
+      "formSaveFailed": "Failed to save form",
+      "titleRequired": "Form title is required"
+    },
+    "duplicate": {
+      "copySuffix": "(Copy)"
+    }
+  },
+  "marketplace": {
+    "title": "Marketplace",
+    "searchPlaceholder": "Search by name, brand or article number...",
+    "sale": "Sale ({{count}})",
+    "favorites": "Favorites ({{count}})",
+    "featured": "Featured",
+    "moreProducts": "More Products",
+    "articleNo": "Art. No:",
+    "youSave": "You save {{amount}} ({{percentage}}%)",
+    "sortOptions": {
+      "name": "Name",
+      "price": "Price",
+      "brand": "Brand",
+      "articleNo": "Article No."
+    },
+    "productInfo": {
+      "title": "Product Information",
+      "brand": "Brand:",
+      "articleNo": "Article No:",
+      "noInfo": "No additional information available",
+      "addInfo": "Add information"
+    },
+    "externalLink": {
+      "affiliateTitle": "Affiliate Link",
+      "affiliateDesc": "This is an affiliate link. We may earn a small commission if you make a purchase through this link, at no additional cost to you.",
+      "leavingSite": "You are leaving our site",
+      "leavingDesc": "You are about to be redirected to an external website. We are not responsible for the content, privacy policies, or practices of third-party websites.",
+      "destination": "Destination:",
+      "continue": "Continue"
+    },
+    "favorites_aria": {
+      "add": "Add to favorites",
+      "remove": "Remove from favorites"
+    },
+    "empty": {
+      "noFavorites": "No favorites yet. Click the heart icon to add products to your favorites.",
+      "noSaleItems": "No sale items available at the moment.",
+      "noProducts": "No products found matching your search."
+    }
+  },
+  "finances": {
+    "title": "Finances",
+    "adminMode": "Admin Mode — {{studioName}}",
+    "adminModeDesc": "Viewing finances for this studio. Changes are saved per-studio.",
+    "loadError": "Failed to load finances: {{error}}",
+    "selectPeriod": "Select Period",
+    "customPeriod": "Custom Period",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "runPayment": "Run Payment",
+    "checkFunds": "Check Funds",
+    "searchPlaceholder": "Search by member, IBAN, or mandate...",
+    "stats": {
+      "totalRevenue": "Total Revenue",
+      "successful": "Successful",
+      "pending": "Pending",
+      "checkFunds": "Check Funds",
+      "failed": "Failed"
+    },
+    "statusOptions": {
+      "successful": "Successful",
+      "pending": "Pending",
+      "failed": "Failed",
+      "checkIncomingFunds": "Check incoming funds"
+    },
+    "clearAll": "Clear All",
+    "table": {
+      "member": "Member",
+      "memberShort": "Name",
+      "amount": "Amount",
+      "amountShort": "Amt",
+      "services": "Services",
+      "servicesShort": "Svc",
+      "status": "Status",
+      "statusShort": "St.",
+      "iban": "IBAN",
+      "mandateNumber": "Mandate Number",
+      "mandateShort": "Mandate",
+      "date": "Date",
+      "type": "Type"
+    },
+    "empty": {
+      "noTransactions": "No transactions found matching your criteria."
+    },
+    "successMessage": "Transaction statuses updated successfully!",
+    "paymentRunHistory": "View Payment Run History",
+    "hideIban": "Hide IBAN",
+    "showIban": "Show full IBAN"
+  },
+  "checkIn": {
+    "title": "Check-In",
+    "dateRange": {
+      "from": "From",
+      "to": "to"
+    },
+    "stats": {
+      "total": "Total",
+      "checkedIn": "Checked-In",
+      "pending": "Pending",
+      "noShows": "No Shows"
+    },
+    "searchPlaceholder": "Search members...",
+    "searchPlaceholderMore": "Add more...",
+    "clearAllFilters": "Clear all filters",
+    "filters": {
+      "all": "All",
+      "checkedIn": "Checked-In",
+      "pending": "Pending",
+      "noShows": "No Shows"
+    },
+    "sortOptions": {
+      "time": "Time",
+      "name": "Name",
+      "type": "Type"
+    },
+    "tabs": {
+      "today": "Today ({{count}})",
+      "history": "History ({{count}})"
+    },
+    "actions": {
+      "checkIn": "Check-In",
+      "noShow": "No Show",
+      "undo": "Undo"
+    },
+    "status": {
+      "checkedIn": "Checked-In",
+      "checkedInAt": "Checked-In {{time}}",
+      "noShow": "No Show",
+      "completed": "Completed"
+    },
+    "empty": {
+      "noAppointments": "No appointments found",
+      "adjustFilters": "Try adjusting your search or filters",
+      "noScheduled": "No appointments scheduled for this period",
+      "noHistory": "No check-in history",
+      "adjustSearch": "Try adjusting your search",
+      "historyHint": "Check-in history will appear here",
+      "noMembers": "No members found"
+    }
+  },
+  "notes": {
+    "title": "Notes",
+    "createNote": "Create Note",
+    "searchPlaceholder": "Search...",
+    "editorPlaceholder": "Start writing...",
+    "untitled": "Untitled",
+    "noContent": "No content",
+    "tabs": {
+      "studio": "Studio Notes",
+      "personal": "Personal Notes"
+    },
+    "tooltip": {
+      "studioTitle": "Studio Notes",
+      "studioDesc": "Shared with everyone. All team members can see and edit these notes.",
+      "personalTitle": "Personal Notes",
+      "personalDesc": "Private to you. Only you can see and edit these notes."
+    },
+    "sortOptions": {
+      "date": "Date",
+      "title": "Title",
+      "custom": "Custom"
+    },
+    "tags": "Tags",
+    "manageTags": "Manage Tags",
+    "attachments": "Attachments",
+    "attachmentsCount": "Attachments ({{count}})",
+    "addImages": "Add Images",
+    "view": "View",
+    "showLess": "Show less",
+    "showMore": "Show {{count}} more",
+    "actions": {
+      "pinNote": "Pin Note",
+      "unpinNote": "Unpin Note",
+      "moveToStudio": "Move to Studio",
+      "moveToPersonal": "Move to Personal"
+    },
+    "empty": {
+      "noNotes": "No notes yet",
+      "createFirst": "Create your first note to get started",
+      "noSelected": "No note selected",
+      "selectOrCreate": "Select a note from the list or create a new one",
+      "loading": "Loading notes..."
+    },
+    "toasts": {
+      "created": "Note created",
+      "deleted": "Note deleted",
+      "duplicated": "Note duplicated",
+      "pinned": "Note pinned",
+      "unpinned": "Note unpinned",
+      "movedTo": "Note moved to {{tab}} Notes",
+      "upToDate": "Note already up to date",
+      "failedAutoSave": "Failed to auto-save note",
+      "failedCreate": "Failed to create note",
+      "failedDelete": "Failed to delete note",
+      "failedDuplicate": "Failed to duplicate note",
+      "failedMove": "Failed to move note",
+      "failedPin": "Failed to update pin status"
+    }
+  },
+  "tickets": {
+    "title": "Tickets",
+    "subtitle": "Contact us for a fast Response",
+    "searchPlaceholder": "Search Tickets...",
+    "createTicket": "Create Ticket",
+    "filters": {
+      "all": "All",
+      "open": "Open",
+      "inProgress": "In-Progress",
+      "awaiting": "Awaiting your reply",
+      "closed": "Closed",
+      "resolved": "Resolved"
+    },
+    "list": {
+      "created": "Created:",
+      "updated": "Updated:",
+      "by": "By:"
+    },
+    "closeTicket": {
+      "title": "Close Ticket",
+      "confirm": "Are you sure you want to close ticket \"{{subject}}\"? This action cannot be undone.",
+      "button": "Close Ticket"
+    },
+    "empty": {
+      "noTickets": "No tickets found"
+    },
+    "loading": "Loading tickets...",
+    "loadError": "Failed to load tickets: {{error}}",
+    "retry": "Retry"
+  },
+  "contracts": {
+    "title": "Contracts",
+    "createContract": "Create Contract",
+    "searchPlaceholder": "Search contracts...",
+    "gridView": "Grid View",
+    "listView": "List View",
+    "table": {
+      "contractNo": "Contract No.",
+      "name": "Name",
+      "contractType": "Contract Type",
+      "status": "Status",
+      "autoRenewal": "Auto Renewal",
+      "duration": "Contract Duration",
+      "noAutoRenewal": "No Auto Renewal"
+    },
+    "openDocuments": "Open Contract Documents",
+    "clearAllFilters": "Clear all filters",
+    "statusLabels": {
+      "active": "Active",
+      "paused": "Paused",
+      "cancelled": "Cancelled",
+      "pending": "Pending",
+      "scheduled": "Scheduled"
+    },
+    "statusMessages": {
+      "paused": "Contract is paused",
+      "cancelled": "Contract was cancelled",
+      "scheduled": "Contract is scheduled"
+    },
+    "details": {
+      "since": "Since:",
+      "starts": "Starts:",
+      "period": "Period:",
+      "reason": "Reason:",
+      "cancelled": "Cancelled:"
+    },
+    "actions": {
+      "pause": "Pause",
+      "resume": "Resume",
+      "renew": "Renew",
+      "change": "Change",
+      "renewContract": "Renew Contract",
+      "resumeContract": "Resume Contract",
+      "changeContract": "Change Contract",
+      "removeBonusTime": "Remove Bonus Time"
+    },
+    "empty": {
+      "noContracts": "No contracts found.",
+      "noMembers": "No members found"
+    },
+    "adminModeDesc": "Viewing contracts for this studio. Changes are saved per-studio.",
+    "toasts": {
+      "added": "Contract added successfully",
+      "updated": "Contract updated successfully",
+      "deleted": "Contract deleted successfully",
+      "paused": "Contract has been paused",
+      "cancelled": "Contract has been cancelled",
+      "resumed": "Contract resumed successfully",
+      "renewed": "Contract renewed successfully",
+      "changed": "Contract changed successfully",
+      "renewalDraft": "Contract renewal saved as draft",
+      "changeDraft": "Contract change saved as draft",
+      "scheduledCancelled": "Scheduled contract cancelled",
+      "draftSaved": "Contract saved as draft. Lead will be converted when contract is activated.",
+      "bonusTimeUpdated": "Bonus time updated successfully",
+      "bonusTimeAdded": "Bonus time added successfully",
+      "bonusTimeRemoved": "Bonus time removed"
+    }
+  },
+  "studioAnalytics": {
+    "title": "Analytics",
+    "timePeriod": {
+      "last7Days": "Last 7 Days",
+      "last30Days": "Last 30 Days",
+      "last90Days": "Last 90 Days",
+      "thisMonth": "This Month",
+      "lastMonth": "Last Month",
+      "thisYear": "This Year",
+      "lastYear": "Last Year",
+      "allTime": "All Time"
+    },
+    "tabs": {
+      "appointments": "Appointments",
+      "members": "Members",
+      "leads": "Leads",
+      "finances": "Finances"
+    },
+    "appointments": {
+      "bookings": "Bookings",
+      "checkIns": "Check-ins",
+      "cancellations": "Cancellations",
+      "lateCancellations": "Late Cancellations",
+      "noShows": "No Shows",
+      "monthlyBreakdown": "Monthly Breakdown",
+      "popularBookingTimes": "Most Popular Booking Times"
+    },
+    "members": {
+      "totalMembers": "Total Members",
+      "fullMembers": "Full Members",
+      "temporaryMembers": "Temporary Members",
+      "activeMembers": "Active Members",
+      "inactiveMembers": "Inactive Members",
+      "pausedMembers": "Paused Members",
+      "memberActivity": "Member Activity",
+      "membersByType": "Members by Membership Type"
+    },
+    "leads": {
+      "totalLeads": "Total Leads",
+      "newLeadsConverted": "New Leads & Converted",
+      "conversionRate": "Conversion Rate (%)",
+      "leadOrigin": "Lead Origin",
+      "totalLabel": "Total: {{count}} leads"
+    },
+    "finances": {
+      "totalRevenue": "Total Revenue",
+      "avgRevenueMember": "Avg Revenue/Member",
+      "outstandingPayments": "Outstanding Payments",
+      "topServicesByRevenue": "Top Services/Products by Revenue",
+      "mostFrequentlySold": "Most Frequently Sold"
+    },
+    "map": {
+      "studio": "Studio",
+      "density": "Density",
+      "low": "Low",
+      "med": "Med",
+      "high": "High",
+      "hoverHint": "Hover over areas to see details",
+      "clickToPin": "Click to pin popup",
+      "leadsLabel": "Leads",
+      "distance": "Distance"
+    }
+  },
+  "studioClasses": {
+    "title": "Classes",
+    "newClass": "New Class",
+    "loading": "Loading classes...",
+    "filters": "Filters",
+    "courses": "Courses",
+    "staff": "Staff",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "cancelled": "Cancelled",
+    "past": "Past",
+    "view": {
+      "day": "Day",
+      "week": "Week",
+      "month": "Month"
+    },
+    "toast": {
+      "classCreated": "Class created",
+      "seriesCreated": "Class series created",
+      "createFailed": "Failed to create class",
+      "cannotCreatePast": "Cannot create class in the past",
+      "enrolled": "Member enrolled successfully",
+      "enrollFailed": "Failed to enroll member",
+      "removed": "Member removed successfully",
+      "removeFailed": "Failed to remove member",
+      "cancelled": "Class cancelled successfully",
+      "cancelFailed": "Failed to cancel class",
+      "seriesCancelled": "{{count}} class cancelled",
+      "seriesCancelled_other": "{{count}} classes cancelled",
+      "seriesCancelFailed": "Failed to cancel series",
+      "deleted": "Class deleted permanently",
+      "deleteFailed": "Failed to delete class",
+      "updated": "Class updated successfully",
+      "updateFailed": "Failed to update class",
+      "classIdRequired": "Class ID is required",
+      "seriesIdRequired": "Series ID is required",
+      "noUpcomingInSeries": "No upcoming classes found in this series to cancel",
+      "unableToIdentify": "Unable to identify class in series"
     }
   }
 }

@@ -5,6 +5,7 @@ import { Search, Plus, X } from "lucide-react"
 import TicketView from "../../components/studio-components/tickets-components/TicketView"
 import NewTicketModal from "../../components/studio-components/tickets-components/NewTicketModal"
 import { useSelector, useDispatch } from "react-redux"
+import { useTranslation } from "react-i18next"
 import {
   createTicketThunk,
   fetchTicketThunk,
@@ -13,6 +14,7 @@ import {
 } from '../../features/supportCenter/supportSlice'
 
 const Tickets = () => {
+  const { t: translate } = useTranslation()
   // ✅ Fix: Properly handle the ticket data structure
   const supportState = useSelector((state) => state.support) || {}
   const { user } = useSelector((state) => state.auth)
@@ -219,22 +221,22 @@ const Tickets = () => {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
         <div className="bg-surface-card text-content-primary rounded-xl p-6 w-full max-w-md mx-auto">
-          <h3 className="text-lg font-semibold mb-4 text-content-primary">Close Ticket</h3>
+          <h3 className="text-lg font-semibold mb-4 text-content-primary">{translate("tickets.closeTicket.title")}</h3>
           <p className="text-content-secondary mb-6">
-            Are you sure you want to close ticket "{ticket?.subject}"? This action cannot be undone.
+            {translate("tickets.closeTicket.confirm", { subject: ticket?.subject })}
           </p>
           <div className="flex justify-end gap-3">
             <button
               onClick={onClose}
               className="px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors"
             >
-              Cancel
+              {translate("common.cancel")}
             </button>
             <button
               onClick={onConfirm}
               className="px-4 py-2 text-sm bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors"
             >
-              Close Ticket
+              {translate("tickets.closeTicket.button")}
             </button>
           </div>
         </div>
@@ -249,7 +251,7 @@ const Tickets = () => {
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-content-secondary">Loading tickets...</p>
+            <p className="text-content-secondary">{translate("tickets.loading")}</p>
           </div>
         </div>
       )}
@@ -258,12 +260,12 @@ const Tickets = () => {
       {error && (
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
-            <p className="text-red-500 mb-4">Failed to load tickets: {error}</p>
+            <p className="text-red-500 mb-4">{translate("tickets.loadError", { error })}</p>
             <button
               onClick={() => dispatch(fetchTicketThunk())}
               className="px-4 py-2 bg-primary text-white rounded-lg"
             >
-              Retry
+              {translate("tickets.retry")}
             </button>
           </div>
         </div>
@@ -274,10 +276,10 @@ const Tickets = () => {
         <>
           <div className="flex-shrink-0 pt-6 sm:pt-8 pb-6 sm:pb-8 px-4 sm:px-8">
             <h1 className="text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-content-primary text-center mb-4 sm:mb-6 oxanium_font">
-              Tickets
+              {translate("tickets.title")}
             </h1>
             <p className="text-lg sm:text-xl text-content-secondary text-center mb-6 sm:mb-8 open_sans_font">
-              Contact us for a fast Response
+              {translate("tickets.subtitle")}
             </p>
 
             {/* Search Bar with Create Button */}
@@ -287,7 +289,7 @@ const Tickets = () => {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-content-faint" size={16} />
                   <input
                     type="text"
-                    placeholder="Search Tickets..."
+                    placeholder={translate("tickets.searchPlaceholder")}
                     value={searchQuery}
                     onChange={(e) => {
                       setSearchQuery(e.target.value);
@@ -303,10 +305,10 @@ const Tickets = () => {
                     className="flex bg-primary hover:bg-primary-hover text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"
                   >
                     <Plus size={14} className="sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">Create Ticket</span>
+                    <span className="hidden sm:inline">{translate("tickets.createTicket")}</span>
                   </button>
                   <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                    <span className="font-medium">Create Ticket</span>
+                    <span className="font-medium">{translate("tickets.createTicket")}</span>
                     <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                       C
                     </span>
@@ -319,7 +321,8 @@ const Tickets = () => {
             {/* Filters - Added In-Progress */}
             <div className="w-full max-w-7xl mx-auto px-2">
               <div className="flex flex-wrap gap-1.5 sm:gap-3">
-                {["All", "Open", "In-Progress", "Awaiting your reply", "Closed"].map((filter) => {
+                {[{id: "All", label: translate("tickets.filters.all")}, {id: "Open", label: translate("tickets.filters.open")}, {id: "In-Progress", label: translate("tickets.filters.inProgress")}, {id: "Awaiting your reply", label: translate("tickets.filters.awaiting")}, {id: "Closed", label: translate("tickets.filters.closed")}].map((filterObj) => {
+                  const filter = filterObj.id;
                   const isSelected = selectedFilters.includes(filter);
                   const buttonClasses = isSelected
                     ? "bg-primary text-white"
@@ -331,7 +334,7 @@ const Tickets = () => {
                       onClick={() => handleFilterClick(filter)}
                       className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${buttonClasses}`}
                     >
-                      {filter}
+                      {filterObj.label}
                     </button>
                   );
                 })}
@@ -373,19 +376,19 @@ const Tickets = () => {
                         </div>
                         <div className="flex items-center gap-4 text-xs text-content-faint flex-wrap mb-2 open_sans_font">
                           <div className="flex items-center gap-1">
-                            <span>Created:</span>
+                            <span>{translate("tickets.list.created")}</span>
                             <span className="text-content-secondary">
                               {ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString("en-GB") : "N/A"}
                             </span>
                           </div>
                           <div className="flex items-center gap-1">
-                            <span>Updated:</span>
+                            <span>{translate("tickets.list.updated")}</span>
                             <span className="text-content-secondary">
                               {ticket.updatedAt ? new Date(ticket.updatedAt).toLocaleDateString("en-GB") : "N/A"}
                             </span>
                           </div>
                           <div className="flex items-center gap-1">
-                            <span>By:</span>
+                            <span>{translate("tickets.list.by")}</span>
                             <span className="text-content-secondary">
                               {ticket.createdBy?.firstName || ticket.createdBy?.email || "System"}
                             </span>
@@ -399,7 +402,7 @@ const Tickets = () => {
                   })
                 ) : (
                   <div className="text-center py-12 text-content-faint open_sans_font">
-                    <p>No tickets found</p>
+                    <p>{translate("tickets.empty.noTickets")}</p>
                   </div>
                 )}
               </div>
@@ -433,7 +436,7 @@ const Tickets = () => {
       <button
         onClick={handleNewTicketClick}
         className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
-        aria-label="Create Ticket"
+        aria-label={translate("tickets.createTicket")}
       >
         <Plus size={22} />
       </button>

@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   DndContext, 
   PointerSensor, 
@@ -147,6 +148,7 @@ const FolderCardWithMenu = ({ folder, isSelected, designCount, onSelect, onEdit,
 };
 
 const MediaLibrary = () => {
+  const { t } = useTranslation();
   // State
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -250,7 +252,7 @@ const MediaLibrary = () => {
 
   // Handle create new design
   const handleCreateDesign = (name, folderId, personalization) => {
-    setPendingDesignName(name || 'Untitled Design');
+    setPendingDesignName(name || t('mediaLibrary.untitledDesign'));
     setPendingFolderId(folderId || defaultFolder?.id);
     setPendingPersonalization(personalization || null);
     setShowCreateModal(false);
@@ -378,7 +380,7 @@ const MediaLibrary = () => {
   // Handle select blank
   const handleSelectBlank = (size) => {
     setCurrentDesign({
-      name: pendingDesignName || 'Untitled Design',
+      name: pendingDesignName || t('mediaLibrary.untitledDesign'),
       size,
       elements: [],
       folderId: pendingFolderId || selectedFolderId || defaultFolder?.id
@@ -523,7 +525,7 @@ const MediaLibrary = () => {
 
   const handleDeleteFolder = (folder) => {
     if (folder.isDefault) {
-      alert('Cannot delete the default folder');
+      alert(t('mediaLibrary.deleteFolder.cannotDeleteDefault'));
       return;
     }
     
@@ -630,7 +632,7 @@ const MediaLibrary = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl sm:text-2xl text-content-primary oxanium_font">Media Library</h1>
+          <h1 className="text-xl sm:text-2xl text-content-primary oxanium_font">{t('mediaLibrary.title')}</h1>
           
           {/* Mobile Info Tooltip - only visible on mobile */}
           <div className="sm:hidden relative">
@@ -639,7 +641,7 @@ const MediaLibrary = () => {
               onMouseEnter={() => setShowMobileInfoTooltip(true)}
               onMouseLeave={() => setShowMobileInfoTooltip(false)}
               className="text-content-muted hover:text-content-secondary transition-colors p-1"
-              aria-label="Design Information"
+              aria-label={t('mediaLibrary.desktopOnly')}
             >
               <Info size={16} />
             </button>
@@ -647,9 +649,9 @@ const MediaLibrary = () => {
             {showMobileInfoTooltip && (
               <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-64 bg-surface-button border border-border rounded-lg shadow-xl p-4 z-50">
                 <div className="text-sm space-y-2">
-                  <p className="text-primary font-medium">Desktop Only</p>
+                  <p className="text-primary font-medium">{t('mediaLibrary.desktopOnly')}</p>
                   <p className="text-content-secondary text-xs leading-relaxed">
-                    Creating and editing designs is only available on desktop devices for the best experience.
+                    {t('mediaLibrary.desktopOnlyDesc')}
                   </p>
                 </div>
                 <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-surface-button border-l border-t border-border transform rotate-45"></div>
@@ -666,12 +668,12 @@ const MediaLibrary = () => {
               className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-primary hover:bg-primary-hover text-white text-xs sm:text-sm font-medium rounded-xl transition-colors"
             >
               <Plus size={14} className="sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Create Design</span>
+              <span className="hidden sm:inline">{t('mediaLibrary.createDesign')}</span>
             </button>
             
             {/* Tooltip */}
             <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-              <span className="font-medium">Create Design</span>
+              <span className="font-medium">{t('mediaLibrary.createDesign')}</span>
               <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                 C
               </span>
@@ -686,7 +688,7 @@ const MediaLibrary = () => {
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-content-muted" size={16} />
         <input
           type="text"
-          placeholder="Search all designs..."
+          placeholder={t('mediaLibrary.searchPlaceholder')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-primary transition-colors"
@@ -713,7 +715,7 @@ const MediaLibrary = () => {
                 >
                   {showFoldersSection ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                   <FolderIcon size={18} />
-                  <span className="font-medium text-sm">Folders</span>
+                  <span className="font-medium text-sm">{t('mediaLibrary.folders')}</span>
                   <span className="text-content-faint text-xs ml-1">({folders.length})</span>
                 </button>
                 
@@ -722,7 +724,7 @@ const MediaLibrary = () => {
                   className="flex items-center gap-1.5 text-primary hover:text-primary text-xs transition-colors"
                 >
                   <FolderPlus size={14} />
-                  New Folder
+                  {t('mediaLibrary.newFolder')}
                 </button>
               </div>
 
@@ -732,7 +734,7 @@ const MediaLibrary = () => {
                   {draggingDesign && (
                     <div className="mb-3 p-3 bg-primary/10 border border-primary/30 rounded-xl flex items-center gap-2 text-primary text-sm">
                       <GripVertical size={16} />
-                      <span>Drop "<strong>{draggingDesign.name}</strong>" on a folder to move it</span>
+                        <span>{t('mediaLibrary.dropHint', { name: draggingDesign.name })}</span>
                     </div>
                   )}
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -764,8 +766,8 @@ const MediaLibrary = () => {
                 <Palette size={18} />
                 <span className="font-medium text-sm">
                   {isSearching 
-                    ? `Search Results for "${searchQuery}"` 
-                    : (selectedFolder?.name || 'All Designs')
+                    ? t('mediaLibrary.searchResults', { query: searchQuery })
+                    : (selectedFolder?.name || t('mediaLibrary.allDesigns'))
                   }
                 </span>
                 <span className="text-content-faint text-xs ml-1">
@@ -778,7 +780,7 @@ const MediaLibrary = () => {
                   className="text-xs text-content-muted hover:text-content-primary flex items-center gap-1 transition-colors"
                 >
                   <X size={12} />
-                  Clear search
+                  {t('mediaLibrary.clearSearch')}
                 </button>
               )}
             </div>
@@ -804,12 +806,12 @@ const MediaLibrary = () => {
                     {isSearching ? <Search size={28} className="text-content-faint" /> : <Sparkles size={28} className="text-content-faint" />}
                   </div>
                   <h3 className="text-content-primary font-medium mb-1">
-                    {isSearching ? 'No designs found' : 'No designs yet'}
+                    {isSearching ? t('mediaLibrary.designs.noDesignsFound') : t('mediaLibrary.designs.noDesignsYet')}
                   </h3>
                   <p className="text-content-faint text-sm mb-4">
                     {isSearching 
-                      ? `No designs matching "${searchQuery}"` 
-                      : 'Create your first design to get started'
+                      ? t('mediaLibrary.designs.noDesignsMatching', { query: searchQuery })
+                      : t('mediaLibrary.designs.createFirst')
                     }
                   </p>
                   {isSearching ? (
@@ -818,7 +820,7 @@ const MediaLibrary = () => {
                       className="inline-flex items-center gap-2 px-5 py-2.5 bg-surface-button hover:bg-surface-button-hover text-content-primary text-sm font-medium rounded-xl transition-colors"
                     >
                       <X size={16} />
-                      Clear Search
+                      {t('mediaLibrary.clearSearch')}
                     </button>
                   ) : (
                     <>
@@ -827,10 +829,10 @@ const MediaLibrary = () => {
                         className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-xl transition-colors"
                       >
                         <Plus size={16} />
-                        Create Design
+                        {t('mediaLibrary.createDesign')}
                       </button>
                       <p className="sm:hidden text-content-faint text-xs mt-2">
-                        Design creation is only available on desktop
+                        {t('mediaLibrary.designs.desktopOnlyCreation')}
                       </p>
                     </>
                   )}
@@ -848,7 +850,7 @@ const MediaLibrary = () => {
               >
                 {showDraftsSection ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                 <FileText size={18} />
-                <span className="font-medium text-sm">Drafts</span>
+                <span className="font-medium text-sm">{t('mediaLibrary.drafts.title')}</span>
                 <span className="text-content-faint text-xs ml-1">({filteredDrafts.length})</span>
               </button>
             </div>
@@ -863,9 +865,9 @@ const MediaLibrary = () => {
                       const diffTime = Math.abs(now - date);
                       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
                       
-                      if (diffDays === 0) return 'Today';
-                      if (diffDays === 1) return 'Yesterday';
-                      if (diffDays < 7) return `${diffDays} days ago`;
+                      if (diffDays === 0) return t('common.today');
+                      if (diffDays === 1) return t('mediaLibrary.drafts.yesterday');
+                      if (diffDays < 7) return t('mediaLibrary.drafts.daysAgo', { count: diffDays });
                       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                     };
 
@@ -886,7 +888,7 @@ const MediaLibrary = () => {
                           ) : (
                             <div className="flex flex-col items-center justify-center text-content-faint">
                               <FileText size={32} className="mb-2 opacity-50" />
-                              <span className="text-xs">Draft</span>
+                              <span className="text-xs">{t('mediaLibrary.drafts.draft')}</span>
                             </div>
                           )}
 
@@ -902,12 +904,12 @@ const MediaLibrary = () => {
                               className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-all hover:scale-105"
                             >
                               <Edit2 size={14} />
-                              Continue
+                              {t('mediaLibrary.drafts.continue')}
                             </button>
                             <button
                               onClick={() => handleDeleteDraft(draft)}
                               className="p-2 bg-white/10 hover:bg-red-500/50 backdrop-blur-sm text-white rounded-lg transition-all hover:scale-105"
-                              title="Delete Draft"
+                              title={t('mediaLibrary.drafts.deleteDraft')}
                             >
                               <Trash2 size={14} />
                             </button>
@@ -925,7 +927,7 @@ const MediaLibrary = () => {
                           </div>
                           <div className="flex items-center gap-1 text-content-faint text-xs mt-1">
                             <Layers size={10} />
-                            <span>{draft.elements?.length || 0} layers</span>
+                            <span>{t('mediaLibrary.drafts.layers', { count: draft.elements?.length || 0 })}</span>
                           </div>
                         </div>
                       </div>
@@ -935,7 +937,7 @@ const MediaLibrary = () => {
               ) : (
                 <div className="text-center py-6 bg-surface-card rounded-xl border border-border">
                   <FileText size={28} className="mx-auto text-content-faint mb-2" />
-                  <p className="text-content-faint text-sm">No drafts saved</p>
+                  <p className="text-content-faint text-sm">{t('mediaLibrary.drafts.noDrafts')}</p>
                 </div>
               )
             )}
@@ -983,12 +985,12 @@ const MediaLibrary = () => {
           setShowDeleteConfirm(false);
           setDesignToDelete(null);
         }}
-        title={designToDelete?.isDraft ? "Delete Draft" : "Delete Design"}
+        title={designToDelete?.isDraft ? t('mediaLibrary.deleteDesign.titleDraft') : t('mediaLibrary.deleteDesign.titleDesign')}
         size="sm"
       >
         <div className="space-y-4">
           <p className="text-content-secondary text-sm">
-            Are you sure you want to delete "{designToDelete?.name}"? This action cannot be undone.
+            {t('mediaLibrary.deleteDesign.confirm', { name: designToDelete?.name })}
           </p>
           <div className="flex gap-3">
             <button
@@ -998,13 +1000,13 @@ const MediaLibrary = () => {
               }}
               className="flex-1 py-2.5 bg-surface-button hover:bg-surface-button-hover text-content-primary rounded-xl transition-colors"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               onClick={confirmDeleteDesign}
               className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-colors"
             >
-              Delete
+              {t('common.delete')}
             </button>
           </div>
         </div>
@@ -1032,10 +1034,10 @@ const MediaLibrary = () => {
           setFolderToDelete(null);
           setDesignsToMove([]);
         }}
-        title={`Delete "${folderToDelete?.name || 'Folder'}"`}
+        title={t('mediaLibrary.deleteFolder.title', { name: folderToDelete?.name || t('mediaLibrary.folders') })}
         subtitle={designsToMove.length > 0 
-          ? `This folder contains ${designsToMove.length} design${designsToMove.length !== 1 ? 's' : ''}`
-          : 'This folder is empty'
+          ? t('mediaLibrary.deleteFolder.hasDesigns', { count: designsToMove.length })
+          : t('mediaLibrary.deleteFolder.isEmpty')
         }
         size="sm"
       >
@@ -1049,8 +1051,8 @@ const MediaLibrary = () => {
               >
                 <FolderInput size={18} className="text-blue-400" />
                 <div>
-                  <p className="text-sm font-medium">Delete folder only</p>
-                  <p className="text-content-faint text-xs">Move designs to another folder</p>
+                  <p className="text-sm font-medium">{t('mediaLibrary.deleteFolder.deleteOnly')}</p>
+                  <p className="text-content-faint text-xs">{t('mediaLibrary.deleteFolder.moveDesigns')}</p>
                 </div>
               </button>
               
@@ -1060,14 +1062,14 @@ const MediaLibrary = () => {
               >
                 <Trash2 size={18} className="text-red-400" />
                 <div>
-                  <p className="text-sm font-medium">Delete folder and designs</p>
-                  <p className="text-content-faint text-xs">Permanently delete {designsToMove.length} design{designsToMove.length !== 1 ? 's' : ''}</p>
+                  <p className="text-sm font-medium">{t('mediaLibrary.deleteFolder.deleteAll')}</p>
+                  <p className="text-content-faint text-xs">{t('mediaLibrary.deleteFolder.permanentlyDelete', { count: designsToMove.length })}</p>
                 </div>
               </button>
             </div>
           ) : (
             <p className="text-content-muted text-sm">
-              Are you sure you want to delete this empty folder?
+              {t('mediaLibrary.deleteFolder.confirmEmpty')}
             </p>
           )}
           
@@ -1080,14 +1082,14 @@ const MediaLibrary = () => {
               }}
               className="flex-1 py-2.5 bg-surface-button hover:bg-surface-button-hover text-content-primary rounded-xl transition-colors"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             {designsToMove.length === 0 && (
               <button
                 onClick={handleDeleteFolderWithContents}
                 className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-colors"
               >
-                Delete
+                {t('common.delete')}
               </button>
             )}
           </div>
@@ -1102,8 +1104,8 @@ const MediaLibrary = () => {
           setFolderToDelete(null);
           setDesignsToMove([]);
         }}
-        title="Move Designs"
-        subtitle={`Select a folder for ${designsToMove.length} design${designsToMove.length !== 1 ? 's' : ''}`}
+        title={t('mediaLibrary.moveDesigns.title')}
+        subtitle={t('mediaLibrary.moveDesigns.selectFolder', { count: designsToMove.length })}
         size="sm"
       >
         <div className="space-y-4">
@@ -1125,12 +1127,12 @@ const MediaLibrary = () => {
                   <div className="flex-1">
                     <p className="text-sm font-medium">{folder.name}</p>
                     <p className="text-content-faint text-xs">
-                      {getDesignsForFolder(folder.id).length} designs
+                      {t('mediaLibrary.moveDesigns.designCount', { count: getDesignsForFolder(folder.id).length })}
                     </p>
                   </div>
                   {folder.isDefault && (
                     <span className="text-[10px] bg-surface-button text-content-muted px-2 py-0.5 rounded">
-                      Default
+                      {t('mediaLibrary.default')}
                     </span>
                   )}
                 </button>
@@ -1144,7 +1146,7 @@ const MediaLibrary = () => {
             }}
             className="w-full py-2.5 bg-surface-button hover:bg-surface-button-hover text-content-primary rounded-xl transition-colors"
           >
-            Back
+            {t('common.back')}
           </button>
         </div>
       </Modal>
@@ -1156,7 +1158,7 @@ const MediaLibrary = () => {
           setShowPreviewModal(false);
           setPreviewDesign(null);
         }}
-        title={previewDesign?.name || 'Preview'}
+        title={previewDesign?.name || t('mediaLibrary.preview.title')}
         size="4xl"
       >
         <div className="flex flex-col items-center">
@@ -1186,13 +1188,13 @@ const MediaLibrary = () => {
           ) : (
             <div className="flex flex-col items-center justify-center py-20 text-content-faint">
               <Eye size={48} className="mb-4 opacity-50" />
-              <span>No preview available</span>
+              <span>{t('mediaLibrary.preview.noPreview')}</span>
             </div>
           )}
           <div className="flex items-center justify-between w-full mt-4 pt-4 border-t border-border">
             <div>
               <p className="text-content-muted text-sm">{previewDesign?.size}</p>
-              <p className="text-content-faint text-xs">{previewDesign?.elements?.length || 0} layers</p>
+              <p className="text-content-faint text-xs">{t('mediaLibrary.drafts.layers', { count: previewDesign?.elements?.length || 0 })}</p>
             </div>
             <div className="flex gap-2">
               <button
@@ -1203,7 +1205,7 @@ const MediaLibrary = () => {
                 className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-xl transition-colors"
               >
                 <Edit2 size={14} />
-                Edit
+                {t('common.edit')}
               </button>
             </div>
           </div>
@@ -1230,7 +1232,7 @@ const MediaLibrary = () => {
             )}
           </div>
           <p className="text-content-primary text-sm font-medium truncate">{draggingDesign.name}</p>
-          <p className="text-primary text-xs mt-1">Drop on folder to move</p>
+          <p className="text-primary text-xs mt-1">{t('mediaLibrary.dropOnFolder')}</p>
         </div>
       ) : null}
     </DragOverlay>

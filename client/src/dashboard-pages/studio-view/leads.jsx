@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React from "react"
+import { useTranslation } from "react-i18next"
 import { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { Search, Plus, X, ChevronLeft, ChevronRight, File, ClipboardList } from "lucide-react"
 import toast from "../../components/shared/SharedToast"
@@ -58,6 +59,7 @@ import { createNoteThunk } from "../../features/specialNotes/specialNoteSlice"
 
 
 export default function LeadManagement({ studioId: studioIdProp = null, mode = "studio", studioName: studioNameProp = null }) {
+  const { t } = useTranslation()
 
   const { leads, loading } = useSelector((state) => state.leads)
   const dispatch = useDispatch();
@@ -348,7 +350,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
 
         // setLeads(newLeads)
         updateLocalStorage(newLeads)
-        toast.success("Lead reordered")
+        toast.success(t("admin.leads.toast.reordered"))
       }
       return
     }
@@ -415,7 +417,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
     updateLocalStorage(newLeads)
 
     const targetColumn = columns.find((c) => c.id === targetColumnId)
-    toast.success(`Lead moved to ${targetColumn?.title || targetColumnId}`)
+    toast.success(t("admin.leads.toast.movedTo", { column: targetColumn?.title || targetColumnId }))
   }
 
   // Update localStorage helper
@@ -465,7 +467,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
       updateLocalStorage(newLeads)
     }
 
-    toast.success(`${lead.firstName} moved to Trial Training Arranged`)
+    toast.success(t("admin.leads.toast.movedTo", { column: "Trial Training Arranged" }))
   }
 
   // Handle drag confirmation (from trial)
@@ -616,7 +618,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
 
   const handleAddRelationLead = () => {
     if (!newRelationLead.name || !newRelationLead.relation) {
-      toast.error("Please fill in all fields")
+      toast.error(t("admin.leads.toast.fillAllFields"))
       return
     }
     const relationId = Date.now()
@@ -638,7 +640,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
     })
     setMemberRelationsLead(updatedRelations)
     setNewRelationLead({ name: "", relation: "", category: "family", type: "manual", selectedMemberId: null })
-    toast.success("Relation added successfully")
+    toast.success(t("admin.leads.toast.relationAdded"))
   }
 
   const handleDeleteRelationLead = (category, relationId) => {
@@ -647,7 +649,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
       (rel) => rel.id !== relationId
     )
     setMemberRelationsLead(updatedRelations)
-    toast.success("Relation deleted successfully")
+    toast.success(t("admin.leads.toast.relationDeleted"))
   }
 
   useEffect(() => {
@@ -890,7 +892,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
     }
     setIsDeleteConfirmationModalOpen(false)
     setLeadToDelete(null)
-    toast.success("Lead has been deleted")
+    toast.success(t("admin.leads.toast.deleted"))
   }
 
   const handleOpenDocuments = (lead) => {
@@ -922,14 +924,14 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
       // console.log('data.relations:', data.relations)
 
       if (!leadId) {
-        toast.error("Lead ID is missing")
+        toast.error(t("common.error"))
         return
       }
 
       // Find the existing lead to get its current data
       const existingLead = leads.find(lead => lead._id === leadId || lead.id === leadId)
       if (!existingLead) {
-        toast.error("Lead not found")
+        toast.error(t("common.error"))
         return
       }
 
@@ -1073,14 +1075,14 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
       if (pendingMove && pendingMove.leadId === leadId) {
         sessionStorage.removeItem('pendingLeadMove')
         const targetColumn = columns.find((c) => c.id === pendingMove.targetColumnId)
-        toast.success(`Lead moved to ${targetColumn?.title || pendingMove.targetColumnId}`)
+        toast.success(t("admin.leads.toast.movedTo", { column: targetColumn?.title || pendingMove.targetColumnId }))
       } else {
-        toast.success("Lead updated successfully")
+        toast.success(t("admin.leads.toast.updated"))
       }
 
     } catch (error) {
       console.error('Failed to update lead:', error)
-      toast.error(error.message || "Failed to update lead")
+      toast.error(error.message || t("admin.leads.toast.updated"))
     }
   }
 
@@ -1096,7 +1098,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
     setColumns(updatedColumns)
     setIsEditColumnModalOpen(false)
     setSelectedColumn(null)
-    toast.success("Column saved successfully")
+    toast.success(t("admin.leads.toast.columnSaved"))
   }
 
   const handleTrialModalClose = () => {
@@ -1149,9 +1151,9 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
         updateLocalStorage(newLeads)
       }
 
-      toast.success("Trial training booked and lead moved to Trial Training Arranged!")
+      toast.success(t("admin.leads.trialAppointments.trialBooked"))
     } else {
-      toast.success("Trial training booked successfully!")
+      toast.success(t("admin.leads.trialAppointments.trialBookedSuccess"))
     }
 
     // Reset flag if it was set
@@ -1276,7 +1278,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
   const handleConfirmDelete = () => {
     if (appointmentToDelete) {
       setTrialAppointmentsMain(prev => prev.filter((apt) => apt.id !== appointmentToDelete))
-      toast.success("Trial appointment deleted successfully!")
+      toast.success(t("admin.leads.trialAppointments.trialDeleted"))
       setIsDeleteTrialConfirmationModalOpen(false)
       setAppointmentToDelete(null)
       setTrialAppointmentsRefreshKey(prev => prev + 1)
@@ -1436,8 +1438,8 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
             </svg>
           </div>
           <div>
-            <p className="text-sm font-medium text-blue-300">Admin Mode — {studioNameProp || `Studio #${studioIdProp}`}</p>
-            <p className="text-xs text-content-muted">Viewing leads for this studio. Changes are saved per-studio.</p>
+            <p className="text-sm font-medium text-blue-300">{t("admin.leads.adminMode.banner", { studio: studioNameProp || `Studio #${studioIdProp}` })}</p>
+            <p className="text-xs text-content-muted">{t("admin.leads.adminMode.description")}</p>
           </div>
         </div>
       )}
@@ -1452,7 +1454,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
       {/* Error State */}
       {isAdminMode && leadsError && (
         <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-4">
-          <p className="text-red-400 text-sm">Failed to load leads: {leadsError}</p>
+          <p className="text-red-400 text-sm">{t("admin.leads.adminMode.failedToLoad", { error: leadsError })}</p>
         </div>
       )}
 
@@ -1462,7 +1464,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
         {/* Header */}
         <div className="flex items-center justify-between mb-4 sm:mb-6">
           <div className="flex items-center gap-3">
-            <h1 className="text-xl sm:text-2xl text-content-primary font-bold">Leads</h1>
+            <h1 className="text-xl sm:text-2xl text-content-primary font-bold">{t("admin.leads.title")}</h1>
 
             {/* Compact/Detailed View Toggle - Desktop only */}
             <div className="hidden md:flex items-center gap-2 bg-surface-dark rounded-xl p-1">
@@ -1485,7 +1487,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
 
                 {/* Tooltip */}
                 <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                  <span className="font-medium">{isCompactView ? "Compact View" : "Detailed View"}</span>
+                  <span className="font-medium">{isCompactView ? t("admin.leads.compactView") : t("admin.leads.detailedView")}</span>
                   <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">V</span>
                   <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
                 </div>
@@ -1502,12 +1504,12 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
                 className="flex bg-primary hover:bg-primary-hover text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"
               >
                 <Plus size={14} className="sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline">Create Lead</span>
+                <span className="hidden sm:inline">{t("admin.leads.createLead")}</span>
               </button>
 
               {/* Tooltip */}
               <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                <span className="font-medium">Create Lead</span>
+                <span className="font-medium">{t("admin.leads.createLead")}</span>
                 <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                   C
                 </span>
@@ -1549,7 +1551,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
               <input
                 ref={searchInputRef}
                 type="text"
-                placeholder={leadFilters.length > 0 ? "Add more..." : "Search leads..."}
+                placeholder={leadFilters.length > 0 ? t("admin.leads.search.addMore") : t("admin.leads.search.placeholder")}
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -1596,7 +1598,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
             {/* No results message */}
             {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 p-3">
-                <p className="text-sm text-content-faint text-center">No leads found</p>
+                <p className="text-sm text-content-faint text-center">{t("admin.leads.search.noResults")}</p>
               </div>
             )}
           </div>
@@ -1887,7 +1889,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
 
               if (isOngoing) {
                 // Draft contract - keep the lead, don't convert yet
-                toast.success("Contract saved as draft. Lead will be converted when contract is activated.")
+                toast.success(t("admin.leads.contractPrompt.contractDraft"))
               } else {
                 // Active contract - delete the lead (lead becomes a member)
                 const updatedLeads = leads.filter((lead) => lead.id !== selectedLead?.id)
@@ -1895,7 +1897,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
                 if (selectedLead?.source === "localStorage") {
                   updateLocalStorage(updatedLeads)
                 }
-                toast.success("Contract created successfully! Lead has been converted to member.")
+                toast.success(t("admin.leads.contractPrompt.contractCreated"))
               }
 
               setIsCreateContractModalOpen(false)
@@ -1951,13 +1953,13 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
             setLeadToDelete(null)
           }}
           onConfirm={confirmDeleteLead}
-          title="Delete Lead"
+          title={t("admin.leads.deleteModal.title")}
           message={leadToDelete ? (
             <>
               Are you sure you want to delete <span className="font-semibold">{leadToDelete.firstName} {leadToDelete.surname}</span>? This action cannot be undone.
             </>
           ) : ''}
-          confirmText="Delete"
+          confirmText={t("common.delete")}
           isDestructive={true}
         />
 
@@ -1968,7 +1970,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
               {/* Header with X button */}
               <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-border flex justify-between items-center">
                 <h3 className="text-base sm:text-lg font-semibold text-content-primary">
-                  {dragConfirmation.type === "toTrial" ? "Move to Trial Training?" : "Move Lead from Trial Training?"}
+                  {dragConfirmation.type === "toTrial" ? t("admin.leads.dragConfirmation.toTrialTitle") : t("admin.leads.dragConfirmation.fromTrialTitle")}
                 </h3>
                 <button
                   onClick={handleCancelDragConfirmation}
@@ -1982,8 +1984,8 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
               <div className="px-4 sm:px-6 py-4 sm:py-6">
                 <p className="text-content-secondary mb-4 sm:mb-6 text-sm sm:text-base">
                   {dragConfirmation.type === "toTrial"
-                    ? `Moving ${dragConfirmation.lead?.firstName} ${dragConfirmation.lead?.surname || ""} to Trial Training Arranged.`
-                    : `Are you sure you want to move ${dragConfirmation.lead?.firstName} ${dragConfirmation.lead?.surname || ""} from Trial Training Arranged?`}
+                    ? t("admin.leads.dragConfirmation.toTrialDesc", { name: `${dragConfirmation.lead?.firstName} ${dragConfirmation.lead?.surname || ""}`.trim() })
+                    : t("admin.leads.dragConfirmation.fromTrialDesc", { name: `${dragConfirmation.lead?.firstName} ${dragConfirmation.lead?.surname || ""}`.trim() })}
                 </p>
 
                 {/* Buttons */}
@@ -1994,13 +1996,13 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
                         onClick={handleConfirmToTrialWithBooking}
                         className="w-full px-3 sm:px-4 py-2.5 bg-trial text-white text-sm sm:text-base rounded-xl hover:bg-trial/80 transition-colors"
                       >
-                        Yes, and Book Trial Training
+                        {t("admin.leads.dragConfirmation.yesBookTrial")}
                       </button>
                       <button
                         onClick={handleConfirmToTrialWithoutBooking}
                         className="w-full px-3 sm:px-4 py-2.5 bg-surface-button-hover text-content-primary text-sm sm:text-base rounded-xl hover:bg-surface-button transition-colors"
                       >
-                        Yes, Without Booking
+                        {t("admin.leads.dragConfirmation.yesWithoutBooking")}
                       </button>
                     </>
                   ) : (
@@ -2008,7 +2010,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
                       onClick={handleConfirmFromTrial}
                       className="w-full px-3 sm:px-4 py-2.5 bg-trial text-white text-sm sm:text-base rounded-xl hover:bg-trial/80 transition-colors"
                     >
-                      Yes, Move Lead
+                      {t("admin.leads.dragConfirmation.yesMoveLead")}
                     </button>
                   )}
                 </div>
@@ -2066,8 +2068,8 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
             setAppointmentToDelete(null)
           }}
           onConfirm={handleConfirmDelete}
-          title="Delete Trial Appointment"
-          message="Are you sure you want to delete this trial appointment? This action cannot be undone."
+          title={t("admin.leads.trialAppointments.deleteTitle")}
+          message={t("admin.leads.trialAppointments.deleteMessage")}
         />
 
         <DocumentManagementModal
@@ -2083,8 +2085,8 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
           onViewAssessment={(doc) => handleViewAssessmentClick(selectedLeadForDocuments, doc)}
           onDocumentsUpdate={handleDocumentsUpdate}
           sections={[
-            { id: "general", label: "General", icon: File },
-            { id: "medicalHistory", label: "Medical History", icon: ClipboardList },
+            { id: "general", label: t("admin.leads.documents.general"), icon: File },
+            { id: "medicalHistory", label: t("admin.leads.documents.medicalHistory"), icon: ClipboardList },
           ]}
         />
 
@@ -2158,7 +2160,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
         <button
           onClick={() => setIsModalOpen(true)}
           className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
-          aria-label="Create Lead"
+          aria-label={t("admin.leads.createLead")}
         >
           <Plus size={22} />
         </button>

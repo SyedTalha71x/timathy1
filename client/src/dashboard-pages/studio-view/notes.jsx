@@ -9,6 +9,7 @@ import TagManagerModal from "../../components/shared/TagManagerModal"
 import ImageSourceModal from "../../components/shared/image-handler/ImageSourceModal"
 import MediaLibraryPickerModal from "../../components/shared/image-handler/MediaLibraryPickerModal"
 import toast from "../../components/shared/SharedToast"
+import { useTranslation } from "react-i18next"
 import { useDispatch, useSelector } from "react-redux"
 import { getTagsThunk } from "../../features/todos/todosSlice"
 import { createPersonalNotesThunk, createStudioNotesThunk, deleteNoteThunk, getPersonalNotesThunk, getStudioNotesThunk, updateNoteThunk } from "../../features/notes/noteSlice"
@@ -22,7 +23,7 @@ const stripHtmlTags = (html) => {
   return text.replace(/\s+/g, ' ').trim()
 }
 
-const NoteOverlayItem = ({ note, availableTags }) => {
+const NoteOverlayItem = ({ note, availableTags, t }) => {
   const stripText = stripHtmlTags(note.content)
   return (
     <div
@@ -37,7 +38,7 @@ const NoteOverlayItem = ({ note, availableTags }) => {
           <h4 className={`text-sm font-medium truncate ${note.title ? 'text-content-primary' : 'text-content-faint italic'}`}>
             {note.title || 'Untitled'}
           </h4>
-          <p className="text-xs text-content-muted mt-1 truncate">{stripText || 'No content'}</p>
+          <p className="text-xs text-content-muted mt-1 truncate">{stripText || t('notes.noContent')}</p>
           {note.tags && note.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-1.5">
               {note.tags.slice(0, 3).map(tagId => {
@@ -54,7 +55,7 @@ const NoteOverlayItem = ({ note, availableTags }) => {
   )
 }
 
-const SortableNoteItem = React.memo(({ note, isSelected, onClick, availableTags, onPin, isPinning }) => {
+const SortableNoteItem = React.memo(({ note, isSelected, onClick, availableTags, onPin, isPinning, t }) => {
   const {
     attributes,
     listeners,
@@ -140,7 +141,7 @@ const SortableNoteItem = React.memo(({ note, isSelected, onClick, availableTags,
               wordBreak: 'break-word'
             }}
           >
-            {stripText || 'No content'}
+            {stripText || t('notes.noContent')}
           </p>
 
           {/* Tags */}
@@ -372,7 +373,7 @@ export default function NotesApp() {
       } catch (error) {
         console.error("Auto-save failed:", error);
         if (error.message !== 'Request failed with status code 304') {
-          toast.error("Failed to auto-save note");
+          toast.error(t("notes.toasts.failedAutoSave"));
         }
       } finally {
         setIsAutoSaving(false);
@@ -408,7 +409,7 @@ export default function NotesApp() {
 
       if (result && result._id) {
         selectNote(result);
-        toast.success("Note created");
+        t_noteCreated(); function t_noteCreated() { toast.success(t("notes.toasts.created")) };
 
         setTimeout(() => {
           const titleInputs = document.querySelectorAll('[data-title-input]');
@@ -422,10 +423,10 @@ export default function NotesApp() {
         }, 100);
       } else {
         console.error('Created note missing _id:', result);
-        toast.success("Note created");
+        t_noteCreated(); function t_noteCreated() { toast.success(t("notes.toasts.created")) };
       }
     } catch (error) {
-      toast.error("Failed to create note");
+      toast.error(t("notes.toasts.failedCreate"));
       console.error("Create note error:", error);
     }
   };
@@ -446,9 +447,9 @@ export default function NotesApp() {
         await dispatch(getPersonalNotesThunk());
       }
 
-      toast.success("Note deleted");
+      toast.success(t("notes.toasts.deleted"));
     } catch (error) {
-      toast.error("Failed to delete note");
+      toast.error(t("notes.toasts.failedDelete"));
       console.error("Delete note error:", error);
     }
   };
@@ -481,9 +482,9 @@ export default function NotesApp() {
       } else {
         selectNote(result);
       }
-      toast.success("Note duplicated");
+      toast.success(t("notes.toasts.duplicated"));
     } catch (error) {
-      toast.error("Failed to duplicate note");
+      toast.error(t("notes.toasts.failedDuplicate"));
       console.error("Duplicate note error:", error);
     }
   };
@@ -519,7 +520,7 @@ export default function NotesApp() {
         await dispatch(getPersonalNotesThunk());
       }
 
-      toast.success(note.isPinned ? "Note unpinned" : "Note pinned");
+      toast.success(note.isPinned ? t("notes.toasts.unpinned") : t("notes.toasts.pinned"));
     } catch (error) {
       console.error("Toggle pin error:", error);
 
@@ -529,9 +530,9 @@ export default function NotesApp() {
       }
 
       if (error.message === 'Request failed with status code 304') {
-        toast.info("Note already up to date");
+        toast.info(t("notes.toasts.upToDate"));
       } else {
-        toast.error("Failed to update pin status");
+        toast.error(t("notes.toasts.failedPin"));
       }
     } finally {
       setPinningNoteId(null);
@@ -568,9 +569,9 @@ export default function NotesApp() {
 
       setActiveTab(targetTab);
       setSelectedNote(null);
-      toast.success(`Note moved to ${targetTab === 'personal' ? 'Personal' : 'Studio'} Notes`);
+      toast.success(t('notes.toasts.movedTo', { tab: targetTab === 'personal' ? t('notes.tabs.personal').split(' ')[0] : t('notes.tabs.studio').split(' ')[0] }));
     } catch (error) {
-      toast.error("Failed to move note");
+      toast.error(t("notes.toasts.failedMove"));
       console.error("Move note error:", error);
     }
   };
@@ -687,9 +688,9 @@ export default function NotesApp() {
 
   // Sort options
   const sortOptions = [
-    { value: 'date', label: 'Date' },
-    { value: 'title', label: 'Title' },
-    { value: 'custom', label: 'Custom' },
+    { value: 'date', label: t('notes.sortOptions.date') },
+    { value: 'title', label: t('notes.sortOptions.title') },
+    { value: 'custom', label: t('notes.sortOptions.custom') },
   ];
   const currentSortLabel = sortOptions.find(opt => opt.value === sortBy)?.label || 'Date';
 
@@ -791,7 +792,7 @@ export default function NotesApp() {
         {/* Header */}
         <div className="flex items-center justify-between mb-4 md:mb-6">
           <div className="flex items-center gap-2">
-            <h1 className="text-xl md:text-2xl font-bold text-content-primary">Notes</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-content-primary">{t("notes.title")}</h1>
             <div className="relative" ref={studioTooltipRef}>
               <button
                 onClick={(e) => {
@@ -801,7 +802,7 @@ export default function NotesApp() {
                 onMouseEnter={() => setShowStudioTooltip(true)}
                 onMouseLeave={() => setShowStudioTooltip(false)}
                 className="text-content-muted hover:text-content-secondary transition-colors p-1"
-                aria-label="Notes Information"
+                aria-label={t("notes.title")}
               >
                 <Info size={16} />
               </button>
@@ -810,15 +811,15 @@ export default function NotesApp() {
                 <div className="absolute left-0 top-full mt-2 w-64 bg-surface-button border border-border rounded-lg shadow-xl p-4 z-50">
                   <div className="text-sm space-y-3">
                     <div>
-                      <p className="text-primary font-medium mb-1">Studio Notes</p>
+                      <p className="text-primary font-medium mb-1">{t("notes.tooltip.studioTitle")}</p>
                       <p className="text-content-secondary text-xs leading-relaxed">
-                        Shared with everyone. All team members can see and edit these notes.
+                        {t("notes.tooltip.studioDesc")}
                       </p>
                     </div>
                     <div className="border-t border-border pt-3">
-                      <p className="text-primary font-medium mb-1">Personal Notes</p>
+                      <p className="text-primary font-medium mb-1">{t("notes.tooltip.personalTitle")}</p>
                       <p className="text-content-secondary text-xs leading-relaxed">
-                        Private to you. Only you can see and edit these notes.
+                        {t("notes.tooltip.personalDesc")}
                       </p>
                     </div>
                   </div>
@@ -841,10 +842,10 @@ export default function NotesApp() {
                   className="bg-primary hover:bg-primary-hover text-sm text-white px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium whitespace-nowrap flex-shrink-0"
                 >
                   <Plus size={16} />
-                  <span className="hidden min-[400px]:inline">Create Note</span>
+                  <span className="hidden min-[400px]:inline">{t("notes.createNote")}</span>
                 </button>
                 <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                  <span className="font-medium">Create Note</span>
+                  <span className="font-medium">{t("notes.createNote")}</span>
                   <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                     C
                   </span>
@@ -870,7 +871,7 @@ export default function NotesApp() {
                 {showSortDropdown && (
                   <div className="absolute left-0 top-full mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-full w-max">
                     <div className="py-1">
-                      <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">Sort by</div>
+                      <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">{t("common.sortBy")}</div>
                       {sortOptions.map((option) => (
                         <button
                           key={option.value}
@@ -901,10 +902,10 @@ export default function NotesApp() {
                   className="bg-surface-button hover:bg-surface-button-hover text-content-secondary text-sm px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium flex-shrink-0"
                 >
                   <Tag size={16} />
-                  <span className="hidden sm:inline">Tags</span>
+                  <span className="hidden sm:inline">{t("notes.tags")}</span>
                 </button>
                 <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[9999] flex items-center gap-2 shadow-lg pointer-events-none">
-                  <span className="font-medium">Manage Tags</span>
+                  <span className="font-medium">{t("notes.manageTags")}</span>
                   <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                     T
                   </span>
@@ -920,7 +921,7 @@ export default function NotesApp() {
                   <Search className="text-content-muted flex-shrink-0" size={16} />
                   <input
                     type="text"
-                    placeholder="Search..."
+                    placeholder={t("notes.searchPlaceholder")}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="flex-1 min-w-0 bg-transparent outline-none text-sm text-content-primary selection:bg-primary selection:text-white"
@@ -944,7 +945,7 @@ export default function NotesApp() {
                 {showSortDropdown && (
                   <div className="absolute right-0 top-full mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[180px]">
                     <div className="py-1">
-                      <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">Sort by</div>
+                      <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">{t("common.sortBy")}</div>
                       {sortOptions.map((option) => (
                         <button
                           key={option.value}
@@ -990,7 +991,7 @@ export default function NotesApp() {
                   : "text-content-muted hover:text-content-primary"
                   }`}
               >
-                Studio Notes
+                {t("notes.tabs.studio")}
               </button>
 
               <button
@@ -1003,7 +1004,7 @@ export default function NotesApp() {
                   : "text-content-muted hover:text-content-primary"
                   }`}
               >
-                Personal Notes
+                {t("notes.tabs.personal")}
               </button>
             </div>
 
@@ -1011,12 +1012,12 @@ export default function NotesApp() {
             <div className="flex-1 overflow-y-auto">
               {loading && currentNotes.length === 0 ? (
                 <div className="p-6 md:p-8 text-center text-content-faint">
-                  <p className="text-sm">Loading notes...</p>
+                  <p className="text-sm">{t("notes.empty.loading")}</p>
                 </div>
               ) : currentNotes.length === 0 ? (
                 <div className="p-6 md:p-8 text-center text-content-faint">
-                  <p className="text-sm">No notes yet</p>
-                  <p className="text-xs mt-2">Create your first note to get started</p>
+                  <p className="text-sm">{t("notes.empty.noNotes")}</p>
+                  <p className="text-xs mt-2">{t("notes.empty.createFirst")}</p>
                 </div>
               ) : (
                 <DndContext
@@ -1036,6 +1037,7 @@ export default function NotesApp() {
                         availableTags={tags}
                         onPin={togglePin}
                         isPinning={pinningNoteId === note._id}
+                        t={t}
                       />
                     ))}
                   </SortableContext>
@@ -1044,6 +1046,7 @@ export default function NotesApp() {
                       <NoteOverlayItem
                         note={currentNotes.find(n => n._id === activeId)}
                         availableTags={tags}
+                        t={t}
                       />
                     ) : null}
                   </DragOverlay>
@@ -1068,13 +1071,13 @@ export default function NotesApp() {
                           setEditedTitle(e.target.value);
                           setHasUnsavedChanges(true);
                         }}
-                        placeholder="Untitled"
+                        placeholder={t("notes.untitled")}
                         className="w-full bg-transparent text-xl md:text-2xl font-bold text-content-primary outline-none border-b-2 border-transparent hover:border-border-subtle focus:border-primary transition-all pb-1 truncate"
                       />
                       <div className="flex flex-wrap gap-3 mt-2 text-[10px] md:text-xs text-content-faint">
-                        <span>Created: {formatDateTime(selectedNote.createdAt)}</span>
+                        <span>{t("common.created")}: {formatDateTime(selectedNote.createdAt)}</span>
                         {selectedNote.updatedAt !== selectedNote.createdAt && (
-                          <span>Updated: {formatDateTime(selectedNote.updatedAt)}</span>
+                          <span>{t("common.updated")}: {formatDateTime(selectedNote.updatedAt)}</span>
                         )}
                       </div>
                     </div>
@@ -1085,7 +1088,7 @@ export default function NotesApp() {
                         disabled={pinningNoteId === selectedNote._id}
                         className={`p-2 rounded-lg hover:bg-surface-hover transition-colors disabled:opacity-50 ${selectedNote.isPinned ? 'text-primary' : 'text-content-muted hover:text-content-primary'
                           }`}
-                        title={selectedNote.isPinned ? 'Unpin' : 'Pin'}
+                        title={selectedNote.isPinned ? t('common.unpin') : t('common.pin')}
                       >
                         {pinningNoteId === selectedNote._id ? (
                           <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
@@ -1098,21 +1101,21 @@ export default function NotesApp() {
                       <button
                         onClick={duplicateNote}
                         className="text-content-muted hover:text-content-primary p-2 rounded-lg hover:bg-surface-hover transition-colors hidden md:block"
-                        title="Duplicate"
+                        title={t("common.duplicate")}
                       >
                         <Copy size={18} />
                       </button>
                       <button
                         onClick={moveNoteToOtherTab}
                         className="text-content-muted hover:text-content-primary p-2 rounded-lg hover:bg-surface-hover transition-colors hidden md:block"
-                        title={`Move to ${activeTab === 'personal' ? 'Studio' : 'Personal'} Notes`}
+                        title={activeTab === 'personal' ? t("notes.actions.moveToStudio") : t("notes.actions.moveToPersonal")}
                       >
                         <ArrowRightLeft size={18} />
                       </button>
                       <button
                         onClick={() => setDeleteConfirm(selectedNote)}
                         className="text-content-muted hover:text-red-500 p-2 rounded-lg hover:bg-surface-hover transition-colors"
-                        title="Delete"
+                        title={t("common.delete")}
                       >
                         <Trash2 size={18} />
                       </button>
@@ -1141,8 +1144,8 @@ export default function NotesApp() {
                         className="mt-2 text-sm text-primary hover:text-primary-hover transition-colors"
                       >
                         {showAllTags
-                          ? 'Show less'
-                          : `Show ${tags.length - 6} more`}
+                          ? t('notes.showLess')
+                          : t('notes.showMore', { count: tags.length - 6 })}
                       </button>
                     )}
                   </div>
@@ -1157,7 +1160,7 @@ export default function NotesApp() {
                       setEditedContent(value);
                       setHasUnsavedChanges(true);
                     }}
-                    placeholder="Start writing..."
+                    placeholder={t("notes.editorPlaceholder")}
                     minHeight={350}
                     maxHeight={9999}
                     className="flex-1"
@@ -1169,7 +1172,7 @@ export default function NotesApp() {
                   <div className="flex items-center justify-between mb-3">
                     <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
                       <Paperclip size={14} />
-                      Attachments
+                      {t("notes.attachments")}
                     </label>
                     <div>
                       <input
@@ -1185,7 +1188,7 @@ export default function NotesApp() {
                         className="text-sm bg-surface-button hover:bg-surface-button-hover text-content-secondary px-4 py-2.5 rounded-xl transition-colors flex items-center gap-2"
                       >
                         <Plus size={16} />
-                        Add Images
+                        {t("notes.addImages")}
                       </button>
                     </div>
                   </div>
@@ -1205,7 +1208,7 @@ export default function NotesApp() {
                                 className="w-full h-14 md:h-16 object-cover rounded-lg border border-border"
                               />
                               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                                <span className="text-content-primary text-xs font-medium bg-surface-hover px-3 py-1 rounded">View</span>
+                                <span className="text-content-primary text-xs font-medium bg-surface-hover px-3 py-1 rounded">{t("notes.view")}</span>
                               </div>
                             </div>
                             <button
@@ -1223,8 +1226,8 @@ export default function NotesApp() {
                           className="mt-2 text-sm text-primary hover:text-primary-hover transition-colors"
                         >
                           {showAllAttachments
-                            ? 'Show less'
-                            : `Show ${editedAttachments.length - 5} more`}
+                            ? t('notes.showLess')
+                            : t('notes.showMore', { count: editedAttachments.length - 5 })}
                         </button>
                       )}
                     </div>
@@ -1238,16 +1241,16 @@ export default function NotesApp() {
                   <div className="text-content-faint mb-4">
                     <Edit size={40} className="mx-auto md:w-12 md:h-12" />
                   </div>
-                  <h3 className="text-lg md:text-xl font-semibold text-content-muted mb-2">No note selected</h3>
+                  <h3 className="text-lg md:text-xl font-semibold text-content-muted mb-2">{t("notes.empty.noSelected")}</h3>
                   <p className="text-xs md:text-sm text-content-faint mb-6">
-                    Select a note from the list or create a new one
+                    {t("notes.empty.selectOrCreate")}
                   </p>
                   <button
                     onClick={handleCreateNote}
                     className="bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-xl transition-colors flex items-center gap-2 mx-auto"
                   >
                     <Plus size={16} />
-                    Create Note
+                    {t("notes.createNote")}
                   </button>
                 </div>
               </div>
@@ -1337,7 +1340,7 @@ export default function NotesApp() {
             <button
               onClick={() => setSelectedNote(null)}
               className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-hover rounded-lg transition-colors"
-              aria-label="Back to notes list"
+              aria-label={t("common.back")}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -1350,7 +1353,7 @@ export default function NotesApp() {
                   onClick={() => togglePin(selectedNote._id)}
                   disabled={pinningNoteId === selectedNote._id}
                   className="text-primary p-1 hover:bg-surface-hover rounded-lg transition-colors disabled:opacity-50"
-                  aria-label="Unpin note"
+                  aria-label={t("notes.actions.unpinNote")}
                 >
                   {pinningNoteId === selectedNote._id ? (
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
@@ -1364,7 +1367,7 @@ export default function NotesApp() {
                 <button
                   onClick={() => setShowMobileActionsMenu(!showMobileActionsMenu)}
                   className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-hover rounded-lg transition-colors"
-                  aria-label="More actions"
+                  aria-label={t("common.actions")}
                 >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
@@ -1384,12 +1387,12 @@ export default function NotesApp() {
                         {selectedNote.isPinned ? (
                           <>
                             <PinOff size={16} />
-                            <span>Unpin Note</span>
+                            <span>{t('notes.actions.unpinNote')}</span>
                           </>
                         ) : (
                           <>
                             <Pin size={16} />
-                            <span>Pin Note</span>
+                            <span>{t('notes.actions.pinNote')}</span>
                           </>
                         )}
                       </button>
@@ -1402,7 +1405,7 @@ export default function NotesApp() {
                         className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-content-secondary"
                       >
                         <Copy size={16} />
-                        <span>Duplicate</span>
+                        <span>{t("common.duplicate")}</span>
                       </button>
 
                       <button
@@ -1413,7 +1416,7 @@ export default function NotesApp() {
                         className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-content-secondary"
                       >
                         <ArrowRightLeft size={16} />
-                        <span>Move to {activeTab === 'personal' ? 'Studio' : 'Personal'}</span>
+                        <span>{activeTab === 'personal' ? t('notes.actions.moveToStudio') : t('notes.actions.moveToPersonal')}</span>
                       </button>
 
                       <div className="border-t border-border my-1"></div>
@@ -1426,7 +1429,7 @@ export default function NotesApp() {
                         className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-red-500"
                       >
                         <Trash2 size={16} />
-                        <span>Delete</span>
+                        <span>{t("common.delete")}</span>
                       </button>
                     </div>
                   </div>
@@ -1447,13 +1450,13 @@ export default function NotesApp() {
                   setEditedTitle(e.target.value);
                   setHasUnsavedChanges(true);
                 }}
-                placeholder="Untitled"
+                placeholder={t("notes.untitled")}
                 className="w-full bg-transparent text-xl font-bold text-content-primary outline-none border-b-2 border-transparent hover:border-border-subtle focus:border-primary transition-all pb-1"
               />
               <div className="flex flex-wrap gap-3 mt-2 text-xs text-content-faint">
-                <span>Created: {formatDateTime(selectedNote.createdAt)}</span>
+                <span>{t("common.created")}: {formatDateTime(selectedNote.createdAt)}</span>
                 {selectedNote.updatedAt !== selectedNote.createdAt && (
-                  <span>Updated: {formatDateTime(selectedNote.updatedAt)}</span>
+                  <span>{t("common.updated")}: {formatDateTime(selectedNote.updatedAt)}</span>
                 )}
               </div>
             </div>
@@ -1461,12 +1464,12 @@ export default function NotesApp() {
             {/* Tags */}
             <div className="p-4 border-b border-border">
               <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-content-secondary">Tags</label>
+                <label className="text-sm font-medium text-content-secondary">{t("notes.tags")}</label>
                 <button
                   onClick={() => setShowTagsModal(true)}
                   className="text-xs text-primary hover:text-primary-hover transition-colors"
                 >
-                  Manage Tags
+                  {t("notes.manageTags")}
                 </button>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -1489,8 +1492,8 @@ export default function NotesApp() {
                   className="mt-2 text-sm text-primary hover:text-primary-hover transition-colors"
                 >
                   {showAllTags
-                    ? 'Show less'
-                    : `Show ${tags.length - 4} more`}
+                    ? t('notes.showLess')
+                    : t('notes.showMore', { count: tags.length - 4 })}
                 </button>
               )}
             </div>
@@ -1504,7 +1507,7 @@ export default function NotesApp() {
                   setEditedContent(value);
                   setHasUnsavedChanges(true);
                 }}
-                placeholder="Start writing..."
+                placeholder={t("notes.editorPlaceholder")}
                 minHeight={300}
                 maxHeight={9999}
               />
@@ -1515,7 +1518,7 @@ export default function NotesApp() {
               <div className="p-4 border-t border-border">
                 <h4 className="text-sm font-medium text-content-secondary mb-3 flex items-center gap-2">
                   <Paperclip size={14} />
-                  Attachments ({editedAttachments.length})
+                  {t("notes.attachmentsCount", { count: editedAttachments.length })}
                 </h4>
                 <div className="grid grid-cols-3 gap-2">
                   {(showAllAttachments ? editedAttachments : editedAttachments.slice(0, 3)).map((attachment, index) => (
@@ -1530,7 +1533,7 @@ export default function NotesApp() {
                           className="w-full h-20 object-cover rounded-lg border border-border"
                         />
                         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                          <span className="text-content-primary text-xs font-medium">View</span>
+                          <span className="text-content-primary text-xs font-medium">{t("notes.view")}</span>
                         </div>
                       </div>
                       <button
@@ -1551,8 +1554,8 @@ export default function NotesApp() {
                     className="mt-2 text-sm text-primary hover:text-primary-hover transition-colors"
                   >
                     {showAllAttachments
-                      ? 'Show less'
-                      : `Show ${editedAttachments.length - 3} more`}
+                      ? t('notes.showLess')
+                      : t('notes.showMore', { count: editedAttachments.length - 3 })}
                   </button>
                 )}
               </div>
@@ -1574,7 +1577,7 @@ export default function NotesApp() {
               className="w-full bg-surface-button hover:bg-surface-button-hover text-content-secondary px-4 py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
             >
               <Paperclip size={16} />
-              Add Images
+              {t("notes.addImages")}
             </button>
           </div>
         </div>
@@ -1607,7 +1610,7 @@ export default function NotesApp() {
       <button
         onClick={handleCreateNote}
         className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
-        aria-label="Create Note"
+        aria-label={t("notes.createNote")}
       >
         <Plus size={22} />
       </button>

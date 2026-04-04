@@ -7,6 +7,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from "react"
 import { Plus, X, Calendar, Tag, Repeat, Check, ChevronDown, Clock, Bell, Users, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, Pin, PinOff, Copy, Trash2, Edit, GripVertical } from "lucide-react"
 
 // toast removed
+import { useTranslation } from "react-i18next"
 import toast from "../../components/shared/SharedToast"
 import RepeatTaskModal from "../../components/studio-components/todo-components/repeat-task-modal"
 import AssignModal from "../../components/shared/to-do/assign-modal"
@@ -165,7 +166,7 @@ const MobileCreateTaskModal = ({
               setTaskTitle(e.target.value)
               setNewTaskData(prev => ({ ...prev, title: e.target.value }))
             }}
-            placeholder="What needs to be done?"
+            placeholder={t("admin.todo.placeholder")}
             className="w-full bg-transparent text-xl font-semibold text-content-primary placeholder-content-faint outline-none resize-none min-h-[80px]"
             rows={3}
           />
@@ -360,7 +361,7 @@ const MobileTaskDetail = ({
         <button
           onClick={onClose}
           className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-hover rounded-xl transition-colors active:scale-95"
-          aria-label="Back to tasks"
+          aria-label={t("admin.todo.backToTasks")}
         >
           <ChevronLeft size={24} />
         </button>
@@ -379,7 +380,7 @@ const MobileTaskDetail = ({
             <button
               onClick={() => setShowActionsMenu(!showActionsMenu)}
               className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-hover rounded-xl transition-colors active:scale-95"
-              aria-label="More actions"
+              aria-label={t("admin.todo.moreActions")}
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
@@ -529,7 +530,7 @@ const MobileTaskDetail = ({
               setHasUnsavedChanges(true)
             }}
             onBlur={handleSaveTitle}
-            placeholder="Task title..."
+            placeholder={t("admin.todo.taskTitlePlaceholder")}
             className={`w-full bg-transparent text-xl font-semibold outline-none border-b-2 border-transparent focus:border-primary transition-all pb-2 resize-none ${isCompleted ? 'text-content-faint' :
               isCanceled ? 'text-content-faint line-through italic' :
                 'text-content-primary'
@@ -845,6 +846,7 @@ const SelectedDateTimeDisplay = ({ date, time, onClear }) => {
 }
 
 export default function TodoApp() {
+  const { t } = useTranslation()
   // Redux state - using fallback empty arrays to prevent destructuring errors
   // At the top of your TodoApp component, add this safety check:
   const tasks = useSelector((state) => {
@@ -1691,7 +1693,7 @@ export default function TodoApp() {
       });
     }
 
-    toast.success(newPinnedState ? "Task pinned" : "Task unpinned");
+    toast.success(newPinnedState ? t("admin.todo.toast.taskPinned") : t("admin.todo.toast.taskUnpinned"));
   };
 
   const handleEditRequest = (task) => {
@@ -1729,7 +1731,7 @@ export default function TodoApp() {
       handleTaskRemove(selectedTask._id)
       setIsDeleteModalOpen(false)
       setSelectedTask(null)
-      toast.success("Task deleted successfully")
+      toast.success(t("admin.todo.toast.taskDeleted"))
     }
   }
 
@@ -1743,7 +1745,7 @@ export default function TodoApp() {
       createdAt: new Date().toISOString(),
     }
     dispatch(createTaskThunk(newTask))
-    toast.success("Task duplicated")
+    toast.success(t("admin.todo.toast.taskDuplicated"))
   }
 
   const handleRepeatRequest = (task) => {
@@ -1810,7 +1812,7 @@ export default function TodoApp() {
 
     console.log('Creating mobile task with repeat/reminder:', newTask);
     dispatch(createTaskThunk(newTask));
-    toast.success("Task created successfully");
+    toast.success(t("admin.todo.toast.taskCreated"));
     await dispatch(getTaskThunk());
   };
 
@@ -1898,7 +1900,7 @@ export default function TodoApp() {
       setSelectedAssignees([]);
       setSelectedTags([]);
 
-      toast.success("Task created successfully");
+      toast.success(t("admin.todo.toast.taskCreated"));
       await dispatch(getTaskThunk());
     }
   }, [selectedAssignees, selectedTags, selectedDate, selectedTime, selectedReminder, selectedRepeat, customReminderValue, customReminderUnit, newTaskInput, dispatch]);
@@ -1956,7 +1958,7 @@ export default function TodoApp() {
           {/* ============================================ */}
           <div className="flex-shrink-0 p-4 md:p-6 pb-0">
             <div className="flex justify-between items-center mb-4">
-              <h1 className="text-xl md:text-2xl font-bold text-content-primary">To-Do</h1>
+              <h1 className="text-xl md:text-2xl font-bold text-content-primary">{t("admin.todo.title")}</h1>
 
               <div className="flex items-center gap-2">
                 {/* Mobile: Staff Filter - Now in header */}
@@ -2019,7 +2021,7 @@ export default function TodoApp() {
                   value={newTaskInput}
                   onChange={handleTextareaChange}
                   onEnter={handleAddTask}
-                  placeholder="New task… (Press Enter to add)"
+                  placeholder={t("admin.todo.quickAddPlaceholder")}
                 />
                 <SelectedDateTimeDisplay date={selectedDate} time={selectedTime} onClear={handleClearDateTime} />
 
@@ -2673,7 +2675,7 @@ export default function TodoApp() {
         <button
           onClick={() => setShowMobileCreateModal(true)}
           className="md:hidden fixed bottom-6 right-6 bg-primary hover:bg-primary-hover text-white p-4 rounded-2xl shadow-lg transition-all active:scale-95 z-30"
-          aria-label="Add Task"
+          aria-label={t("admin.todo.newTask")}
         >
           <Plus size={24} />
         </button>

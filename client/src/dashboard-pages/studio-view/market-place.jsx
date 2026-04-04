@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from "react"
 import { ChevronDown, ChevronUp, ExternalLink, Search, ArrowUpDown, ArrowUp, ArrowDown, Info, Heart, Tag } from "lucide-react"
 import { IoIosMenu } from "react-icons/io"
 import { useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 
 // sidebar related import
 import { trainingVideosData } from "../../utils/studio-states/training-states"
@@ -20,7 +21,7 @@ import {
 
 
 // Info Tooltip Component with hover and click support
-const InfoTooltip = ({ product }) => {
+const InfoTooltip = ({ product, t }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
   const containerRef = useRef(null);
@@ -115,7 +116,7 @@ const InfoTooltip = ({ product }) => {
       <button
         onClick={handleClick}
         className={`${isLocked ? 'bg-secondary' : 'bg-secondary hover:bg-secondary-hover'} text-white p-2 rounded-full transition-colors`}
-        aria-label="Show product information"
+        aria-label={t("marketplace.productInfo.title")}
       >
         <Info size={16} />
       </button>
@@ -133,7 +134,7 @@ const InfoTooltip = ({ product }) => {
 };
 
 // External Link Confirmation Modal
-const ExternalLinkModal = ({ isOpen, onClose, link }) => {
+const ExternalLinkModal = ({ isOpen, onClose, link, t }) => {
   if (!isOpen) return null;
 
   const handleContinue = () => {
@@ -152,9 +153,9 @@ const ExternalLinkModal = ({ isOpen, onClose, link }) => {
                 <Info size={14} className="text-white" />
               </div>
               <div>
-                <h4 className="text-primary font-semibold text-sm mb-1 oxanium_font">Affiliate Link</h4>
+                <h4 className="text-primary font-semibold text-sm mb-1 oxanium_font">{t("marketplace.externalLink.affiliateTitle")}</h4>
                 <p className="text-primary/80 text-xs leading-relaxed open_sans_font">
-                  This is an affiliate link. We may earn a small commission if you make a purchase through this link, at no additional cost to you.
+                  {t("marketplace.externalLink.affiliateDesc")}
                 </p>
               </div>
             </div>
@@ -165,15 +166,15 @@ const ExternalLinkModal = ({ isOpen, onClose, link }) => {
             <div className="bg-surface-dark rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
               <ExternalLink size={28} className="text-content-secondary" />
             </div>
-            <h3 className="text-xl font-bold text-content-primary mb-2 oxanium_font">You are leaving our site</h3>
+            <h3 className="text-xl font-bold text-content-primary mb-2 oxanium_font">{t("marketplace.externalLink.leavingSite")}</h3>
             <p className="text-content-secondary text-sm leading-relaxed open_sans_font">
-              You are about to be redirected to an external website. We are not responsible for the content, privacy policies, or practices of third-party websites.
+              {t("marketplace.externalLink.leavingDesc")}
             </p>
           </div>
 
           {/* Link Preview */}
           <div className="bg-surface-dark rounded-xl p-3 mb-6">
-            <p className="text-content-faint text-xs mb-1">Destination:</p>
+            <p className="text-content-faint text-xs mb-1">{t("marketplace.externalLink.destination")}</p>
             <p className="text-secondary text-sm break-all truncate">{link}</p>
           </div>
 
@@ -183,13 +184,13 @@ const ExternalLinkModal = ({ isOpen, onClose, link }) => {
               onClick={onClose}
               className="flex-1 bg-surface-button hover:bg-surface-button-hover text-content-primary py-3 px-4 rounded-xl font-medium transition-colors text-sm open_sans_font"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
             <button
               onClick={handleContinue}
               className="flex-1 bg-primary hover:bg-primary-hover text-white py-3 px-4 rounded-xl font-medium transition-colors text-sm open_sans_font flex items-center justify-center gap-2"
             >
-              Continue
+              {t("marketplace.externalLink.continue")}
               <ExternalLink size={16} />
             </button>
           </div>
@@ -200,12 +201,12 @@ const ExternalLinkModal = ({ isOpen, onClose, link }) => {
 };
 
 // Affiliate Link Button - opens confirmation modal
-const AffiliateLinkButton = ({ link, onOpenModal }) => {
+const AffiliateLinkButton = ({ link, onOpenModal, t }) => {
   return (
     <button
       onClick={() => onOpenModal(link)}
       className="bg-surface-button hover:bg-surface-button-hover text-content-secondary p-2 rounded-full transition-colors"
-      aria-label="Open product link (affiliate)"
+      aria-label={t("marketplace.externalLink.affiliateTitle")}
     >
       <ExternalLink size={16} />
     </button>
@@ -223,7 +224,7 @@ const DiscountBadge = ({ percentage }) => {
 };
 
 // Price Display Component with sale formatting
-const PriceDisplay = ({ product }) => {
+const PriceDisplay = ({ product, t }) => {
   const hasDiscount = isOnSale(product);
   const discountPercentage = hasDiscount ? calculateDiscountPercentage(product.originalPrice, product.price) : 0;
   
@@ -239,7 +240,7 @@ const PriceDisplay = ({ product }) => {
           </span>
         </div>
         <span className="text-xs text-secondary font-medium open_sans_font">
-          You save {formatPrice(product.originalPrice - product.price, product.currency)} ({discountPercentage}%)
+          {t("marketplace.youSave", { amount: formatPrice(product.originalPrice - product.price, product.currency), percentage: discountPercentage })}
         </span>
       </div>
     );
@@ -253,7 +254,7 @@ const PriceDisplay = ({ product }) => {
 };
 
 // Product Card Component
-const ProductCard = ({ product, isFavorite, toggleFavorite, openExternalLinkModal }) => {
+const ProductCard = ({ product, isFavorite, toggleFavorite, openExternalLinkModal, t }) => {
   return (
     <div className="bg-surface-card rounded-2xl overflow-hidden relative select-none border border-border-subtle hover:border-border transition-colors">
       <div className="relative w-full h-48 bg-surface-dark">
@@ -277,7 +278,7 @@ const ProductCard = ({ product, isFavorite, toggleFavorite, openExternalLinkModa
               ? 'bg-primary hover:bg-primary-hover'
               : 'bg-black/50 hover:bg-black/70'
           }`}
-          aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+          aria-label={isFavorite ? t("marketplace.favorites_aria.remove") : t("marketplace.favorites_aria.add")}
         >
           <Heart 
             size={16} 
@@ -287,16 +288,16 @@ const ProductCard = ({ product, isFavorite, toggleFavorite, openExternalLinkModa
 
         {/* Bottom-right action buttons */}
         <div className="absolute bottom-3 right-3 flex gap-2">
-          <InfoTooltip product={product} />
-          <AffiliateLinkButton link={product.link} onOpenModal={openExternalLinkModal} />
+          <InfoTooltip product={product} t={t} />
+          <AffiliateLinkButton link={product.link} onOpenModal={openExternalLinkModal} t={t} />
         </div>
       </div>
 
       <div className="p-4 bg-surface-card text-content-primary">
         <h3 className="text-base font-medium mb-1 open_sans_font text-content-primary">{product.name}</h3>
         <p className="text-sm text-content-secondary mb-1 open_sans_font">{product.brand}</p>
-        <p className="text-sm text-content-faint mb-2 open_sans_font">Art. No: {product.articleNo}</p>
-        <PriceDisplay product={product} />
+        <p className="text-sm text-content-faint mb-2 open_sans_font">{t("marketplace.articleNo")} {product.articleNo}</p>
+        <PriceDisplay product={product} t={t} />
       </div>
     </div>
   );
@@ -304,6 +305,7 @@ const ProductCard = ({ product, isFavorite, toggleFavorite, openExternalLinkModa
 
 
 export default function MarketplacePage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState("")
 
@@ -363,10 +365,10 @@ export default function MarketplacePage() {
 
   // Sort options matching assessment style
   const sortOptions = [
-    { value: "name", label: "Name" },
-    { value: "price", label: "Price" },
-    { value: "brand", label: "Brand" },
-    { value: "articleNo", label: "Article No." },
+    { value: "name", label: t("marketplace.sortOptions.name") },
+    { value: "price", label: t("marketplace.sortOptions.price") },
+    { value: "brand", label: t("marketplace.sortOptions.brand") },
+    { value: "articleNo", label: t("marketplace.sortOptions.articleNo") },
   ];
 
   // Get current sort label
@@ -503,7 +505,7 @@ export default function MarketplacePage() {
         <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[180px]">
           <div className="py-1">
             <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">
-              Sort by
+              {t("common.sortBy")}
             </div>
             {sortOptions.map((option) => {
               const isSelected = sortBy === option.value;
@@ -570,7 +572,7 @@ export default function MarketplacePage() {
           {/* Header with title, sort (mobile) */}
           <div className="flex justify-between items-center w-full mb-6">
             <div className="flex items-center gap-3">
-              <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Marketplace</h1>
+              <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">{t("marketplace.title")}</h1>
               {/* Sort button - visible on mobile only */}
               <div className="sm:hidden">
                 <SortDropdown />
@@ -584,7 +586,7 @@ export default function MarketplacePage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-content-faint" size={16} />
               <input
                 type="text"
-                placeholder="Search by name, brand or article number..."
+                placeholder={t("marketplace.searchPlaceholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-primary transition-colors placeholder-content-faint"
@@ -606,7 +608,7 @@ export default function MarketplacePage() {
                   : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
               }`}
             >
-              All
+              {t("common.all")}
             </button>
             
             {/* Sale filter */}
@@ -622,7 +624,7 @@ export default function MarketplacePage() {
               }`}
             >
               <Tag size={14} />
-              Sale ({saleItemsCount})
+              {t("marketplace.sale", { count: saleItemsCount })}
             </button>
             
             {/* Favorites filter */}
@@ -638,7 +640,7 @@ export default function MarketplacePage() {
               }`}
             >
               <Heart size={14} className={showFavoritesOnly ? "fill-white" : ""} />
-              Favorites ({favorites.length})
+              {t("marketplace.favorites", { count: favorites.length })}
             </button>
 
             {/* Sort dropdown - hidden on mobile (shown in header instead) */}
@@ -661,7 +663,7 @@ export default function MarketplacePage() {
                       size={20} 
                       className={`text-content-faint transition-transform duration-200 ${isFeaturedCollapsed ? '-rotate-90' : ''}`} 
                     />
-                    <h2 className="text-lg font-semibold text-content-primary group-hover:text-content-secondary transition-colors oxanium_font">Featured</h2>
+                    <h2 className="text-lg font-semibold text-content-primary group-hover:text-content-secondary transition-colors oxanium_font">{t("marketplace.featured")}</h2>
                     <span className="text-sm text-content-faint">({featuredProducts.length})</span>
                   </button>
                   {!isFeaturedCollapsed && (
@@ -673,6 +675,7 @@ export default function MarketplacePage() {
                           isFavorite={isFavorite(product.id)}
                           toggleFavorite={toggleFavorite}
                           openExternalLinkModal={openExternalLinkModal}
+                          t={t}
                         />
                       ))}
                     </div>
@@ -691,7 +694,7 @@ export default function MarketplacePage() {
                       size={20} 
                       className={`text-content-faint transition-transform duration-200 ${isMoreCollapsed ? '-rotate-90' : ''}`} 
                     />
-                    <h2 className="text-lg font-semibold text-content-primary group-hover:text-content-secondary transition-colors oxanium_font">More Products</h2>
+                    <h2 className="text-lg font-semibold text-content-primary group-hover:text-content-secondary transition-colors oxanium_font">{t("marketplace.moreProducts")}</h2>
                     <span className="text-sm text-content-faint">({allProducts.length})</span>
                   </button>
                   {!isMoreCollapsed && (
@@ -703,6 +706,7 @@ export default function MarketplacePage() {
                           isFavorite={isFavorite(product.id)}
                           toggleFavorite={toggleFavorite}
                           openExternalLinkModal={openExternalLinkModal}
+                          t={t}
                         />
                       ))}
                     </div>
@@ -721,6 +725,7 @@ export default function MarketplacePage() {
                     isFavorite={isFavorite(product.id)}
                     toggleFavorite={toggleFavorite}
                     openExternalLinkModal={openExternalLinkModal}
+                    t={t}
                   />
                 ))}
               </div>
@@ -731,10 +736,10 @@ export default function MarketplacePage() {
             <div className="text-center py-12">
               <p className="text-content-faint text-lg open_sans_font">
                 {showFavoritesOnly 
-                  ? "No favorites yet. Click the heart icon to add products to your favorites."
+                  ? t("marketplace.empty.noFavorites")
                   : showSaleOnly
-                    ? "No sale items available at the moment."
-                    : "No products found matching your search."
+                    ? t("marketplace.empty.noSaleItems")
+                    : t("marketplace.empty.noProducts")
                 }
               </p>
             </div>
@@ -747,7 +752,7 @@ export default function MarketplacePage() {
           <div className="bg-surface-card rounded-xl w-full max-w-md mx-auto border border-border">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-content-primary oxanium_font">Product Information</h2>
+                <h2 className="text-xl font-bold text-content-primary oxanium_font">{t("marketplace.productInfo.title")}</h2>
                 <button
                   onClick={closeInfoModal}
                   className="text-content-faint hover:text-content-secondary transition-colors"
@@ -760,8 +765,8 @@ export default function MarketplacePage() {
 
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-content-primary mb-2 open_sans_font">{productForInfo.productName || productForInfo.name}</h3>
-                <p className="text-content-secondary text-sm mb-1 open_sans_font">Brand: {productForInfo.brandName || productForInfo.brand}</p>
-                <p className="text-content-faint text-sm mb-3 open_sans_font">Article No: {productForInfo.articleNo}</p>
+                <p className="text-content-secondary text-sm mb-1 open_sans_font">{t("marketplace.productInfo.brand")} {productForInfo.brandName || productForInfo.brand}</p>
+                <p className="text-content-faint text-sm mb-3 open_sans_font">{t("marketplace.productInfo.articleNo")} {productForInfo.articleNo}</p>
 
                 {productForInfo.infoText ? (
                   <div className="bg-surface-dark rounded-lg p-4">
@@ -769,7 +774,7 @@ export default function MarketplacePage() {
                   </div>
                 ) : (
                   <div className="bg-surface-dark rounded-lg p-4 text-center">
-                    <p className="text-content-faint text-sm open_sans_font">No additional information available</p>
+                    <p className="text-content-faint text-sm open_sans_font">{t("marketplace.productInfo.noInfo")}</p>
                     <button
                       onClick={() => {
                         closeInfoModal();
@@ -777,7 +782,7 @@ export default function MarketplacePage() {
                       }}
                       className="text-secondary hover:text-secondary-hover text-sm mt-2 transition-colors"
                     >
-                      Add information
+                      {t("marketplace.productInfo.addInfo")}
                     </button>
                   </div>
                 )}
@@ -788,7 +793,7 @@ export default function MarketplacePage() {
                   onClick={closeInfoModal}
                   className="flex-1 bg-surface-button hover:bg-surface-button-hover text-content-primary text-sm py-3 px-4 rounded-xl font-medium transition-colors open_sans_font"
                 >
-                  Close
+                  {t("common.close")}
                 </button>
               </div>
             </div>
@@ -801,6 +806,7 @@ export default function MarketplacePage() {
         isOpen={isExternalLinkModalOpen}
         onClose={closeExternalLinkModal}
         link={externalLinkUrl}
+        t={t}
       />
     </>
   )

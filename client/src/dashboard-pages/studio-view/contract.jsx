@@ -84,24 +84,24 @@ const StatusTag = ({
       <>
         {pauseReason && (
           <div className="flex items-center gap-2">
-            <span className="text-yellow-400 font-medium">Reason:</span>
+            <span className="text-yellow-400 font-medium">{t("contracts.details.reason")}</span>
             <span>{pauseReason}</span>
           </div>
         )}
         {pauseStartDate && pauseEndDate && (
           <div className="flex items-center gap-2">
-            <span className="text-yellow-400 font-medium">Period:</span>
+            <span className="text-yellow-400 font-medium">{t("contracts.details.period")}</span>
             <span>{formatD(pauseStartDate)} - {formatD(pauseEndDate)}</span>
           </div>
         )}
         {pauseStartDate && !pauseEndDate && (
           <div className="flex items-center gap-2">
-            <span className="text-yellow-400 font-medium">Since:</span>
+            <span className="text-yellow-400 font-medium">{t("contracts.details.since")}</span>
             <span>{formatD(pauseStartDate)}</span>
           </div>
         )}
         {!pauseReason && !pauseStartDate && (
-          <span>Contract is paused</span>
+          <span>{t("contracts.statusMessages.paused")}</span>
         )}
       </>
     );
@@ -114,18 +114,18 @@ const StatusTag = ({
       <>
         {cancelReason && (
           <div className="flex items-center gap-2">
-            <span className="text-red-400 font-medium">Reason:</span>
+            <span className="text-red-400 font-medium">{t("contracts.details.reason")}</span>
             <span>{cancelReason}</span>
           </div>
         )}
         {cancelDate && (
           <div className="flex items-center gap-2">
-            <span className="text-red-400 font-medium">Cancelled:</span>
+            <span className="text-red-400 font-medium">{t("contracts.details.cancelled")}</span>
             <span>{formatD(cancelDate)}</span>
           </div>
         )}
         {!cancelReason && !cancelDate && (
-          <span>Contract was cancelled</span>
+          <span>{t("contracts.statusMessages.cancelled")}</span>
         )}
       </>
     );
@@ -138,12 +138,12 @@ const StatusTag = ({
       <>
         {scheduledStartDate && (
           <div className="flex items-center gap-2">
-            <span className="text-content-muted font-medium">Starts:</span>
+            <span className="text-content-muted font-medium">{t("contracts.details.starts")}</span>
             <span>{formatD(scheduledStartDate)}</span>
           </div>
         )}
         {!scheduledStartDate && (
-          <span>Contract is scheduled</span>
+          <span>{t("contracts.statusMessages.scheduled")}</span>
         )}
       </>
     );
@@ -218,6 +218,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
 };
 
 export default function ContractList({ studioId: studioIdProp = null, mode = "studio", studioName: studioNameProp = null }) {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const isAdminMode = mode === "admin" && studioIdProp !== null
@@ -860,7 +861,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
       setContracts(contracts.map((c) =>
         c.id === resumeConfirmData.id ? { ...c, status: "Active", pauseReason: null } : c
       ))
-      toast.success("Contract resumed successfully")
+      toast.success(t("contracts.toasts.resumed"))
     }
     setResumeConfirmData(null)
   }
@@ -893,7 +894,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
       }
       return updated
     })
-    toast.success("Scheduled contract cancelled")
+    toast.success(t("contracts.toasts.scheduledCancelled"))
   }
 
   const handleDeleteContract = (contractId) => {
@@ -905,7 +906,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
   const confirmDeleteContract = () => {
     if (contractToDelete) {
       setContracts(contracts.filter((c) => c.id !== contractToDelete.id))
-      toast.success("Contract deleted successfully")
+      toast.success(t("contracts.toasts.deleted"))
       setIsDeleteModalOpen(false)
       setContractToDelete(null)
     }
@@ -933,7 +934,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
       setContracts(contracts.map(c =>
         c.id === removeBonusConfirmData.id ? { ...c, bonusTime: null } : c
       ))
-      toast.success("Bonus time removed")
+      toast.success(t("contracts.toasts.bonusTimeRemoved"))
     }
     setRemoveBonusConfirmData(null)
   }
@@ -1120,19 +1121,19 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
       }
     } else if (contractStatus === "Pending") {
       // For Pending contracts, keep the lead - no conversion yet
-      toast.info("Contract saved as draft. Lead will be converted when contract is activated.")
+      toast.info(t("contracts.toasts.draftSaved"))
     }
 
     // Toast is handled by contract-modal.jsx for new format
     if (!isNewFormat) {
-      toast.success("Contract added successfully")
+      toast.success(t("contracts.toasts.added"))
     }
   }
 
   const handleSaveEditedContract = (updatedContract) => {
     setContracts(contracts.map((c) => (c.id === updatedContract.id ? updatedContract : c)))
     setIsEditModalOpenContract(false)
-    toast.success("Contract updated successfully")
+    toast.success(t("contracts.toasts.updated"))
   }
 
   const handlePauseReasonSubmit = ({ reason, startDate, endDate }) => {
@@ -1145,7 +1146,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
     }
     setIsPauseModalOpen(false)
     setSelectedContract(null)
-    toast.success("Contract has been paused")
+    toast.success(t("contracts.toasts.paused"))
   }
 
   const handleCancelSubmit = ({ reason, cancelDate, cancelToDate, cancellationType, extraordinaryCancellation, cancellationThroughStudio, notificationRule }) => {
@@ -1173,7 +1174,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
     }
     setIsCancelModalOpen(false)
     setSelectedContract(null)
-    toast.success("Contract has been cancelled")
+    toast.success(t("contracts.toasts.cancelled"))
   }
 
   const handleRenewSubmit = (renewalData) => {
@@ -1284,7 +1285,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
     if (isDraft) {
       // Draft: just add the new contract as Pending, don't touch the old contract yet
       setContracts(prev => [...prev, newContract])
-      toast.success("Contract renewal saved as draft")
+      toast.success(t("contracts.toasts.renewalDraft"))
     } else if (isFutureStart) {
       // Future start: old contract stays as-is (it will end naturally or on its end date)
       // New contract is "Scheduled" - will auto-activate on start date
@@ -1316,7 +1317,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
         )
         return [...updated, newContract]
       })
-      toast.success("Contract renewed successfully")
+      toast.success(t("contracts.toasts.renewed"))
     }
 
     // Filter to show the member's contracts
@@ -1439,7 +1440,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
     if (isDraft) {
       // Draft: just add the new contract as Pending, don't touch the old contract yet
       setContracts(prev => [...removeDraft(prev), newContract])
-      toast.success("Contract change saved as draft")
+      toast.success(t("contracts.toasts.changeDraft"))
     } else if (isFutureStart) {
       // Future start: old contract stays Active, gets scheduled cancel date
       // New contract is "Scheduled" - will auto-activate on start date
@@ -1472,7 +1473,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
         )
         return [...updated, newContract]
       })
-      toast.success("Contract changed successfully")
+      toast.success(t("contracts.toasts.changed"))
     }
 
     // Filter to show the member's contracts
@@ -1501,7 +1502,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
           </div>
           <div>
             <p className="text-sm font-medium text-blue-300">Admin Mode — {studioNameProp || `Studio #${studioIdProp}`}</p>
-            <p className="text-xs text-content-muted">Viewing contracts for this studio. Changes are saved per-studio.</p>
+            <p className="text-xs text-content-muted">{t("contracts.adminModeDesc")}</p>
           </div>
         </div>
       )}
@@ -1526,7 +1527,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
             {/* Header - matches members.jsx */}
             <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
               <div className="flex items-center gap-3">
-                <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Contracts</h1>
+                <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">{t("contracts.title")}</h1>
 
                 {/* Sort Button - Mobile: next to title */}
                 <div className="lg:hidden relative" ref={mobileSortDropdownRef}>
@@ -1545,7 +1546,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                   {showMobileSortDropdown && (
                     <div className="absolute left-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[180px]">
                       <div className="py-1">
-                        <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">Sort by</div>
+                        <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">{t("common.sortBy")}</div>
                         {sortOptions.map((option) => (
                           <button
                             key={option.value}
@@ -1580,7 +1581,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
 
                     {/* Tooltip */}
                     <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                      <span className="font-medium">Grid View</span>
+                      <span className="font-medium">{t("contracts.gridView")}</span>
                       <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">V</span>
                       <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
                     </div>
@@ -1596,7 +1597,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
 
                     {/* Tooltip */}
                     <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                      <span className="font-medium">List View</span>
+                      <span className="font-medium">{t("contracts.listView")}</span>
                       <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">V</span>
                       <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
                     </div>
@@ -1637,12 +1638,12 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                     className="flex bg-primary hover:bg-primary-hover text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"
                   >
                     <Plus size={14} className="sm:w-4 sm:h-4" />
-                    <span className='hidden sm:inline'>Create Contract</span>
+                    <span className='hidden sm:inline'>{t("contracts.createContract")}</span>
                   </button>
 
                   {/* Tooltip - YouTube Style */}
                   <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                    <span className="font-medium">Create Contract</span>
+                    <span className="font-medium">{t("contracts.createContract")}</span>
                     <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                       C
                     </span>
@@ -1707,7 +1708,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                         setMemberFilters([])
                       }}
                       className="p-1 hover:bg-surface-button rounded-lg transition-colors flex-shrink-0"
-                      title="Clear all filters"
+                      title={t("contracts.clearAllFilters")}
                     >
                       <X size={14} className="text-content-muted hover:text-content-primary" />
                     </button>
@@ -1738,7 +1739,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                 {/* No results message */}
                 {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 p-3">
-                    <p className="text-sm text-content-faint text-center">No members found</p>
+                    <p className="text-sm text-content-faint text-center">{t("contracts.empty.noMembers")}</p>
                   </div>
                 )}
               </div>
@@ -1754,7 +1755,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                   className="flex items-center gap-2 text-secondary hover:text-secondary-hover transition-colors"
                 >
                   <Filter size={14} />
-                  <span className="text-xs sm:text-sm font-medium">Filters</span>
+                  <span className="text-xs sm:text-sm font-medium">{t("common.filters")}</span>
                   <ChevronDown
                     size={14}
                     className={`transition-transform duration-200 ${filtersExpanded ? 'rotate-180' : ''}`}
@@ -1781,7 +1782,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                   {showSortDropdown && (
                     <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[180px]">
                       <div className="py-1">
-                        <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">Sort by</div>
+                        <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">{t("common.sortBy")}</div>
                         {sortOptions.map((option) => (
                           <button
                             key={option.value}
@@ -1859,13 +1860,13 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                       {/* Table Header */}
                       <div className={`grid grid-cols-[auto_1fr_1.5fr_1fr_1fr_0.8fr_1.5fr_auto] gap-4 px-4 bg-surface-dark text-content-muted font-medium border-b border-border rounded-t-xl ${isCompactView ? 'py-2 text-xs' : 'py-3 text-sm'}`}>
                         <div className={`text-center pr-4 ${isCompactView ? 'w-14' : 'w-20'}`}>Contract</div>
-                        <div>Contract No.</div>
-                        <div>Name</div>
-                        <div>Contract Type</div>
-                        <div>Status</div>
-                        <div>Auto Renewal</div>
-                        <div>Contract Duration</div>
-                        <div className={`text-right ${isCompactView ? 'w-20' : 'w-24'}`}>Actions</div>
+                        <div>{t("contracts.table.contractNo")}</div>
+                        <div>{t("contracts.table.name")}</div>
+                        <div>{t("contracts.table.contractType")}</div>
+                        <div>{t("contracts.table.status")}</div>
+                        <div>{t("contracts.table.autoRenewal")}</div>
+                        <div>{t("contracts.table.duration")}</div>
+                        <div className={`text-right ${isCompactView ? 'w-20' : 'w-24'}`}>{t("common.actions")}</div>
                       </div>
                       {/* Table Body */}
                       {filteredAndSortedContracts().length > 0 ? (
@@ -1886,7 +1887,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                                 <button
                                   onClick={() => handleManageDocuments(contract)}
                                   className={`bg-surface-button rounded-xl flex items-center justify-center hover:bg-surface-button-hover transition-colors cursor-pointer ${isCompactView ? 'w-8 h-8' : 'w-10 h-10'}`}
-                                  title="Open Contract Documents"
+                                  title={t("contracts.openDocuments")}
                                 >
                                   <FileText size={isCompactView ? 16 : 20} className="text-primary" />
                                 </button>
@@ -1966,7 +1967,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                               </div>
                               <div className={`flex items-center justify-end gap-0.5 ${isCompactView ? 'w-20' : 'w-24'}`}>
                                 {contract.status === "Pending" ? (
-                                  <button onClick={() => handleEditContract(contract)} className={`text-primary hover:text-primary-hover hover:bg-surface-hover rounded-lg transition-colors ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Edit">
+                                  <button onClick={() => handleEditContract(contract)} className={`text-primary hover:text-primary-hover hover:bg-surface-hover rounded-lg transition-colors ${isCompactView ? 'p-1.5' : 'p-2'}`} title={t("common.edit")}>
                                     <Pencil size={isCompactView ? 14 : 18} />
                                   </button>
                                 ) : (
@@ -2018,7 +2019,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                         ))
                       ) : (
                         <div className="text-center py-8">
-                          <p className="text-content-muted text-sm">No contracts found.</p>
+                          <p className="text-content-muted text-sm">{t("contracts.empty.noContracts")}</p>
                         </div>
                       )}
                     </div>
@@ -2046,7 +2047,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                                 <button
                                   onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); }}
                                   className="w-11 h-11 bg-surface-button rounded-xl flex items-center justify-center flex-shrink-0 hover:bg-surface-button-hover transition-colors"
-                                  title="Open Contract Documents"
+                                  title={t("contracts.openDocuments")}
                                 >
                                   <FileText size={22} className="text-primary" />
                                 </button>
@@ -2097,16 +2098,16 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                                     <>
                                       <div className="grid grid-cols-4 gap-1">
                                         <button onClick={(e) => { e.stopPropagation(); handlePauseContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
-                                          <PauseCircle size={18} /><span className="text-[10px]">Pause</span>
+                                          <PauseCircle size={18} /><span className="text-[10px]">{t("contracts.actions.pause")}</span>
                                         </button>
                                         <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
-                                          <RefreshCw size={18} /><span className="text-[10px]">Renew</span>
+                                          <RefreshCw size={18} /><span className="text-[10px]">{t("contracts.actions.renew")}</span>
                                         </button>
                                         <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-primary hover:text-primary-hover hover:bg-surface-hover rounded-lg transition-colors">
                                           <Gift size={18} /><span className="text-[10px]">{contract.bonusTime ? 'Edit Bonus' : 'Bonus'}</span>
                                         </button>
                                         <button onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
-                                          <ArrowRightLeft size={18} /><span className="text-[10px]">Change</span>
+                                          <ArrowRightLeft size={18} /><span className="text-[10px]">{t("contracts.actions.change")}</span>
                                         </button>
                                       </div>
                                       <div className="grid grid-cols-4 gap-1 mt-1">
@@ -2114,7 +2115,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                                         <div className="p-2" />
                                         <div className="p-2" />
                                         <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-surface-hover rounded-lg transition-colors">
-                                          <XCircle size={18} /><span className="text-[10px]">Cancel</span>
+                                          <XCircle size={18} /><span className="text-[10px]">{t("common.cancel")}</span>
                                         </button>
                                       </div>
                                     </>
@@ -2124,16 +2125,16 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                                     <>
                                       <div className="grid grid-cols-4 gap-1">
                                         <button onClick={(e) => { e.stopPropagation(); handleResumeContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-primary hover:text-primary-hover hover:bg-surface-hover rounded-lg transition-colors">
-                                          <PlayCircle size={18} /><span className="text-[10px]">Resume</span>
+                                          <PlayCircle size={18} /><span className="text-[10px]">{t("contracts.actions.resume")}</span>
                                         </button>
                                         <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
-                                          <RefreshCw size={18} /><span className="text-[10px]">Renew</span>
+                                          <RefreshCw size={18} /><span className="text-[10px]">{t("contracts.actions.renew")}</span>
                                         </button>
                                         <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-primary hover:text-primary-hover hover:bg-surface-hover rounded-lg transition-colors">
                                           <Gift size={18} /><span className="text-[10px]">{contract.bonusTime ? 'Edit Bonus' : 'Bonus'}</span>
                                         </button>
                                         <button onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
-                                          <ArrowRightLeft size={18} /><span className="text-[10px]">Change</span>
+                                          <ArrowRightLeft size={18} /><span className="text-[10px]">{t("contracts.actions.change")}</span>
                                         </button>
                                       </div>
                                       <div className="grid grid-cols-4 gap-1 mt-1">
@@ -2141,7 +2142,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                                         <div className="p-2" />
                                         <div className="p-2" />
                                         <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-surface-hover rounded-lg transition-colors">
-                                          <XCircle size={18} /><span className="text-[10px]">Cancel</span>
+                                          <XCircle size={18} /><span className="text-[10px]">{t("common.cancel")}</span>
                                         </button>
                                       </div>
                                     </>
@@ -2150,12 +2151,12 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                                   {contract.status === "Pending" && (
                                     <div className="grid grid-cols-4 gap-1">
                                       <button onClick={(e) => { e.stopPropagation(); handleEditContract(contract); }} className="flex flex-col items-center gap-1 p-2 text-primary hover:text-primary-hover hover:bg-surface-hover rounded-lg transition-colors">
-                                        <Pencil size={18} /><span className="text-[10px]">Edit</span>
+                                        <Pencil size={18} /><span className="text-[10px]">{t("common.edit")}</span>
                                       </button>
                                       <div className="p-2" />
                                       <div className="p-2" />
                                       <button onClick={(e) => { e.stopPropagation(); handleDeleteContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-surface-hover rounded-lg transition-colors">
-                                        <Trash2 size={18} /><span className="text-[10px]">Delete</span>
+                                        <Trash2 size={18} /><span className="text-[10px]">{t("common.delete")}</span>
                                       </button>
                                     </div>
                                   )}
@@ -2163,7 +2164,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                                   {contract.status === "Cancelled" && (
                                     <div className="grid grid-cols-4 gap-1">
                                       <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
-                                        <RefreshCw size={18} /><span className="text-[10px]">Renew</span>
+                                        <RefreshCw size={18} /><span className="text-[10px]">{t("contracts.actions.renew")}</span>
                                       </button>
                                       <div className="p-2" />
                                       <div className="p-2" />
@@ -2177,7 +2178,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                                       <div className="p-2" />
                                       <div className="p-2" />
                                       <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-surface-hover rounded-lg transition-colors">
-                                        <XCircle size={18} /><span className="text-[10px]">Cancel</span>
+                                        <XCircle size={18} /><span className="text-[10px]">{t("common.cancel")}</span>
                                       </button>
                                     </div>
                                   )}
@@ -2189,7 +2190,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                       ))
                     ) : (
                       <div className="text-center py-8">
-                        <p className="text-content-muted text-sm">No contracts found.</p>
+                        <p className="text-content-muted text-sm">{t("contracts.empty.noContracts")}</p>
                       </div>
                     )}
                   </div>
@@ -2217,7 +2218,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                             <button
                               onClick={() => handleManageDocuments(contract)}
                               className={`bg-surface-button rounded-xl flex items-center justify-center hover:bg-surface-button-hover transition-colors cursor-pointer ${isCompactView ? 'w-12 h-12 mb-2' : 'w-20 h-20 mb-3'}`}
-                              title="Open Contract Documents"
+                              title={t("contracts.openDocuments")}
                             >
                               <FileText size={isCompactView ? 22 : 36} className="text-primary" />
                             </button>
@@ -2257,7 +2258,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                                       </div>
                                     </div>
                                   ) : (
-                                    <span className="text-content-faint">No Auto Renewal</span>
+                                    <span className="text-content-faint">{t("contracts.table.noAutoRenewal")}</span>
                                   )
                                 })()}
                               </div>
@@ -2299,19 +2300,19 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                               {/* Active: Pause, Renew, Bonus, Change, Cancel */}
                               {contract.status === "Active" && (
                                 <>
-                                  <button onClick={() => handlePauseContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Pause">
+                                  <button onClick={() => handlePauseContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={t("contracts.actions.pause")}>
                                     <PauseCircle size={isCompactView ? 14 : 16} />
                                   </button>
-                                  <button onClick={() => handleRenewContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Renew">
+                                  <button onClick={() => handleRenewContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={t("contracts.actions.renew")}>
                                     <RefreshCw size={isCompactView ? 14 : 16} />
                                   </button>
                                   <button onClick={() => handleAddBonusTime(contract.id)} className={`text-primary hover:text-primary-hover rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={contract.bonusTime ? 'Edit Bonus Time' : 'Add Bonus Time'}>
                                     <Gift size={isCompactView ? 14 : 16} />
                                   </button>
-                                  <button onClick={() => handleChangeContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Change Contract">
+                                  <button onClick={() => handleChangeContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={t("contracts.actions.changeContract")}>
                                     <ArrowRightLeft size={isCompactView ? 14 : 16} />
                                   </button>
-                                  <button onClick={() => handleCancelContract(contract.id)} className={`text-red-400 hover:text-red-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Cancel">
+                                  <button onClick={() => handleCancelContract(contract.id)} className={`text-red-400 hover:text-red-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={t("common.cancel")}>
                                     <XCircle size={isCompactView ? 14 : 16} />
                                   </button>
                                 </>
@@ -2320,19 +2321,19 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                               {/* Paused: Resume, Renew, Bonus, Change, Cancel */}
                               {contract.status === "Paused" && (
                                 <>
-                                  <button onClick={() => handleResumeContract(contract.id)} className={`text-primary hover:text-primary-hover rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Resume">
+                                  <button onClick={() => handleResumeContract(contract.id)} className={`text-primary hover:text-primary-hover rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={t("contracts.actions.resume")}>
                                     <PlayCircle size={isCompactView ? 14 : 16} />
                                   </button>
-                                  <button onClick={() => handleRenewContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Renew">
+                                  <button onClick={() => handleRenewContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={t("contracts.actions.renew")}>
                                     <RefreshCw size={isCompactView ? 14 : 16} />
                                   </button>
                                   <button onClick={() => handleAddBonusTime(contract.id)} className={`text-primary hover:text-primary-hover rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={contract.bonusTime ? 'Edit Bonus Time' : 'Add Bonus Time'}>
                                     <Gift size={isCompactView ? 14 : 16} />
                                   </button>
-                                  <button onClick={() => handleChangeContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Change Contract">
+                                  <button onClick={() => handleChangeContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={t("contracts.actions.changeContract")}>
                                     <ArrowRightLeft size={isCompactView ? 14 : 16} />
                                   </button>
-                                  <button onClick={() => handleCancelContract(contract.id)} className={`text-red-400 hover:text-red-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Cancel">
+                                  <button onClick={() => handleCancelContract(contract.id)} className={`text-red-400 hover:text-red-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={t("common.cancel")}>
                                     <XCircle size={isCompactView ? 14 : 16} />
                                   </button>
                                 </>
@@ -2341,13 +2342,13 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                               {/* Pending: Edit, empty, empty, empty, Delete */}
                               {contract.status === "Pending" && (
                                 <>
-                                  <button onClick={() => handleEditContract(contract)} className={`text-primary hover:text-primary-hover rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Edit">
+                                  <button onClick={() => handleEditContract(contract)} className={`text-primary hover:text-primary-hover rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={t("common.edit")}>
                                     <Pencil size={isCompactView ? 14 : 16} />
                                   </button>
                                   <div className={isCompactView ? 'p-1.5' : 'p-2'} />
                                   <div className={isCompactView ? 'p-1.5' : 'p-2'} />
                                   <div className={isCompactView ? 'p-1.5' : 'p-2'} />
-                                  <button onClick={() => handleDeleteContract(contract.id)} className={`text-red-400 hover:text-red-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Delete">
+                                  <button onClick={() => handleDeleteContract(contract.id)} className={`text-red-400 hover:text-red-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={t("common.delete")}>
                                     <Trash2 size={isCompactView ? 14 : 16} />
                                   </button>
                                 </>
@@ -2357,7 +2358,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                               {contract.status === "Cancelled" && (
                                 <>
                                   <div className={isCompactView ? 'p-1.5' : 'p-2'} />
-                                  <button onClick={() => handleRenewContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Renew">
+                                  <button onClick={() => handleRenewContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={t("contracts.actions.renew")}>
                                     <RefreshCw size={isCompactView ? 14 : 16} />
                                   </button>
                                   <div className={isCompactView ? 'p-1.5' : 'p-2'} />
@@ -2373,7 +2374,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                                   <div className={isCompactView ? 'p-1.5' : 'p-2'} />
                                   <div className={isCompactView ? 'p-1.5' : 'p-2'} />
                                   <div className={isCompactView ? 'p-1.5' : 'p-2'} />
-                                  <button onClick={() => handleCancelContract(contract.id)} className={`text-red-400 hover:text-red-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Cancel">
+                                  <button onClick={() => handleCancelContract(contract.id)} className={`text-red-400 hover:text-red-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={t("common.cancel")}>
                                     <XCircle size={isCompactView ? 14 : 16} />
                                   </button>
                                 </>
@@ -2385,7 +2386,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                     ))
                   ) : (
                     <div className="text-center py-8 col-span-full">
-                      <p className="text-content-muted text-sm">No contracts found.</p>
+                      <p className="text-content-muted text-sm">{t("contracts.empty.noContracts")}</p>
                     </div>
                   )}
                 </div>
@@ -2396,7 +2397,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
             <button
               onClick={handleAddContract}
               className="sm:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-50"
-              aria-label="Create Contract"
+              aria-label={t("contracts.createContract")}
             >
               <Plus size={22} />
             </button>
@@ -2453,7 +2454,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                       : c
                   ))
                   setIsBonusTimeModalOpen(false)
-                  toast.success(wasEdit ? "Bonus time updated successfully" : "Bonus time added successfully")
+                  toast.success(wasEdit ? t("contracts.toasts.bonusTimeUpdated") : t("contracts.toasts.bonusTimeAdded"))
                 }}
                 onDelete={() => {
                   setContracts(contracts.map(c =>
@@ -2462,7 +2463,7 @@ export default function ContractList({ studioId: studioIdProp = null, mode = "st
                       : c
                   ))
                   setIsBonusTimeModalOpen(false)
-                  toast.success("Bonus time removed")
+                  toast.success(t("contracts.toasts.bonusTimeRemoved"))
                 }}
               />
             )}

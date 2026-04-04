@@ -1633,7 +1633,15 @@
         "title": "Titel",
         "dueDate": "Fälligkeitsdatum",
         "recent": "Zuletzt hinzugefügt"
-      }
+      },
+      "toast": {
+        "taskPinned": "Aufgabe angeheftet",
+        "taskUnpinned": "Aufgabe gelöst",
+        "taskDeleted": "Aufgabe erfolgreich gelöscht",
+        "taskDuplicated": "Aufgabe dupliziert",
+        "taskCreated": "Aufgabe erfolgreich erstellt"
+      },
+      "quickAddPlaceholder": "Neue Aufgabe… (Enter zum Hinzufügen)"
     },
     "notes": {
       "title": "Notizen",
@@ -1707,7 +1715,10 @@
         "noteAdded": "Vermerk erfolgreich hinzugefügt",
         "noteAddedAndMoved": "Vermerk hinzugefügt und Lead verschoben",
         "reordered": "Leads neu sortiert",
-        "updated": "Lead erfolgreich aktualisiert!"
+        "updated": "Lead erfolgreich aktualisiert!",
+        "relationAdded": "Beziehung erfolgreich hinzugefügt",
+        "relationDeleted": "Beziehung erfolgreich gelöscht",
+        "fillAllFields": "Bitte alle Felder ausfüllen"
       },
       "view": "Ansicht",
       "noteStatuses": {
@@ -1843,6 +1854,35 @@
           "documents": "Dokumente",
           "viewHistory": "Verlauf anzeigen"
         }
+      },
+      "dragConfirmation": {
+        "toTrialTitle": "Zu Probetraining verschieben?",
+        "fromTrialTitle": "Lead aus Probetraining verschieben?",
+        "toTrialDesc": "{{name}} wird zu Probetraining vereinbart verschoben.",
+        "fromTrialDesc": "Möchtest du {{name}} wirklich aus Probetraining vereinbart verschieben?",
+        "yesBookTrial": "Ja, und Probetraining buchen",
+        "yesWithoutBooking": "Ja, ohne Buchung",
+        "yesMoveLead": "Ja, Lead verschieben"
+      },
+      "adminMode": {
+        "banner": "Admin-Modus — {{studio}}",
+        "description": "Leads für dieses Studio anzeigen. Änderungen werden pro Studio gespeichert.",
+        "failedToLoad": "Leads konnten nicht geladen werden: {{error}}"
+      },
+      "trialAppointments": {
+        "deleteTitle": "Probetraining löschen",
+        "deleteMessage": "Möchtest du dieses Probetraining wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+        "trialBooked": "Probetraining gebucht und Lead zu Probetraining vereinbart verschoben!",
+        "trialBookedSuccess": "Probetraining erfolgreich gebucht!",
+        "trialDeleted": "Probetraining erfolgreich gelöscht!"
+      },
+      "documents": {
+        "general": "Allgemein",
+        "medicalHistory": "Krankengeschichte"
+      },
+      "contractPrompt": {
+        "contractDraft": "Vertrag als Entwurf gespeichert. Lead wird bei Aktivierung des Vertrags konvertiert.",
+        "contractCreated": "Vertrag erfolgreich erstellt! Lead wurde in Mitglied konvertiert."
       }
     },
     "exercises": {
@@ -2016,7 +2056,8 @@
         "login": "Login",
         "owner": "Inhaber",
         "status": "Status",
-        "studios": "Studios"
+        "studios": "Studios",
+        "actions": "Aktionen"
       },
       "franchisesTitle": "Franchises",
       "mobile": {
@@ -3265,6 +3306,56 @@
       "marketplace": "Marktplatz",
       "analytics": "Analytik",
       "configuration": "Konfiguration"
+    },
+    "staff": {
+      "title": "Personal",
+      "createStaff": "Personal erstellen",
+      "search": {
+        "placeholder": "Personal suchen...",
+        "addMore": "Weitere hinzufügen...",
+        "noResults": "Kein Personal gefunden"
+      },
+      "gridView": "Kachelansicht",
+      "listView": "Listenansicht",
+      "compactView": "Kompakte Ansicht",
+      "detailedView": "Detailansicht",
+      "staffPlanning": "Personalplanung",
+      "vacationCalendar": "Urlaubskalender",
+      "planning": "Planung",
+      "vacation": "Urlaub",
+      "sort": {
+        "sortBy": "Sortieren nach",
+        "name": "Name",
+        "staffRole": "Personalrolle"
+      },
+      "adminMode": {
+        "banner": "Admin-Modus — {{studio}}",
+        "description": "Personal für dieses Studio anzeigen. Änderungen werden pro Studio gespeichert.",
+        "failedToLoad": "Personal konnte nicht geladen werden: {{error}}"
+      },
+      "deleteModal": {
+        "title": "Personal löschen",
+        "message": "Möchtest du {{name}} wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
+      },
+      "actions": {
+        "documents": "Dokumente",
+        "vacationContingent": "Urlaubskontingent",
+        "history": "Verlauf",
+        "viewDetails": "Details anzeigen"
+      },
+      "documents": {
+        "general": "Allgemein",
+        "medicalHistory": "Krankengeschichte"
+      },
+      "toast": {
+        "deleted": "Personal erfolgreich gelöscht",
+        "vacationUpdated": "Urlaubskontingent erfolgreich aktualisiert",
+        "vacationUpdateFailed": "Urlaubskontingent konnte nicht aktualisiert werden",
+        "vacationRequested": "Urlaubsantrag zur Genehmigung eingereicht",
+        "medicalHistorySaved": "Krankengeschichte erfolgreich gespeichert",
+        "emailSent": "E-Mail erfolgreich gesendet!",
+        "draftSaved": "Entwurf gespeichert!"
+      }
     }
   },
   "documents": {
@@ -4683,6 +4774,634 @@
       "friday": "Freitag",
       "saturday": "Samstag",
       "sunday": "Sonntag"
+    }
+  },
+  "helpCenter": {
+    "title": "Hilfecenter",
+    "subtitle": "Wie können wir dir helfen?",
+    "searchPlaceholder": "Hilfecenter durchsuchen...",
+    "noSearchResults": "Keine Ergebnisse für \"{{query}}\" gefunden",
+    "filters": {
+      "recentlyUpdated": "Kürzlich aktualisiert",
+      "mostPopular": "Am beliebtesten",
+      "trending": "Im Trend"
+    },
+    "featured": "Empfohlene & häufig gelesene Artikel",
+    "browseCategories": "Alle Kategorien durchsuchen",
+    "articlesOn": "Artikel zu:",
+    "articleCount": "{{count}} Artikel",
+    "minRead": "{{count}} Min. Lesezeit",
+    "categories": "Kategorien",
+    "lastUpdated": "Zuletzt aktualisiert:",
+    "time": "Zeit:",
+    "additionalHelp": "Folge den Anweisungen sorgfältig, um dein Problem zu lösen. Wenn du weitere Hilfe benötigst, kontaktiere bitte unser Support-Team über die Chat-Option.",
+    "feedback": {
+      "question": "War dieser Artikel hilfreich?",
+      "thankYou": "Danke für dein Feedback!",
+      "sorry": "Das tut uns leid. Erwäge, den Support für weitere Hilfe zu kontaktieren."
+    },
+    "navigation": {
+      "previous": "Zurück",
+      "next": "Weiter",
+      "backToCategory": "Zurück zu {{category}}"
+    },
+    "stillNeedHelp": {
+      "title": "Brauchst du noch Hilfe?",
+      "subtitle": "Unser Support-Team steht dir gerne zur Verfügung",
+      "contactSupport": "Support kontaktieren"
+    },
+    "footer": {
+      "notFinding": "Findest du nicht, was du suchst?",
+      "chatOrEmail": "Chatte mit uns oder schreib uns eine E-Mail."
+    }
+  },
+  "mediaLibrary": {
+    "title": "Medienbibliothek",
+    "searchPlaceholder": "Alle Designs durchsuchen...",
+    "desktopOnly": "Nur Desktop",
+    "desktopOnlyDesc": "Das Erstellen und Bearbeiten von Designs ist nur auf Desktop-Geräten verfügbar.",
+    "createDesign": "Design erstellen",
+    "folders": "Ordner",
+    "newFolder": "Neuer Ordner",
+    "dropHint": "\"{{name}}\" auf einen Ordner ziehen zum Verschieben",
+    "dropOnFolder": "Auf Ordner ziehen zum Verschieben",
+    "allDesigns": "Alle Designs",
+    "searchResults": "Suchergebnisse für \"{{query}}\"",
+    "clearSearch": "Suche löschen",
+    "designs": {
+      "noDesignsFound": "Keine Designs gefunden",
+      "noDesignsYet": "Noch keine Designs",
+      "noDesignsMatching": "Keine Designs für \"{{query}}\" gefunden",
+      "createFirst": "Erstelle dein erstes Design, um loszulegen",
+      "desktopOnlyCreation": "Designs können nur am Desktop erstellt werden"
+    },
+    "drafts": {
+      "title": "Entwürfe",
+      "draft": "Entwurf",
+      "noDrafts": "Keine Entwürfe gespeichert",
+      "continue": "Fortfahren",
+      "deleteDraft": "Entwurf löschen",
+      "yesterday": "Gestern",
+      "daysAgo": "vor {{count}} Tagen",
+      "layers": "{{count}} Ebenen"
+    },
+    "deleteDesign": {
+      "titleDraft": "Entwurf löschen",
+      "titleDesign": "Design löschen",
+      "confirm": "Möchtest du \"{{name}}\" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
+    },
+    "deleteFolder": {
+      "title": "\"{{name}}\" löschen",
+      "hasDesigns": "Dieser Ordner enthält {{count}} Design",
+      "hasDesigns_other": "Dieser Ordner enthält {{count}} Designs",
+      "isEmpty": "Dieser Ordner ist leer",
+      "deleteOnly": "Nur Ordner löschen",
+      "moveDesigns": "Designs in einen anderen Ordner verschieben",
+      "deleteAll": "Ordner und Designs löschen",
+      "permanentlyDelete": "{{count}} Design dauerhaft löschen",
+      "permanentlyDelete_other": "{{count}} Designs dauerhaft löschen",
+      "confirmEmpty": "Möchtest du diesen leeren Ordner wirklich löschen?",
+      "cannotDeleteDefault": "Der Standardordner kann nicht gelöscht werden"
+    },
+    "moveDesigns": {
+      "title": "Designs verschieben",
+      "selectFolder": "Wähle einen Ordner für {{count}} Design",
+      "selectFolder_other": "Wähle einen Ordner für {{count}} Designs",
+      "designCount": "{{count}} Designs"
+    },
+    "preview": {
+      "title": "Vorschau",
+      "noPreview": "Keine Vorschau verfügbar"
+    },
+    "untitledDesign": "Unbenanntes Design",
+    "default": "Standard"
+  },
+  "members": {
+    "title": "Mitglieder",
+    "searchPlaceholder": "Mitglieder suchen...",
+    "searchAddMore": "Weitere hinzufügen...",
+    "noMembersFound": "Keine Mitglieder gefunden",
+    "clearAllFilters": "Alle Filter löschen",
+    "createTempMember": "Temporäres Mitglied erstellen",
+    "failedToLoad": "Mitglieder konnten nicht geladen werden: {{error}}",
+    "status": {
+      "active": "Aktiv",
+      "paused": "Pausiert",
+      "archived": "Archiviert",
+      "unknown": "Unbekannt"
+    },
+    "pause": {
+      "reason": "Grund:",
+      "membershipPaused": "Mitgliedschaft ist pausiert"
+    },
+    "filters": {
+      "title": "Filter",
+      "allMembers": "Alle Mitglieder ({{count}})",
+      "activeMembers": "Aktive Mitglieder ({{count}})",
+      "pausedMembers": "Pausierte Mitglieder ({{count}})",
+      "archivedMembers": "Archivierte Mitglieder ({{count}})",
+      "allTypes": "Alle Typen",
+      "fullMembers": "Vollmitglieder",
+      "temporaryMembers": "Temporäre Mitglieder"
+    },
+    "sort": {
+      "sortBy": "Sortieren nach",
+      "name": "Name",
+      "status": "Status",
+      "relations": "Beziehungen",
+      "age": "Alter"
+    },
+    "view": {
+      "gridView": "Kachelansicht",
+      "listView": "Listenansicht",
+      "compactView": "Kompakte Ansicht",
+      "normalView": "Normale Ansicht"
+    },
+    "actions": {
+      "chat": "Chat",
+      "startChat": "Chat starten",
+      "appointments": "Termine",
+      "viewAppointments": "Termine anzeigen",
+      "trainingPlans": "Trainingspläne",
+      "documents": "Dokumente",
+      "documentManagement": "Dokumentenverwaltung",
+      "paymentDetails": "Zahlungsdetails",
+      "history": "Verlauf",
+      "viewHistory": "Verlauf anzeigen",
+      "details": "Details",
+      "edit": "Bearbeiten",
+      "addNote": "Notiz hinzufügen"
+    },
+    "documents": {
+      "general": "Allgemein",
+      "medicalHistory": "Krankengeschichte"
+    },
+    "admin": {
+      "adminMode": "Admin-Modus – {{studio}}",
+      "adminDesc": "Mitglieder für dieses Studio anzeigen. Änderungen werden pro Studio gespeichert."
+    },
+    "sepa": {
+      "mandateConfirmation": "SEPA-Mandatsbestätigung",
+      "signatureRequired": "SEPA-Mandat – Unterschrift erforderlich",
+      "signedMessage": "Das SEPA-Mandat für <1>{{name}}</1> wurde unterschrieben und das PDF wurde in den Dokumenten gespeichert.<3/>Möchtest du die SEPA-Mandatsbestätigung per E-Mail senden?",
+      "unsignedMessage": "Zahlungsdetails für <1>{{name}}</1> wurden gespeichert, aber das Mandat wurde <3>noch nicht unterschrieben</3>.<5/>Das Mitglied muss das Mandat in seiner App unterschreiben. Das SEPA-Mandats-PDF wird nach der Unterschrift automatisch generiert und gespeichert.<7/>Möchtest du eine Push-Benachrichtigung an das Mitglied zum Unterschreiben senden?"
+    },
+    "toast": {
+      "memberUpdated": "Mitgliederdaten wurden erfolgreich aktualisiert",
+      "tempArchived": "Temporäres Mitglied erfolgreich archiviert",
+      "archiveError": "Nur temporäre Mitglieder können archiviert werden",
+      "tempUnarchived": "Temporäres Mitglied erfolgreich wiederhergestellt",
+      "unarchiveError": "Nur temporäre Mitglieder können wiederhergestellt werden",
+      "noteAdded": "Sondernotiz erfolgreich hinzugefügt",
+      "contingentUpdated": "Kontingent erfolgreich aktualisiert",
+      "billingPeriodAdded": "Neuer Abrechnungszeitraum erfolgreich hinzugefügt",
+      "trainingPlanAssigned": "Trainingsplan \"{{name}}\" erfolgreich zugewiesen!",
+      "trainingPlanRemoved": "Trainingsplan erfolgreich entfernt!",
+      "relationAdded": "Beziehung erfolgreich hinzugefügt",
+      "relationDeleted": "Beziehung erfolgreich gelöscht",
+      "fillAllFields": "Bitte alle Felder ausfüllen",
+      "medicalHistorySaved": "Krankengeschichte erfolgreich gespeichert",
+      "emailSent": "E-Mail erfolgreich gesendet!",
+      "draftSaved": "Entwurf gespeichert!"
+    }
+  },
+  "medicalHistory": {
+    "title": "Krankengeschichte",
+    "createForm": "Krankengeschichte erstellen",
+    "searchPlaceholder": "Formulare suchen...",
+    "sort": {
+      "sortBy": "Sortieren nach",
+      "date": "Datum",
+      "name": "Name",
+      "questions": "Fragen",
+      "sections": "Abschnitte",
+      "customOrder": "Benutzerdefinierte Reihenfolge"
+    },
+    "view": {
+      "gridView": "Kachelansicht",
+      "listView": "Listenansicht"
+    },
+    "card": {
+      "sectionsCount": "{{count}} Abschnitte",
+      "questionsCount": "{{count}} Fragen",
+      "created": "Erstellt:",
+      "updated": "Aktualisiert:",
+      "previewForm": "Formular-Vorschau"
+    },
+    "empty": {
+      "noForms": "Noch keine Formulare erstellt. Klicke auf \"Krankengeschichte erstellen\", um loszulegen.",
+      "noMatch": "Keine Formulare entsprechen deinen Suchkriterien. Versuche, deine Filter anzupassen."
+    },
+    "toast": {
+      "formCreated": "Formular erfolgreich erstellt",
+      "formUpdated": "Formular erfolgreich aktualisiert",
+      "formDeleted": "Formular erfolgreich gelöscht",
+      "formSaveFailed": "Formular konnte nicht gespeichert werden",
+      "titleRequired": "Formulartitel ist erforderlich"
+    },
+    "duplicate": {
+      "copySuffix": "(Kopie)"
+    }
+  },
+  "marketplace": {
+    "title": "Marktplatz",
+    "searchPlaceholder": "Nach Name, Marke oder Artikelnummer suchen...",
+    "sale": "Sale ({{count}})",
+    "favorites": "Favoriten ({{count}})",
+    "featured": "Empfohlen",
+    "moreProducts": "Weitere Produkte",
+    "articleNo": "Art.-Nr.:",
+    "youSave": "Du sparst {{amount}} ({{percentage}}%)",
+    "sortOptions": {
+      "name": "Name",
+      "price": "Preis",
+      "brand": "Marke",
+      "articleNo": "Art.-Nr."
+    },
+    "productInfo": {
+      "title": "Produktinformationen",
+      "brand": "Marke:",
+      "articleNo": "Art.-Nr.:",
+      "noInfo": "Keine zusätzlichen Informationen verfügbar",
+      "addInfo": "Informationen hinzufügen"
+    },
+    "externalLink": {
+      "affiliateTitle": "Affiliate-Link",
+      "affiliateDesc": "Dies ist ein Affiliate-Link. Wir erhalten möglicherweise eine kleine Provision, wenn du über diesen Link einkaufst, ohne zusätzliche Kosten für dich.",
+      "leavingSite": "Du verlässt unsere Seite",
+      "leavingDesc": "Du wirst auf eine externe Website weitergeleitet. Wir sind nicht verantwortlich für Inhalte, Datenschutzrichtlinien oder Praktiken von Drittanbieter-Websites.",
+      "destination": "Ziel:",
+      "continue": "Weiter"
+    },
+    "favorites_aria": {
+      "add": "Zu Favoriten hinzufügen",
+      "remove": "Aus Favoriten entfernen"
+    },
+    "empty": {
+      "noFavorites": "Noch keine Favoriten. Klicke auf das Herz-Symbol, um Produkte zu deinen Favoriten hinzuzufügen.",
+      "noSaleItems": "Momentan keine Sale-Artikel verfügbar.",
+      "noProducts": "Keine Produkte passend zu deiner Suche gefunden."
+    }
+  },
+  "finances": {
+    "title": "Finanzen",
+    "adminMode": "Admin-Modus — {{studioName}}",
+    "adminModeDesc": "Finanzen für dieses Studio anzeigen. Änderungen werden pro Studio gespeichert.",
+    "loadError": "Finanzen konnten nicht geladen werden: {{error}}",
+    "selectPeriod": "Zeitraum wählen",
+    "customPeriod": "Benutzerdefinierter Zeitraum",
+    "startDate": "Startdatum",
+    "endDate": "Enddatum",
+    "runPayment": "Zahlung ausführen",
+    "checkFunds": "Zahlungseingang prüfen",
+    "searchPlaceholder": "Nach Mitglied, IBAN oder Mandat suchen...",
+    "stats": {
+      "totalRevenue": "Gesamtumsatz",
+      "successful": "Erfolgreich",
+      "pending": "Ausstehend",
+      "checkFunds": "Zahlungseingang prüfen",
+      "failed": "Fehlgeschlagen"
+    },
+    "statusOptions": {
+      "successful": "Erfolgreich",
+      "pending": "Ausstehend",
+      "failed": "Fehlgeschlagen",
+      "checkIncomingFunds": "Zahlungseingang prüfen"
+    },
+    "clearAll": "Alle löschen",
+    "table": {
+      "member": "Mitglied",
+      "memberShort": "Name",
+      "amount": "Betrag",
+      "amountShort": "Betr.",
+      "services": "Leistungen",
+      "servicesShort": "Lstg.",
+      "status": "Status",
+      "statusShort": "St.",
+      "iban": "IBAN",
+      "mandateNumber": "Mandatsnummer",
+      "mandateShort": "Mandat",
+      "date": "Datum",
+      "type": "Typ"
+    },
+    "empty": {
+      "noTransactions": "Keine Transaktionen gefunden, die deinen Kriterien entsprechen."
+    },
+    "successMessage": "Transaktionsstatus erfolgreich aktualisiert!",
+    "paymentRunHistory": "Zahlungslauf-Verlauf anzeigen",
+    "hideIban": "IBAN verbergen",
+    "showIban": "Vollständige IBAN anzeigen"
+  },
+  "checkIn": {
+    "title": "Check-In",
+    "dateRange": {
+      "from": "Von",
+      "to": "bis"
+    },
+    "stats": {
+      "total": "Gesamt",
+      "checkedIn": "Eingecheckt",
+      "pending": "Ausstehend",
+      "noShows": "Nichterscheinen"
+    },
+    "searchPlaceholder": "Mitglieder suchen...",
+    "searchPlaceholderMore": "Weitere hinzufügen...",
+    "clearAllFilters": "Alle Filter löschen",
+    "filters": {
+      "all": "Alle",
+      "checkedIn": "Eingecheckt",
+      "pending": "Ausstehend",
+      "noShows": "Nichterscheinen"
+    },
+    "sortOptions": {
+      "time": "Zeit",
+      "name": "Name",
+      "type": "Typ"
+    },
+    "tabs": {
+      "today": "Heute ({{count}})",
+      "history": "Verlauf ({{count}})"
+    },
+    "actions": {
+      "checkIn": "Check-In",
+      "noShow": "Nichterscheinen",
+      "undo": "Rückgängig"
+    },
+    "status": {
+      "checkedIn": "Eingecheckt",
+      "checkedInAt": "Eingecheckt {{time}}",
+      "noShow": "Nichterscheinen",
+      "completed": "Abgeschlossen"
+    },
+    "empty": {
+      "noAppointments": "Keine Termine gefunden",
+      "adjustFilters": "Versuche, deine Suche oder Filter anzupassen",
+      "noScheduled": "Keine Termine für diesen Zeitraum geplant",
+      "noHistory": "Kein Check-in-Verlauf",
+      "adjustSearch": "Versuche, deine Suche anzupassen",
+      "historyHint": "Check-in-Verlauf wird hier angezeigt",
+      "noMembers": "Keine Mitglieder gefunden"
+    }
+  },
+  "notes": {
+    "title": "Notizen",
+    "createNote": "Notiz erstellen",
+    "searchPlaceholder": "Suchen...",
+    "editorPlaceholder": "Beginne zu schreiben...",
+    "untitled": "Unbenannt",
+    "noContent": "Kein Inhalt",
+    "tabs": {
+      "studio": "Studio-Notizen",
+      "personal": "Persönliche Notizen"
+    },
+    "tooltip": {
+      "studioTitle": "Studio-Notizen",
+      "studioDesc": "Für alle sichtbar. Alle Teammitglieder können diese Notizen sehen und bearbeiten.",
+      "personalTitle": "Persönliche Notizen",
+      "personalDesc": "Nur für dich sichtbar. Nur du kannst diese Notizen sehen und bearbeiten."
+    },
+    "sortOptions": {
+      "date": "Datum",
+      "title": "Titel",
+      "custom": "Benutzerdefiniert"
+    },
+    "tags": "Tags",
+    "manageTags": "Tags verwalten",
+    "attachments": "Anhänge",
+    "attachmentsCount": "Anhänge ({{count}})",
+    "addImages": "Bilder hinzufügen",
+    "view": "Ansehen",
+    "showLess": "Weniger anzeigen",
+    "showMore": "{{count}} weitere anzeigen",
+    "actions": {
+      "pinNote": "Notiz anheften",
+      "unpinNote": "Notiz lösen",
+      "moveToStudio": "Zu Studio verschieben",
+      "moveToPersonal": "Zu Persönlich verschieben"
+    },
+    "empty": {
+      "noNotes": "Noch keine Notizen",
+      "createFirst": "Erstelle deine erste Notiz, um loszulegen",
+      "noSelected": "Keine Notiz ausgewählt",
+      "selectOrCreate": "Wähle eine Notiz aus der Liste oder erstelle eine neue",
+      "loading": "Notizen werden geladen..."
+    },
+    "toasts": {
+      "created": "Notiz erstellt",
+      "deleted": "Notiz gelöscht",
+      "duplicated": "Notiz dupliziert",
+      "pinned": "Notiz angeheftet",
+      "unpinned": "Notiz gelöst",
+      "movedTo": "Notiz zu {{tab}}-Notizen verschoben",
+      "upToDate": "Notiz ist bereits aktuell",
+      "failedAutoSave": "Automatisches Speichern der Notiz fehlgeschlagen",
+      "failedCreate": "Notiz konnte nicht erstellt werden",
+      "failedDelete": "Notiz konnte nicht gelöscht werden",
+      "failedDuplicate": "Notiz konnte nicht dupliziert werden",
+      "failedMove": "Notiz konnte nicht verschoben werden",
+      "failedPin": "Anheftstatus konnte nicht aktualisiert werden"
+    }
+  },
+  "tickets": {
+    "title": "Tickets",
+    "subtitle": "Kontaktiere uns für eine schnelle Antwort",
+    "searchPlaceholder": "Tickets suchen...",
+    "createTicket": "Ticket erstellen",
+    "filters": {
+      "all": "Alle",
+      "open": "Offen",
+      "inProgress": "In Bearbeitung",
+      "awaiting": "Wartet auf deine Antwort",
+      "closed": "Geschlossen",
+      "resolved": "Gelöst"
+    },
+    "list": {
+      "created": "Erstellt:",
+      "updated": "Aktualisiert:",
+      "by": "Von:"
+    },
+    "closeTicket": {
+      "title": "Ticket schließen",
+      "confirm": "Möchtest du das Ticket \"{{subject}}\" wirklich schließen? Diese Aktion kann nicht rückgängig gemacht werden.",
+      "button": "Ticket schließen"
+    },
+    "empty": {
+      "noTickets": "Keine Tickets gefunden"
+    },
+    "loading": "Tickets werden geladen...",
+    "loadError": "Tickets konnten nicht geladen werden: {{error}}",
+    "retry": "Erneut versuchen"
+  },
+  "contracts": {
+    "title": "Verträge",
+    "createContract": "Vertrag erstellen",
+    "searchPlaceholder": "Verträge suchen...",
+    "gridView": "Kachelansicht",
+    "listView": "Listenansicht",
+    "table": {
+      "contractNo": "Vertragsnr.",
+      "name": "Name",
+      "contractType": "Vertragsart",
+      "status": "Status",
+      "autoRenewal": "Automatische Verlängerung",
+      "duration": "Vertragslaufzeit",
+      "noAutoRenewal": "Keine automatische Verlängerung"
+    },
+    "openDocuments": "Vertragsdokumente öffnen",
+    "clearAllFilters": "Alle Filter löschen",
+    "statusLabels": {
+      "active": "Aktiv",
+      "paused": "Pausiert",
+      "cancelled": "Storniert",
+      "pending": "Ausstehend",
+      "scheduled": "Geplant"
+    },
+    "statusMessages": {
+      "paused": "Vertrag ist pausiert",
+      "cancelled": "Vertrag wurde storniert",
+      "scheduled": "Vertrag ist geplant"
+    },
+    "details": {
+      "since": "Seit:",
+      "starts": "Beginnt:",
+      "period": "Zeitraum:",
+      "reason": "Grund:",
+      "cancelled": "Storniert:"
+    },
+    "actions": {
+      "pause": "Pausieren",
+      "resume": "Fortsetzen",
+      "renew": "Verlängern",
+      "change": "Ändern",
+      "renewContract": "Vertrag verlängern",
+      "resumeContract": "Vertrag fortsetzen",
+      "changeContract": "Vertrag ändern",
+      "removeBonusTime": "Bonuszeit entfernen"
+    },
+    "empty": {
+      "noContracts": "Keine Verträge gefunden.",
+      "noMembers": "Keine Mitglieder gefunden"
+    },
+    "adminModeDesc": "Verträge für dieses Studio anzeigen. Änderungen werden pro Studio gespeichert.",
+    "toasts": {
+      "added": "Vertrag erfolgreich hinzugefügt",
+      "updated": "Vertrag erfolgreich aktualisiert",
+      "deleted": "Vertrag erfolgreich gelöscht",
+      "paused": "Vertrag wurde pausiert",
+      "cancelled": "Vertrag wurde storniert",
+      "resumed": "Vertrag erfolgreich fortgesetzt",
+      "renewed": "Vertrag erfolgreich verlängert",
+      "changed": "Vertrag erfolgreich geändert",
+      "renewalDraft": "Vertragsverlängerung als Entwurf gespeichert",
+      "changeDraft": "Vertragsänderung als Entwurf gespeichert",
+      "scheduledCancelled": "Geplanter Vertrag storniert",
+      "draftSaved": "Vertrag als Entwurf gespeichert. Lead wird bei Aktivierung des Vertrags konvertiert.",
+      "bonusTimeUpdated": "Bonuszeit erfolgreich aktualisiert",
+      "bonusTimeAdded": "Bonuszeit erfolgreich hinzugefügt",
+      "bonusTimeRemoved": "Bonuszeit entfernt"
+    }
+  },
+  "studioAnalytics": {
+    "title": "Analysen",
+    "timePeriod": {
+      "last7Days": "Letzte 7 Tage",
+      "last30Days": "Letzte 30 Tage",
+      "last90Days": "Letzte 90 Tage",
+      "thisMonth": "Dieser Monat",
+      "lastMonth": "Letzter Monat",
+      "thisYear": "Dieses Jahr",
+      "lastYear": "Letztes Jahr",
+      "allTime": "Gesamter Zeitraum"
+    },
+    "tabs": {
+      "appointments": "Termine",
+      "members": "Mitglieder",
+      "leads": "Leads",
+      "finances": "Finanzen"
+    },
+    "appointments": {
+      "bookings": "Buchungen",
+      "checkIns": "Check-ins",
+      "cancellations": "Stornierungen",
+      "lateCancellations": "Späte Stornierungen",
+      "noShows": "Nichterscheinen",
+      "monthlyBreakdown": "Monatliche Übersicht",
+      "popularBookingTimes": "Beliebteste Buchungszeiten"
+    },
+    "members": {
+      "totalMembers": "Gesamte Mitglieder",
+      "fullMembers": "Vollmitglieder",
+      "temporaryMembers": "Temporäre Mitglieder",
+      "activeMembers": "Aktive Mitglieder",
+      "inactiveMembers": "Inaktive Mitglieder",
+      "pausedMembers": "Pausierte Mitglieder",
+      "memberActivity": "Mitgliederaktivität",
+      "membersByType": "Mitglieder nach Mitgliedschaftstyp"
+    },
+    "leads": {
+      "totalLeads": "Leads gesamt",
+      "newLeadsConverted": "Neue Leads & Konvertierte",
+      "conversionRate": "Konversionsrate (%)",
+      "leadOrigin": "Lead-Herkunft",
+      "totalLabel": "Gesamt: {{count}} Leads"
+    },
+    "finances": {
+      "totalRevenue": "Gesamtumsatz",
+      "avgRevenueMember": "Ø Umsatz/Mitglied",
+      "outstandingPayments": "Offene Zahlungen",
+      "topServicesByRevenue": "Top-Services/Produkte nach Umsatz",
+      "mostFrequentlySold": "Am häufigsten verkauft"
+    },
+    "map": {
+      "studio": "Studio",
+      "density": "Dichte",
+      "low": "Niedrig",
+      "med": "Mittel",
+      "high": "Hoch",
+      "hoverHint": "Über Bereiche fahren für Details",
+      "clickToPin": "Klicken zum Anheften",
+      "leadsLabel": "Leads",
+      "distance": "Entfernung"
+    }
+  },
+  "studioClasses": {
+    "title": "Kurse",
+    "newClass": "Neuer Kurs",
+    "loading": "Kurse werden geladen...",
+    "filters": "Filter",
+    "courses": "Kurse",
+    "staff": "Personal",
+    "selectAll": "Alle auswählen",
+    "deselectAll": "Alle abwählen",
+    "cancelled": "Storniert",
+    "past": "Vergangen",
+    "view": {
+      "day": "Tag",
+      "week": "Woche",
+      "month": "Monat"
+    },
+    "toast": {
+      "classCreated": "Kurs erstellt",
+      "seriesCreated": "Kursserie erstellt",
+      "createFailed": "Kurs konnte nicht erstellt werden",
+      "cannotCreatePast": "Kurs kann nicht in der Vergangenheit erstellt werden",
+      "enrolled": "Mitglied erfolgreich eingeschrieben",
+      "enrollFailed": "Mitglied konnte nicht eingeschrieben werden",
+      "removed": "Mitglied erfolgreich entfernt",
+      "removeFailed": "Mitglied konnte nicht entfernt werden",
+      "cancelled": "Kurs erfolgreich storniert",
+      "cancelFailed": "Kurs konnte nicht storniert werden",
+      "seriesCancelled": "{{count}} Kurs storniert",
+      "seriesCancelled_other": "{{count}} Kurse storniert",
+      "seriesCancelFailed": "Serie konnte nicht storniert werden",
+      "deleted": "Kurs dauerhaft gelöscht",
+      "deleteFailed": "Kurs konnte nicht gelöscht werden",
+      "updated": "Kurs erfolgreich aktualisiert",
+      "updateFailed": "Kurs konnte nicht aktualisiert werden",
+      "classIdRequired": "Kurs-ID ist erforderlich",
+      "seriesIdRequired": "Serien-ID ist erforderlich",
+      "noUpcomingInSeries": "Keine bevorstehenden Kurse in dieser Serie zum Stornieren gefunden",
+      "unableToIdentify": "Kurs in Serie konnte nicht identifiziert werden"
     }
   }
 }

@@ -3,10 +3,12 @@
 import React, { useState } from "react"
 import { Search, ChevronRight, ArrowLeft, Clock, ThumbsUp, ThumbsDown, MessageCircle } from "lucide-react"
 import { useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { categories } from "../../utils/studio-states/help-center-states"
 
 const HelpCenter = () => {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [selectedTopic, setSelectedTopic] = useState(null)
@@ -25,6 +27,12 @@ const HelpCenter = () => {
 
   const categoryTopics = selectedCategory ? categories.find((cat) => cat.id === selectedCategory)?.topics || [] : []
 
+  const filterKeys = {
+    "All": "common.all",
+    "Recently Updated": "helpCenter.filters.recentlyUpdated",
+    "Most Popular": "helpCenter.filters.mostPopular",
+    "Trending": "helpCenter.filters.trending"
+  }
   const filters = ["All", "Recently Updated", "Most Popular", "Trending"]
   
   // Filter categories based on selected filters
@@ -119,19 +127,19 @@ const HelpCenter = () => {
         {/* Header Section */}
         <div className="pt-6 sm:pt-8 pb-6 sm:pb-8 px-4 sm:px-8">
           <h1 className="text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-content-primary text-center mb-4 sm:mb-6 oxanium_font">
-            Help Center
+            {t('helpCenter.title')}
           </h1>
 
           {/* Search Bar */}
           <div className="relative w-full max-w-7xl mx-auto mb-6 sm:mb-8 px-2">
             <h2 className="text-lg sm:text-xl text-content-secondary text-center mb-4 open_sans_font">
-              How can we help you?
+              {t('helpCenter.subtitle')}
             </h2>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-content-faint" size={16} />
               <input
                 type="text"
-                placeholder="Search our help center..."
+                placeholder={t('helpCenter.searchPlaceholder')}
                 value={searchQuery}
                 onChange={handleSearchChange}
                 onFocus={handleSearchFocus}
@@ -162,7 +170,9 @@ const HelpCenter = () => {
 
             {showSearchResults && searchQuery.trim() && filteredTopics.length === 0 && (
               <div className="absolute top-full left-2 right-2 mt-2 bg-surface-hover border border-border rounded-xl shadow-lg z-50 p-4">
-                <p className="text-content-faint text-sm text-center">No results found for "{searchQuery}"</p>
+                <p className="text-content-faint text-sm text-center">
+                  {t('helpCenter.noSearchResults', { query: searchQuery })}
+                </p>
               </div>
             )}
           </div>
@@ -182,7 +192,7 @@ const HelpCenter = () => {
                     onClick={() => handleFilterClick(filter)}
                     className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${buttonClasses}`}
                   >
-                    {filter}
+                    {t(filterKeys[filter])}
                   </button>
                 );
               })}
@@ -198,7 +208,7 @@ const HelpCenter = () => {
             <div className="mb-12 sm:mb-16">
               <div className="flex items-center gap-2 mb-6 sm:mb-8">
                 <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-content-primary oxanium_font">
-                  Featured & Frequently Read Articles
+                  {t('helpCenter.featured')}
                 </h2>
               </div>
 
@@ -217,7 +227,7 @@ const HelpCenter = () => {
                         <div className="flex items-center gap-2 mt-2 text-content-faint text-xs">
                           <span>{article.category}</span>
                           <span>•</span>
-                          <span>3 min read</span>
+                          <span>{t('helpCenter.minRead', { count: 3 })}</span>
                         </div>
                       </div>
                       <ChevronRight className="w-4 h-4 text-content-faint flex-shrink-0 mt-0.5 group-hover:text-primary transition-colors" />
@@ -230,7 +240,7 @@ const HelpCenter = () => {
             {/* Categories Section */}
             <div>
               <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-content-primary mb-6 sm:mb-8 oxanium_font">
-                Browse All Categories
+                {t('helpCenter.browseCategories')}
               </h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -250,7 +260,9 @@ const HelpCenter = () => {
                           {category.description}
                         </p>
                         {/* Article count */}
-                        <p className="text-content-faint text-xs mt-3">{category.topics?.length || 0} articles</p>
+                        <p className="text-content-faint text-xs mt-3">
+                          {t('helpCenter.articleCount', { count: category.topics?.length || 0 })}
+                        </p>
                       </div>
                       <ChevronRight className="w-5 h-5 text-content-faint flex-shrink-0 mt-1 group-hover:text-primary transition-colors" />
                     </div>
@@ -262,10 +274,10 @@ const HelpCenter = () => {
             {/* Footer - Contact Section */}
             <div className="mt-12 pt-8 border-t border-border-subtle">
               <p className="text-center text-content-secondary text-sm sm:text-base open_sans_font">
-                Not finding what you are looking for?
+                {t('helpCenter.footer.notFinding')}
               </p>
               <p className="text-center text-content-faint text-sm mt-1">
-                Chat with us or send us an email.
+                {t('helpCenter.footer.chatOrEmail')}
               </p>
             </div>
           </div>
@@ -284,6 +296,7 @@ const HelpCenter = () => {
 // Category View Component
 const CategoryView = ({ category, categories, onSelectCategory, onSelectTopic, onBack }) => {
   const [hoveredTopicId, setHoveredTopicId] = useState(null)
+  const { t } = useTranslation()
 
   return (
     <>
@@ -294,11 +307,11 @@ const CategoryView = ({ category, categories, onSelectCategory, onSelectTopic, o
             className="flex items-center gap-2 text-primary hover:text-primary-hover font-medium mb-4 text-sm sm:text-base transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Categories
+            {t('helpCenter.browseCategories')}
           </button>
           
           <div className="flex items-center gap-3 mb-2">
-            <span className="text-lg text-content-secondary open_sans_font">Articles on:</span>
+            <span className="text-lg text-content-secondary open_sans_font">{t('helpCenter.articlesOn')}</span>
             {/* Primary Tag - Orange */}
             <span className="inline-block bg-primary text-white text-xs sm:text-sm font-bold px-3 py-1 rounded">
               {category.name}
@@ -312,7 +325,9 @@ const CategoryView = ({ category, categories, onSelectCategory, onSelectTopic, o
         <div className="w-full max-w-7xl mx-auto grid lg:grid-cols-4 gap-6 sm:gap-8">
           {/* Categories Sidebar */}
           <div className="lg:col-span-1">
-            <h3 className="font-bold text-content-primary mb-4 text-sm sm:text-base oxanium_font">Categories</h3>
+            <h3 className="font-bold text-content-primary mb-4 text-sm sm:text-base oxanium_font">
+              {t('helpCenter.categories')}
+            </h3>
             <div className="space-y-2">
               {categories.map((cat) => {
                 const isSelected = cat.id === category.id;
@@ -355,7 +370,7 @@ const CategoryView = ({ category, categories, onSelectCategory, onSelectTopic, o
                       {/* Reading time */}
                       <div className="flex items-center gap-1 mt-3 text-content-faint text-xs">
                         <Clock size={12} />
-                        <span>3 min read</span>
+                        <span>{t('helpCenter.minRead', { count: 3 })}</span>
                       </div>
                     </div>
                     <ChevronRight
@@ -377,6 +392,7 @@ const CategoryView = ({ category, categories, onSelectCategory, onSelectTopic, o
 // Topic View Component
 const TopicView = ({ topic, onBack, category, categoryTopics, onSelectTopic, onNavigateToTickets }) => {
   const [feedback, setFeedback] = useState(null) // 'helpful' | 'not-helpful' | null
+  const { t } = useTranslation()
   const currentIndex = categoryTopics.findIndex((t) => t.id === topic.id)
   const previousTopic = currentIndex > 0 ? categoryTopics[currentIndex - 1] : null
   const nextTopic = currentIndex < categoryTopics.length - 1 ? categoryTopics[currentIndex + 1] : null
@@ -394,11 +410,11 @@ const TopicView = ({ topic, onBack, category, categoryTopics, onSelectTopic, onN
             className="flex items-center gap-2 text-primary hover:text-primary-hover font-medium mb-4 text-sm sm:text-base transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to {category?.name || "Category"}
+            {t('helpCenter.navigation.backToCategory', { category: category?.name || t('helpCenter.categories') })}
           </button>
           
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
-            <span className="text-content-secondary text-sm">Articles on:</span>
+            <span className="text-content-secondary text-sm">{t('helpCenter.articlesOn')}</span>
             {/* Primary Tag - Orange */}
             <span className="inline-block bg-primary text-white text-xs sm:text-sm font-bold px-3 py-1 rounded">
               {topic.category}
@@ -418,13 +434,13 @@ const TopicView = ({ topic, onBack, category, categoryTopics, onSelectTopic, onN
             <div className="flex flex-wrap items-center gap-4 mb-8 sm:mb-10 pb-8 sm:pb-10 border-b border-border-subtle text-sm text-content-faint">
               <div className="flex items-center gap-2">
                 <Clock size={14} />
-                <span>3 min read</span>
+                <span>{t('helpCenter.minRead', { count: 3 })}</span>
               </div>
               <div>
-                <span className="font-medium text-content-secondary">Last updated:</span> {topic.updatedDate}
+                <span className="font-medium text-content-secondary">{t('helpCenter.lastUpdated')}</span> {topic.updatedDate}
               </div>
               <div>
-                <span className="font-medium text-content-secondary">Time:</span> {topic.updatedTime}
+                <span className="font-medium text-content-secondary">{t('helpCenter.time')}</span> {topic.updatedTime}
               </div>
             </div>
 
@@ -433,8 +449,7 @@ const TopicView = ({ topic, onBack, category, categoryTopics, onSelectTopic, onN
                 {topic.content}
               </p>
               <p className="text-content-secondary leading-relaxed text-base sm:text-lg open_sans_font">
-                Follow the instructions carefully to resolve your issue. If you need additional help, please contact our
-                customer support team through the chat option.
+                {t('helpCenter.additionalHelp')}
               </p>
             </div>
 
@@ -443,7 +458,7 @@ const TopicView = ({ topic, onBack, category, categoryTopics, onSelectTopic, onN
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
                 {/* Left: Feedback */}
                 <div>
-                  <p className="text-content-secondary text-sm mb-4">Was this article helpful?</p>
+                  <p className="text-content-secondary text-sm mb-4">{t('helpCenter.feedback.question')}</p>
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => handleFeedback('helpful')}
@@ -454,7 +469,7 @@ const TopicView = ({ topic, onBack, category, categoryTopics, onSelectTopic, onN
                       }`}
                     >
                       <ThumbsUp size={16} />
-                      Yes
+                      {t('common.yes')}
                     </button>
                     <button
                       onClick={() => handleFeedback('not-helpful')}
@@ -465,14 +480,14 @@ const TopicView = ({ topic, onBack, category, categoryTopics, onSelectTopic, onN
                       }`}
                     >
                       <ThumbsDown size={16} />
-                      No
+                      {t('common.no')}
                     </button>
                   </div>
                   {feedback && (
                     <p className="text-content-faint text-xs mt-3">
                       {feedback === 'helpful' 
-                        ? 'Thanks for your feedback!' 
-                        : 'Sorry to hear that. Consider contacting support for more help.'}
+                        ? t('helpCenter.feedback.thankYou')
+                        : t('helpCenter.feedback.sorry')}
                     </p>
                   )}
                 </div>
@@ -485,7 +500,7 @@ const TopicView = ({ topic, onBack, category, categoryTopics, onSelectTopic, onN
                       className="flex items-center gap-2 px-4 py-2.5 bg-surface-button hover:bg-surface-button-hover rounded-xl text-content-secondary hover:text-content-primary transition-colors text-sm"
                     >
                       <ArrowLeft size={16} />
-                      Previous
+                      {t('helpCenter.navigation.previous')}
                     </button>
                   )}
                   {nextTopic && (
@@ -493,7 +508,7 @@ const TopicView = ({ topic, onBack, category, categoryTopics, onSelectTopic, onN
                       onClick={() => onSelectTopic(nextTopic)}
                       className="flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover rounded-xl text-white transition-colors text-sm"
                     >
-                      Next
+                      {t('helpCenter.navigation.next')}
                       <ChevronRight size={16} />
                     </button>
                   )}
@@ -509,15 +524,15 @@ const TopicView = ({ topic, onBack, category, categoryTopics, onSelectTopic, onN
                 <MessageCircle className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-content-primary font-semibold oxanium_font">Still need help?</h3>
-                <p className="text-content-secondary text-sm open_sans_font">Our support team is ready to assist you</p>
+                <h3 className="text-content-primary font-semibold oxanium_font">{t('helpCenter.stillNeedHelp.title')}</h3>
+                <p className="text-content-secondary text-sm open_sans_font">{t('helpCenter.stillNeedHelp.subtitle')}</p>
               </div>
             </div>
             <button 
               onClick={onNavigateToTickets}
               className="w-full sm:w-auto px-6 py-2.5 bg-primary hover:bg-primary-hover text-white font-medium rounded-xl transition-colors"
             >
-              Contact Support
+              {t('helpCenter.stillNeedHelp.contactSupport')}
             </button>
           </div>
         </div>

@@ -6,6 +6,7 @@ import CheckFundsModal from "../../components/studio-components/finance-componen
 import SepaXmlModal from "../../components/studio-components/finance-components/sepa-xml-modal"
 import { financialData } from "../../utils/studio-states/finance-states"
 import { useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { useStudioFinances } from "../../hooks/useStudioFinances"
 
 import { IoIosMenu } from "react-icons/io"
@@ -28,7 +29,7 @@ const defaultCreditorInfo = {
 }
 
 // Masked IBAN Component
-const MaskedIban = ({ iban, className = "" }) => {
+const MaskedIban = ({ iban, className = "", t }) => {
   const [isRevealed, setIsRevealed] = useState(false);
   if (!iban) return <span className="text-content-faint">-</span>;
   const maskIban = (ibanStr) => {
@@ -43,7 +44,7 @@ const MaskedIban = ({ iban, className = "" }) => {
   return (
     <div className={`flex items-center gap-1 ${className}`}>
       <span className="font-mono text-xs whitespace-nowrap">{displayValue}</span>
-      <button onClick={(e) => { e.stopPropagation(); setIsRevealed(!isRevealed); }} className="p-0.5 text-content-muted hover:text-content-primary transition-colors flex-shrink-0" title={isRevealed ? "Hide IBAN" : "Show full IBAN"}>
+      <button onClick={(e) => { e.stopPropagation(); setIsRevealed(!isRevealed); }} className="p-0.5 text-content-muted hover:text-content-primary transition-colors flex-shrink-0" title={isRevealed ? t("finances.hideIban") : t("finances.showIban")}>
         {isRevealed ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
       </button>
     </div>
@@ -52,6 +53,7 @@ const MaskedIban = ({ iban, className = "" }) => {
 
 
 export default function FinancesPage({ studioId: studioIdProp = null, mode = "studio", studioName: studioNameProp = null }) {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const isAdminMode = mode === "admin" && studioIdProp !== null
 
@@ -116,10 +118,10 @@ export default function FinancesPage({ studioId: studioIdProp = null, mode = "st
   }
 
   const statusOptions = [
-    { id: "Successful", label: "Successful", color: "#10b981" },
-    { id: "Pending", label: "Pending", color: "#f59e0b" },
-    { id: "Failed", label: "Failed", color: "#ef4444" },
-    { id: "Check incoming funds", label: "Check incoming funds", color: "#3b82f6" },
+    { id: "Successful", label: t("finances.statusOptions.successful"), color: "#10b981" },
+    { id: "Pending", label: t("finances.statusOptions.pending"), color: "#f59e0b" },
+    { id: "Failed", label: t("finances.statusOptions.failed"), color: "#ef4444" },
+    { id: "Check incoming funds", label: t("finances.statusOptions.checkIncomingFunds"), color: "#3b82f6" },
   ]
 
   const handleSort = (column) => { if (sortBy === column) { setSortDirection(sortDirection === "asc" ? "desc" : "asc") } else { setSortBy(column); setSortDirection("asc") } }
@@ -227,7 +229,7 @@ export default function FinancesPage({ studioId: studioIdProp = null, mode = "st
         updatedFinancialState[periodKey] = periodData
       }
     })
-    setFinancialState(updatedFinancialState); setSuccessMessage("Transaction statuses updated successfully!"); setSuccessModalOpen(true)
+    setFinancialState(updatedFinancialState); setSuccessMessage(t("finances.successMessage")); setSuccessModalOpen(true)
   }
 
   const hasCheckingTransactionsAnyPeriod = useMemo(() => Object.values(financialState).some(periodData => periodData?.transactions?.some((tx) => tx.status === "Check incoming funds")), [financialState])
@@ -278,8 +280,8 @@ export default function FinancesPage({ studioId: studioIdProp = null, mode = "st
             </svg>
           </div>
           <div>
-            <p className="text-sm font-medium text-blue-300">Admin Mode — {studioNameProp || `Studio #${studioIdProp}`}</p>
-            <p className="text-xs text-content-muted">Viewing finances for this studio. Changes are saved per-studio.</p>
+            <p className="text-sm font-medium text-blue-300">{t("finances.adminMode", { studioName: studioNameProp || `Studio #${studioIdProp}` })}</p>
+            <p className="text-xs text-content-muted">{t("finances.adminModeDesc")}</p>
           </div>
         </div>
       )}
@@ -294,7 +296,7 @@ export default function FinancesPage({ studioId: studioIdProp = null, mode = "st
       {/* Error State */}
       {isAdminMode && financesError && (
         <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-4">
-          <p className="text-red-400 text-sm">Failed to load finances: {financesError}</p>
+          <p className="text-red-400 text-sm">{t("finances.loadError", { error: financesError })}</p>
         </div>
       )}
 
@@ -303,9 +305,9 @@ export default function FinancesPage({ studioId: studioIdProp = null, mode = "st
         {/* Header */}
         <div className="flex items-center justify-between mb-4 sm:mb-6">
           <div className="flex items-center gap-3">
-            <h1 className="text-xl sm:text-2xl text-content-primary font-bold">Finances</h1>
+            <h1 className="text-xl sm:text-2xl text-content-primary font-bold">{t("finances.title")}</h1>
             {/* Payment Runs Button - GRAY colors, not orange */}
-            <button onClick={() => setPaymentRunsModalOpen(true)} className="bg-surface-dark text-content-primary p-2 rounded-xl border border-border-subtle hover:bg-surface-button transition-colors relative" title="View Payment Run History">
+            <button onClick={() => setPaymentRunsModalOpen(true)} className="bg-surface-dark text-content-primary p-2 rounded-xl border border-border-subtle hover:bg-surface-button transition-colors relative" title={t("finances.paymentRunHistory")}>
               <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-content-muted" />
               {paymentRuns.length > 0 && (<span className="absolute -top-2 -right-2 bg-gray-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">{paymentRuns.length}</span>)}
             </button>
@@ -320,19 +322,19 @@ export default function FinancesPage({ studioId: studioIdProp = null, mode = "st
               {periodDropdownOpen && (
                 <div className="hidden md:block absolute right-0 z-40 mt-2 min-w-[320px] bg-surface-hover border border-border-subtle rounded-xl shadow-lg overflow-hidden top-full">
                   <div className="py-1">
-                    <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border-subtle">Select Period</div>
+                    <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border-subtle">{t("finances.selectPeriod")}</div>
                     {Object.keys(financialState).map((period) => (<button key={period} className={`w-full text-left px-4 py-2.5 text-sm hover:bg-surface-hover transition-colors ${selectedPeriod === period && !selectedPeriod.startsWith("Custom:") ? 'text-content-primary bg-surface-hover/50' : 'text-content-secondary'}`} onClick={() => handleSelectPeriod(period)}>{period}</button>))}
                   </div>
                   <div className="border-t border-border-subtle">
-                    <button className={`w-full text-left px-4 py-2.5 text-sm hover:bg-surface-hover transition-colors flex items-center gap-2 ${isCustomPeriodExpanded || selectedPeriod.startsWith("Custom:") ? 'text-content-primary bg-surface-hover/50' : 'text-content-secondary'}`} onClick={handleCustomPeriodClick}><Calendar className="w-4 h-4" />Custom Period</button>
+                    <button className={`w-full text-left px-4 py-2.5 text-sm hover:bg-surface-hover transition-colors flex items-center gap-2 ${isCustomPeriodExpanded || selectedPeriod.startsWith("Custom:") ? 'text-content-primary bg-surface-hover/50' : 'text-content-secondary'}`} onClick={handleCustomPeriodClick}><Calendar className="w-4 h-4" />{t("finances.customPeriod")}</button>
                     {isCustomPeriodExpanded && (
                       <div className="px-4 py-3 bg-surface-card border-t border-border-subtle">
                         <div className="flex flex-col gap-3">
                           <div className="grid grid-cols-2 gap-3">
-                            <div><label className="block text-xs text-content-faint mb-1">Start Date</label><div className="w-full flex items-center justify-between bg-surface-base text-sm rounded-lg px-3 py-2 border border-border-subtle"><span className={inlineCustomDates.startDate ? "text-content-primary" : "text-content-faint"}>{inlineCustomDates.startDate ? formatDateDisplay(inlineCustomDates.startDate) : "Select"}</span><DatePickerField value={inlineCustomDates.startDate} onChange={(val) => setInlineCustomDates((prev) => ({ ...prev, startDate: val }))} /></div></div>
-                            <div><label className="block text-xs text-content-faint mb-1">End Date</label><div className="w-full flex items-center justify-between bg-surface-base text-sm rounded-lg px-3 py-2 border border-border-subtle"><span className={inlineCustomDates.endDate ? "text-content-primary" : "text-content-faint"}>{inlineCustomDates.endDate ? formatDateDisplay(inlineCustomDates.endDate) : "Select"}</span><DatePickerField value={inlineCustomDates.endDate} onChange={(val) => setInlineCustomDates((prev) => ({ ...prev, endDate: val }))} /></div></div>
+                            <div><label className="block text-xs text-content-faint mb-1">{t("finances.startDate")}</label><div className="w-full flex items-center justify-between bg-surface-base text-sm rounded-lg px-3 py-2 border border-border-subtle"><span className={inlineCustomDates.startDate ? "text-content-primary" : "text-content-faint"}>{inlineCustomDates.startDate ? formatDateDisplay(inlineCustomDates.startDate) : "Select"}</span><DatePickerField value={inlineCustomDates.startDate} onChange={(val) => setInlineCustomDates((prev) => ({ ...prev, startDate: val }))} /></div></div>
+                            <div><label className="block text-xs text-content-faint mb-1">{t("finances.endDate")}</label><div className="w-full flex items-center justify-between bg-surface-base text-sm rounded-lg px-3 py-2 border border-border-subtle"><span className={inlineCustomDates.endDate ? "text-content-primary" : "text-content-faint"}>{inlineCustomDates.endDate ? formatDateDisplay(inlineCustomDates.endDate) : "Select"}</span><DatePickerField value={inlineCustomDates.endDate} onChange={(val) => setInlineCustomDates((prev) => ({ ...prev, endDate: val }))} /></div></div>
                           </div>
-                          <button onClick={handleApplyInlineCustomPeriod} disabled={!inlineCustomDates.startDate || !inlineCustomDates.endDate} className="w-full py-2 bg-primary text-white rounded-lg text-sm hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed">Apply</button>
+                          <button onClick={handleApplyInlineCustomPeriod} disabled={!inlineCustomDates.startDate || !inlineCustomDates.endDate} className="w-full py-2 bg-primary text-white rounded-lg text-sm hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed">{t("common.apply")}</button>
                         </div>
                       </div>
                     )}
@@ -340,8 +342,8 @@ export default function FinancesPage({ studioId: studioIdProp = null, mode = "st
                 </div>
               )}
             </div>
-            <button onClick={() => setSepaModalOpen(true)} className="hidden md:flex bg-primary hover:bg-primary-hover text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 text-xs sm:text-sm transition-colors"><Play className="w-4 h-4" /><span className="hidden lg:inline">Run Payment</span></button>
-            {hasCheckingTransactionsAnyPeriod && (<button onClick={() => setCheckFundsModalOpen(true)} className="hidden md:flex bg-surface-button hover:bg-surface-button-hover text-content-primary px-3 sm:px-4 py-2 rounded-xl items-center gap-2 text-xs sm:text-sm transition-colors"><RefreshCw className="w-4 h-4" /><span className="hidden lg:inline">Check Funds</span></button>)}
+            <button onClick={() => setSepaModalOpen(true)} className="hidden md:flex bg-primary hover:bg-primary-hover text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 text-xs sm:text-sm transition-colors"><Play className="w-4 h-4" /><span className="hidden lg:inline">{t("finances.runPayment")}</span></button>
+            {hasCheckingTransactionsAnyPeriod && (<button onClick={() => setCheckFundsModalOpen(true)} className="hidden md:flex bg-surface-button hover:bg-surface-button-hover text-content-primary px-3 sm:px-4 py-2 rounded-xl items-center gap-2 text-xs sm:text-sm transition-colors"><RefreshCw className="w-4 h-4" /><span className="hidden lg:inline">{t("finances.checkFunds")}</span></button>)}
           </div>
         </div>
 
@@ -349,18 +351,18 @@ export default function FinancesPage({ studioId: studioIdProp = null, mode = "st
         {periodDropdownOpen && (
           <div className="md:hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={(e) => { if (e.target === e.currentTarget) { setPeriodDropdownOpen(false); setIsCustomPeriodExpanded(false) } }}>
             <div data-mobile-period-modal className="bg-surface-hover border border-border-subtle rounded-xl shadow-lg w-[90%] max-w-[340px] max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center justify-between px-4 py-3 border-b border-border-subtle"><span className="text-content-primary font-medium">Select Period</span><button type="button" onClick={() => { setPeriodDropdownOpen(false); setIsCustomPeriodExpanded(false) }} className="text-content-muted hover:text-content-primary p-1 touch-manipulation"><X className="w-5 h-5" /></button></div>
+              <div className="flex items-center justify-between px-4 py-3 border-b border-border-subtle"><span className="text-content-primary font-medium">{t("finances.selectPeriod")}</span><button type="button" onClick={() => { setPeriodDropdownOpen(false); setIsCustomPeriodExpanded(false) }} className="text-content-muted hover:text-content-primary p-1 touch-manipulation"><X className="w-5 h-5" /></button></div>
               <div className="py-1 max-h-[40vh] overflow-y-auto">{Object.keys(financialState).map((period) => (<button type="button" key={period} className={`w-full text-left px-4 py-3 text-sm hover:bg-surface-hover active:bg-surface-button transition-colors touch-manipulation ${selectedPeriod === period && !selectedPeriod.startsWith("Custom:") ? 'text-white bg-primary' : 'text-content-secondary'}`} onClick={() => { setSelectedPeriod(period); setCustomDateRange(null); setIsCustomPeriodExpanded(false); setPeriodDropdownOpen(false) }}>{period}</button>))}</div>
               <div className="border-t border-border-subtle">
-                <button type="button" className={`w-full text-left px-4 py-3 text-sm hover:bg-surface-hover active:bg-surface-button transition-colors flex items-center gap-2 touch-manipulation ${isCustomPeriodExpanded || selectedPeriod.startsWith("Custom:") ? 'text-white bg-primary' : 'text-content-secondary'}`} onClick={() => { const today = new Date().toISOString().split("T")[0]; setInlineCustomDates((prev) => ({ startDate: prev.startDate || today, endDate: prev.endDate || today })); setIsCustomPeriodExpanded(!isCustomPeriodExpanded) }}><Calendar className="w-4 h-4" />Custom Period</button>
+                <button type="button" className={`w-full text-left px-4 py-3 text-sm hover:bg-surface-hover active:bg-surface-button transition-colors flex items-center gap-2 touch-manipulation ${isCustomPeriodExpanded || selectedPeriod.startsWith("Custom:") ? 'text-white bg-primary' : 'text-content-secondary'}`} onClick={() => { const today = new Date().toISOString().split("T")[0]; setInlineCustomDates((prev) => ({ startDate: prev.startDate || today, endDate: prev.endDate || today })); setIsCustomPeriodExpanded(!isCustomPeriodExpanded) }}><Calendar className="w-4 h-4" />{t("finances.customPeriod")}</button>
                 {isCustomPeriodExpanded && (
                   <div className="px-4 py-3 bg-surface-card border-t border-border-subtle">
                     <div className="flex flex-col gap-3">
                       <div className="grid grid-cols-2 gap-3">
-                        <div><label className="block text-xs text-content-faint mb-1">Start Date</label><div className="w-full flex items-center justify-between bg-surface-base text-sm rounded-lg px-3 py-2 border border-border-subtle"><span className={inlineCustomDates.startDate ? "text-content-primary" : "text-content-faint"}>{inlineCustomDates.startDate ? formatDateDisplay(inlineCustomDates.startDate) : "Select"}</span><DatePickerField value={inlineCustomDates.startDate} onChange={(val) => setInlineCustomDates((prev) => ({ ...prev, startDate: val }))} /></div></div>
-                        <div><label className="block text-xs text-content-faint mb-1">End Date</label><div className="w-full flex items-center justify-between bg-surface-base text-sm rounded-lg px-3 py-2 border border-border-subtle"><span className={inlineCustomDates.endDate ? "text-content-primary" : "text-content-faint"}>{inlineCustomDates.endDate ? formatDateDisplay(inlineCustomDates.endDate) : "Select"}</span><DatePickerField value={inlineCustomDates.endDate} onChange={(val) => setInlineCustomDates((prev) => ({ ...prev, endDate: val }))} /></div></div>
+                        <div><label className="block text-xs text-content-faint mb-1">{t("finances.startDate")}</label><div className="w-full flex items-center justify-between bg-surface-base text-sm rounded-lg px-3 py-2 border border-border-subtle"><span className={inlineCustomDates.startDate ? "text-content-primary" : "text-content-faint"}>{inlineCustomDates.startDate ? formatDateDisplay(inlineCustomDates.startDate) : "Select"}</span><DatePickerField value={inlineCustomDates.startDate} onChange={(val) => setInlineCustomDates((prev) => ({ ...prev, startDate: val }))} /></div></div>
+                        <div><label className="block text-xs text-content-faint mb-1">{t("finances.endDate")}</label><div className="w-full flex items-center justify-between bg-surface-base text-sm rounded-lg px-3 py-2 border border-border-subtle"><span className={inlineCustomDates.endDate ? "text-content-primary" : "text-content-faint"}>{inlineCustomDates.endDate ? formatDateDisplay(inlineCustomDates.endDate) : "Select"}</span><DatePickerField value={inlineCustomDates.endDate} onChange={(val) => setInlineCustomDates((prev) => ({ ...prev, endDate: val }))} /></div></div>
                       </div>
-                      <button type="button" onClick={() => { if (inlineCustomDates.startDate && inlineCustomDates.endDate) { setCustomDateRange({ start: inlineCustomDates.startDate, end: inlineCustomDates.endDate }); setSelectedPeriod(`Custom: ${formatDateForDisplay(inlineCustomDates.startDate)} - ${formatDateForDisplay(inlineCustomDates.endDate)}`); setIsCustomPeriodExpanded(false); setPeriodDropdownOpen(false) } }} disabled={!inlineCustomDates.startDate || !inlineCustomDates.endDate} className="w-full py-2.5 bg-primary text-white rounded-lg text-sm hover:bg-primary-hover active:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation">Apply</button>
+                      <button type="button" onClick={() => { if (inlineCustomDates.startDate && inlineCustomDates.endDate) { setCustomDateRange({ start: inlineCustomDates.startDate, end: inlineCustomDates.endDate }); setSelectedPeriod(`Custom: ${formatDateForDisplay(inlineCustomDates.startDate)} - ${formatDateForDisplay(inlineCustomDates.endDate)}`); setIsCustomPeriodExpanded(false); setPeriodDropdownOpen(false) } }} disabled={!inlineCustomDates.startDate || !inlineCustomDates.endDate} className="w-full py-2.5 bg-primary text-white rounded-lg text-sm hover:bg-primary-hover active:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation">{t("common.apply")}</button>
                     </div>
                   </div>
                 )}
@@ -372,22 +374,22 @@ export default function FinancesPage({ studioId: studioIdProp = null, mode = "st
         {/* Search */}
         <div className="mb-4 sm:mb-6 relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-content-muted" size={16} />
-          <input type="text" placeholder="Search by member, IBAN, or mandate..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-primary transition-colors" />
+          <input type="text" placeholder={t("finances.searchPlaceholder")} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-primary transition-colors" />
         </div>
 
         {/* Stats Grid */}
         <div className="grid gap-3 sm:gap-4 mb-4 sm:mb-6 grid-cols-2 lg:grid-cols-5">
-          <div className="bg-surface-card p-3 sm:p-4 rounded-xl"><h3 className="text-content-muted text-xs sm:text-sm mb-1">Total Revenue</h3><p className="text-content-primary text-base sm:text-xl font-semibold">{formatCurrency(currentPeriodData.totalRevenue)}</p></div>
-          <div className="bg-surface-card p-3 sm:p-4 rounded-xl"><h3 className="text-content-muted text-xs sm:text-sm mb-1">Successful</h3><p className="text-green-500 text-base sm:text-xl font-semibold">{formatCurrency(currentPeriodData.successfulPayments)}</p></div>
-          <div className="bg-surface-card p-3 sm:p-4 rounded-xl"><h3 className="text-content-muted text-xs sm:text-sm mb-1">Pending</h3><p className="text-yellow-500 text-base sm:text-xl font-semibold">{formatCurrency(currentPeriodData.pendingPayments)}</p></div>
-          <div className="bg-surface-card p-3 sm:p-4 rounded-xl"><h3 className="text-content-muted text-xs sm:text-sm mb-1">Check Funds</h3><p className="text-blue-500 text-base sm:text-xl font-semibold">{formatCurrency(currentPeriodData.checkingFunds || 0)}</p></div>
-          <div className="bg-surface-card p-3 sm:p-4 rounded-xl"><h3 className="text-content-muted text-xs sm:text-sm mb-1">Failed</h3><p className="text-red-500 text-base sm:text-xl font-semibold">{formatCurrency(currentPeriodData.failedPayments)}</p></div>
+          <div className="bg-surface-card p-3 sm:p-4 rounded-xl"><h3 className="text-content-muted text-xs sm:text-sm mb-1">{t("finances.stats.totalRevenue")}</h3><p className="text-content-primary text-base sm:text-xl font-semibold">{formatCurrency(currentPeriodData.totalRevenue)}</p></div>
+          <div className="bg-surface-card p-3 sm:p-4 rounded-xl"><h3 className="text-content-muted text-xs sm:text-sm mb-1">{t("finances.stats.successful")}</h3><p className="text-green-500 text-base sm:text-xl font-semibold">{formatCurrency(currentPeriodData.successfulPayments)}</p></div>
+          <div className="bg-surface-card p-3 sm:p-4 rounded-xl"><h3 className="text-content-muted text-xs sm:text-sm mb-1">{t("finances.stats.pending")}</h3><p className="text-yellow-500 text-base sm:text-xl font-semibold">{formatCurrency(currentPeriodData.pendingPayments)}</p></div>
+          <div className="bg-surface-card p-3 sm:p-4 rounded-xl"><h3 className="text-content-muted text-xs sm:text-sm mb-1">{t("finances.stats.checkFunds")}</h3><p className="text-blue-500 text-base sm:text-xl font-semibold">{formatCurrency(currentPeriodData.checkingFunds || 0)}</p></div>
+          <div className="bg-surface-card p-3 sm:p-4 rounded-xl"><h3 className="text-content-muted text-xs sm:text-sm mb-1">{t("finances.stats.failed")}</h3><p className="text-red-500 text-base sm:text-xl font-semibold">{formatCurrency(currentPeriodData.failedPayments)}</p></div>
         </div>
 
         {/* Status Filter Pills */}
         <div className="flex flex-wrap gap-2 sm:gap-3 mb-4 items-center">
           {statusOptions.map(status => (<button key={status.id} onClick={() => toggleStatusFilter(status.id)} className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1.5 ${selectedStatuses.includes(status.id) ? "text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`} style={{ backgroundColor: selectedStatuses.includes(status.id) ? status.color : undefined }}><span className="w-2 h-2 rounded-full" style={{ backgroundColor: selectedStatuses.includes(status.id) ? 'white' : status.color }} />{status.label}</button>))}
-          {selectedStatuses.length > 0 && (<button onClick={() => setSelectedStatuses([])} className="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-surface-button text-content-secondary hover:bg-surface-button-hover flex items-center gap-1.5"><X size={12} />Clear All</button>)}
+          {selectedStatuses.length > 0 && (<button onClick={() => setSelectedStatuses([])} className="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-surface-button text-content-secondary hover:bg-surface-button-hover flex items-center gap-1.5"><X size={12} />{t("finances.clearAll")}</button>)}
         </div>
 
         {/* Table */}
@@ -396,14 +398,14 @@ export default function FinancesPage({ studioId: studioIdProp = null, mode = "st
             <table className="text-sm text-left text-content-secondary border-collapse w-full">
               <thead className="text-xs text-content-muted uppercase bg-surface-dark">
                 <tr>
-                  <th scope="col" className="px-1.5 md:px-3 py-2 rounded-tl-xl transition-colors relative" style={{ width: `${columnWidths.member}px`, minWidth: '60px' }}><div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("member")}><span className="hidden md:inline">Member</span><span className="md:hidden">Name</span>{getSortIcon("member")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'member')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-border group-hover:bg-primary transition-colors" /></div></th>
-                  <th scope="col" className="px-1.5 md:px-3 py-2 transition-colors relative" style={{ width: `${columnWidths.amount}px`, minWidth: '40px' }}><div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("amount")}><span className="hidden md:inline">Amount</span><span className="md:hidden">Amt</span>{getSortIcon("amount")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'amount')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-border group-hover:bg-primary transition-colors" /></div></th>
-                  <th scope="col" className="px-1.5 md:px-2 py-2 text-center relative" style={{ width: `${columnWidths.services}px`, minWidth: '25px' }}><span className="hidden md:inline">Services</span><span className="md:hidden">Svc</span><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'services')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-border group-hover:bg-primary transition-colors" /></div></th>
-                  <th scope="col" className="px-1.5 md:px-3 py-2 cursor-pointer transition-colors relative" style={{ width: `${columnWidths.status}px`, minWidth: '40px' }} onClick={() => handleSort("status")}><div className="flex items-center gap-1"><span className="hidden md:inline">Status</span><span className="md:hidden">St.</span>{getSortIcon("status")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'status')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-border group-hover:bg-primary transition-colors" /></div></th>
-                  <th scope="col" className="px-1.5 md:px-3 py-2 transition-colors relative" style={{ width: `${columnWidths.iban}px`, minWidth: '60px' }}><div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("iban")}>IBAN {getSortIcon("iban")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'iban')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-border group-hover:bg-primary transition-colors" /></div></th>
-                  <th scope="col" className="px-1.5 md:px-3 py-2 transition-colors relative" style={{ width: `${columnWidths.mandate}px`, minWidth: '50px' }}><div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("mandate")}><span className="hidden md:inline">Mandate Number</span><span className="md:hidden">Mandate</span>{getSortIcon("mandate")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'mandate')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-border group-hover:bg-primary transition-colors" /></div></th>
-                  <th scope="col" className="px-1.5 md:px-3 py-2 transition-colors relative" style={{ width: `${columnWidths.date}px`, minWidth: '50px' }}><div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("date")}>Date {getSortIcon("date")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'date')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-border group-hover:bg-primary transition-colors" /></div></th>
-                  <th scope="col" className="px-1.5 md:px-3 py-2 rounded-tr-xl transition-colors relative" style={{ width: `${columnWidths.type}px`, minWidth: '40px' }}><div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("type")}>Type {getSortIcon("type")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'type')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-border group-hover:bg-primary transition-colors" /></div></th>
+                  <th scope="col" className="px-1.5 md:px-3 py-2 rounded-tl-xl transition-colors relative" style={{ width: `${columnWidths.member}px`, minWidth: '60px' }}><div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("member")}><span className="hidden md:inline">{t("finances.table.member")}</span><span className="md:hidden">{t("finances.table.memberShort")}</span>{getSortIcon("member")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'member')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-border group-hover:bg-primary transition-colors" /></div></th>
+                  <th scope="col" className="px-1.5 md:px-3 py-2 transition-colors relative" style={{ width: `${columnWidths.amount}px`, minWidth: '40px' }}><div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("amount")}><span className="hidden md:inline">{t("finances.table.amount")}</span><span className="md:hidden">{t("finances.table.amountShort")}</span>{getSortIcon("amount")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'amount')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-border group-hover:bg-primary transition-colors" /></div></th>
+                  <th scope="col" className="px-1.5 md:px-2 py-2 text-center relative" style={{ width: `${columnWidths.services}px`, minWidth: '25px' }}><span className="hidden md:inline">{t("finances.table.services")}</span><span className="md:hidden">{t("finances.table.servicesShort")}</span><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'services')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-border group-hover:bg-primary transition-colors" /></div></th>
+                  <th scope="col" className="px-1.5 md:px-3 py-2 cursor-pointer transition-colors relative" style={{ width: `${columnWidths.status}px`, minWidth: '40px' }} onClick={() => handleSort("status")}><div className="flex items-center gap-1"><span className="hidden md:inline">{t("finances.table.status")}</span><span className="md:hidden">{t("finances.table.statusShort")}</span>{getSortIcon("status")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'status')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-border group-hover:bg-primary transition-colors" /></div></th>
+                  <th scope="col" className="px-1.5 md:px-3 py-2 transition-colors relative" style={{ width: `${columnWidths.iban}px`, minWidth: '60px' }}><div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("iban")}>{t("finances.table.iban")} {getSortIcon("iban")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'iban')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-border group-hover:bg-primary transition-colors" /></div></th>
+                  <th scope="col" className="px-1.5 md:px-3 py-2 transition-colors relative" style={{ width: `${columnWidths.mandate}px`, minWidth: '50px' }}><div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("mandate")}><span className="hidden md:inline">{t("finances.table.mandateNumber")}</span><span className="md:hidden">{t("finances.table.mandateShort")}</span>{getSortIcon("mandate")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'mandate')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-border group-hover:bg-primary transition-colors" /></div></th>
+                  <th scope="col" className="px-1.5 md:px-3 py-2 transition-colors relative" style={{ width: `${columnWidths.date}px`, minWidth: '50px' }}><div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("date")}>{t("finances.table.date")} {getSortIcon("date")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'date')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-border group-hover:bg-primary transition-colors" /></div></th>
+                  <th scope="col" className="px-1.5 md:px-3 py-2 rounded-tr-xl transition-colors relative" style={{ width: `${columnWidths.type}px`, minWidth: '40px' }}><div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("type")}>{t("finances.table.type")} {getSortIcon("type")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'type')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-border group-hover:bg-primary transition-colors" /></div></th>
                 </tr>
               </thead>
               <tbody>
@@ -413,7 +415,7 @@ export default function FinancesPage({ studioId: studioIdProp = null, mode = "st
                     <td className="px-1.5 md:px-3 py-2 text-xs">{formatCurrency(transaction.amount)}</td>
                     <td className="px-1.5 md:px-2 py-2 text-center"><button onClick={() => handleShowServices(transaction.services, transaction.memberName)} className="text-primary hover:text-primary-hover"><Info className="w-3.5 h-3.5" /></button></td>
                     <td className="px-1.5 md:px-3 py-2"><span className={`md:hidden px-1.5 py-0.5 rounded text-xs font-medium ${getStatusColorClass(transaction.status)}`}>{transaction.status === "Successful" ? "S" : transaction.status === "Pending" ? "P" : transaction.status === "Failed" ? "F" : "C"}</span><span className={`hidden md:inline px-2 py-1 rounded-lg text-xs font-medium ${getStatusColorClass(transaction.status)}`}>{transaction.status}</span></td>
-                    <td className="px-1.5 md:px-3 py-2 text-xs"><MaskedIban iban={transaction.iban || "DE89370400440532013000"} /></td>
+                    <td className="px-1.5 md:px-3 py-2 text-xs"><MaskedIban iban={transaction.iban || "DE89370400440532013000"} t={t} /></td>
                     <td className="px-1.5 md:px-3 py-2 text-xs truncate">{transaction.mandateNumber || `MNDT-${transaction.id.toString().padStart(6, '0')}`}</td>
                     <td className="px-1.5 md:px-3 py-2 text-xs">{formatDate(transaction.date)}</td>
                     <td className="px-1.5 md:px-3 py-2 text-xs truncate">{transaction.type}</td>
@@ -424,7 +426,7 @@ export default function FinancesPage({ studioId: studioIdProp = null, mode = "st
           </div>
         </div>
 
-        {sortedTransactions.length === 0 && (<div className="bg-surface-card p-4 md:p-6 rounded-xl text-center mt-3 md:mt-4"><p className="text-content-muted text-sm md:text-base">No transactions found matching your criteria.</p></div>)}
+        {sortedTransactions.length === 0 && (<div className="bg-surface-card p-4 md:p-6 rounded-xl text-center mt-3 md:mt-4"><p className="text-content-muted text-sm md:text-base">{t("finances.empty.noTransactions")}</p></div>)}
 
         <SepaXmlModal isOpen={sepaModalOpen} onClose={() => setSepaModalOpen(false)} selectedPeriod={selectedPeriod} transactions={currentPeriodData.transactions} onGenerateXml={handleGenerateXml} financialData={financialState} currentUser="John Smith" creditorInfo={defaultCreditorInfo} />
         <PaymentRunsModal isOpen={paymentRunsModalOpen} onClose={() => setPaymentRunsModalOpen(false)} paymentRuns={paymentRuns} onDeletePaymentRun={handleDeletePaymentRun} />
@@ -436,8 +438,8 @@ export default function FinancesPage({ studioId: studioIdProp = null, mode = "st
 
         {/* Floating Action Buttons - Mobile */}
         <div className="md:hidden fixed bottom-4 right-4 flex flex-col gap-3 z-30">
-          {hasCheckingTransactionsAnyPeriod && (<button onClick={() => setCheckFundsModalOpen(true)} className="bg-surface-button hover:bg-surface-button-hover text-content-primary p-4 rounded-xl shadow-lg transition-all active:scale-95" aria-label="Check Incoming Funds"><RefreshCw size={22} /></button>)}
-          <button onClick={() => setSepaModalOpen(true)} className="bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95" aria-label="Run Payment"><Play size={22} /></button>
+          {hasCheckingTransactionsAnyPeriod && (<button onClick={() => setCheckFundsModalOpen(true)} className="bg-surface-button hover:bg-surface-button-hover text-content-primary p-4 rounded-xl shadow-lg transition-all active:scale-95" aria-label={t("finances.checkFunds")}><RefreshCw size={22} /></button>)}
+          <button onClick={() => setSepaModalOpen(true)} className="bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95" aria-label={t("finances.runPayment")}><Play size={22} /></button>
         </div>
       </div>
       )}

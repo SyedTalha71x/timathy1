@@ -1,6 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 import { Plus, Eye, Search, ArrowUpDown, ArrowUp, ArrowDown, GripVertical, Edit, Copy, Trash2, Grid3x3, List } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -54,6 +55,7 @@ const SortableFormCard = ({ form, children, isDragDisabled }) => {
 
 
 const Assessment = () => {
+  const { t } = useTranslation();
   const { medical = [] } = useSelector((state) => state.medical) || {}
   const dispatch = useDispatch();
 
@@ -368,7 +370,7 @@ const Assessment = () => {
       });
     } catch (error) {
       console.error('Error saving form:', error);
-      toast.error(error.message || 'Failed to save form');
+      toast.error(error.message || t('medicalHistory.toast.formSaveFailed'));
     }
   };
 
@@ -582,7 +584,7 @@ const Assessment = () => {
         {/* Header */}
         <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
           <div className="flex items-center gap-3">
-            <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Medical History</h1>
+            <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">{t('medicalHistory.title')}</h1>
 
             {/* Sort Button - Mobile: next to title */}
             <div className="md:hidden relative" ref={sortDropdownRef}>
@@ -602,7 +604,7 @@ const Assessment = () => {
                 <div className="absolute left-0 mt-1 bg-surface-hover border border-border-subtle rounded-lg shadow-lg z-50 min-w-[180px]">
                   <div className="py-1">
                     <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border-subtle">
-                      Sort by
+                      {t('medicalHistory.sort.sortBy')}
                     </div>
                     {sortOptions.map((option) => (
                       <button
@@ -647,7 +649,7 @@ const Assessment = () => {
 
                 {/* Tooltip */}
                 <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                  <span className="font-medium">Grid View</span>
+                  <span className="font-medium">{t('medicalHistory.view.gridView')}</span>
                   <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                     V
                   </span>
@@ -668,7 +670,7 @@ const Assessment = () => {
 
                 {/* Tooltip */}
                 <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                  <span className="font-medium">List View</span>
+                  <span className="font-medium">{t('medicalHistory.view.listView')}</span>
                   <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                     V
                   </span>
@@ -685,12 +687,12 @@ const Assessment = () => {
                 className="flex bg-primary hover:bg-primary-hover text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"
               >
                 <Plus size={14} className="sm:w-4 sm:h-4" />
-                <span className='hidden sm:inline'>Create Medical History</span>
+                <span className='hidden sm:inline'>{t('medicalHistory.createForm')}</span>
               </button>
 
               {/* Tooltip - YouTube Style like Contract Builder */}
               <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                <span className="font-medium">Create Medical History</span>
+                <span className="font-medium">{t('medicalHistory.createForm')}</span>
                 <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                   C
                 </span>
@@ -707,7 +709,7 @@ const Assessment = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-content-muted" size={16} />
             <input
               type="text"
-              placeholder="Search forms..."
+              placeholder={t('medicalHistory.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-primary transition-colors"
@@ -724,7 +726,7 @@ const Assessment = () => {
               : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
               }`}
           >
-            All
+            {t('common.all')}
           </button>
           <button
             onClick={() => setFilterStatus('active')}
@@ -733,7 +735,7 @@ const Assessment = () => {
               : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
               }`}
           >
-            Active
+            {t('common.active')}
           </button>
           <button
             onClick={() => setFilterStatus('inactive')}
@@ -742,7 +744,7 @@ const Assessment = () => {
               : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
               }`}
           >
-            Inactive
+            {t('common.inactive')}
           </button>
 
           {/* Sort Controls - Desktop only, moved to filter pills area */}
@@ -763,7 +765,7 @@ const Assessment = () => {
               <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border-subtle rounded-lg shadow-lg z-50 min-w-[180px]">
                 <div className="py-1">
                   <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border-subtle">
-                    Sort by
+                    {t('medicalHistory.sort.sortBy')}
                   </div>
                   {sortOptions.map((option) => (
                     <button
@@ -829,19 +831,19 @@ const Assessment = () => {
                               onClick={() => handleEditForm(form)}
                               className="w-full text-left px-3 py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2 transition-colors"
                             >
-                              <Edit size={14} /> Edit
+                              <Edit size={14} /> {t('common.edit')}
                             </button>
                             <button
                               onClick={() => handleDuplicateForm(form)}
                               className="w-full text-left px-3 py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2 transition-colors"
                             >
-                              <Copy size={14} /> Duplicate
+                              <Copy size={14} /> {t('common.duplicate')}
                             </button>
                             <button
                               onClick={() => handleDeleteClick(form)}
                               className="w-full text-left px-3 py-2 hover:bg-surface-hover text-red-500 text-sm flex items-center gap-2 transition-colors"
                             >
-                              <Trash2 size={14} /> Delete
+                              <Trash2 size={14} /> {t('common.delete')}
                             </button>
                           </div>
                         )}
@@ -851,7 +853,7 @@ const Assessment = () => {
                       <button
                         onClick={() => handlePreviewForm(form)}
                         className="absolute top-3 right-10 md:top-4 md:right-12 text-content-muted hover:text-primary p-2 rounded-lg hover:bg-surface-hover transition-colors"
-                        title="Preview Form"
+                        title={t('medicalHistory.card.previewForm')}
                       >
                         <Eye size={18} />
                       </button>
@@ -861,21 +863,21 @@ const Assessment = () => {
                       </div>
 
                       <div className="text-xs md:text-sm text-content-muted mb-2">
-                        {form.sections.length} Sections • {form.sections.reduce((acc, section) => {
+                        {t('medicalHistory.card.sectionsCount', { count: form.sections.length })} • {t('medicalHistory.card.questionsCount', { count: form.sections.reduce((acc, section) => {
                           const items = section.items || section.questions || [];
                           const questionCount = items.filter(item => !item.itemType || item.itemType === 'question' || item.itemType === 'variableField').length;
                           return acc + questionCount;
-                        }, 0)} Questions
+                        }, 0) })}
                       </div>
 
                       {/* Dates */}
                       <div className="flex flex-col gap-0.5 mb-4 flex-grow">
                         <p className="text-[11px] text-content-faint">
-                          Created: {formatDateTime(form.createdAt)}
+                          {t('medicalHistory.card.created')} {formatDateTime(form.createdAt)}
                         </p>
                         {form.updatedAt && form.updatedAt !== form.createdAt && (
                           <p className="text-[11px] text-content-faint">
-                            Updated: {formatDateTime(form.updatedAt)}
+                            {t('medicalHistory.card.updated')} {formatDateTime(form.updatedAt)}
                           </p>
                         )}
                       </div>
@@ -895,7 +897,7 @@ const Assessment = () => {
                             />
                           </button>
                           <span className="text-xs font-medium text-content-secondary min-w-[50px]">
-                            {form.active ? 'Active' : 'Inactive'}
+                            {form.active ? t('common.active') : t('common.inactive')}
                           </span>
                         </div>
                       </div>
@@ -923,7 +925,7 @@ const Assessment = () => {
                             />
                           </button>
                           <span className="text-xs font-medium text-content-secondary min-w-[50px]">
-                            {form.active ? 'Active' : 'Inactive'}
+                            {form.active ? t('common.active') : t('common.inactive')}
                           </span>
                         </div>
 
@@ -931,7 +933,7 @@ const Assessment = () => {
                         <button
                           onClick={() => handlePreviewForm(form)}
                           className="text-content-muted hover:text-primary p-2 rounded-lg hover:bg-surface-hover transition-colors"
-                          title="Preview Form"
+                          title={t('medicalHistory.card.previewForm')}
                         >
                           <Eye size={18} />
                         </button>
@@ -953,19 +955,19 @@ const Assessment = () => {
                                 onClick={() => handleEditForm(form)}
                                 className="w-full text-left px-3 py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2 transition-colors"
                               >
-                                <Edit size={14} /> Edit
+                                <Edit size={14} /> {t('common.edit')}
                               </button>
                               <button
                                 onClick={() => handleDuplicateForm(form)}
                                 className="w-full text-left px-3 py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2 transition-colors"
                               >
-                                <Copy size={14} /> Duplicate
+                                <Copy size={14} /> {t('common.duplicate')}
                               </button>
                               <button
                                 onClick={() => handleDeleteClick(form)}
                                 className="w-full text-left px-3 py-2 hover:bg-surface-hover text-red-500 text-sm flex items-center gap-2 transition-colors"
                               >
-                                <Trash2 size={14} /> Delete
+                                <Trash2 size={14} /> {t('common.delete')}
                               </button>
                             </div>
                           )}
@@ -976,19 +978,19 @@ const Assessment = () => {
                       <div className="pr-96">
                         <h3 className="text-base font-semibold text-content-primary mb-1 line-clamp-1">{form.title}</h3>
                         <div className="text-xs text-content-muted mb-2">
-                          {form.sections.length} Sections • {form.sections.reduce((acc, section) => {
+                          {t('medicalHistory.card.sectionsCount', { count: form.sections.length })} • {t('medicalHistory.card.questionsCount', { count: form.sections.reduce((acc, section) => {
                             const items = section.items || section.questions || [];
                             const questionCount = items.filter(item => !item.itemType || item.itemType === 'question' || item.itemType === 'variableField').length;
                             return acc + questionCount;
-                          }, 0)} Questions
+                          }, 0) })}
                         </div>
                         <div className="flex flex-col gap-0.5">
                           <p className="text-[11px] text-content-faint">
-                            Created: {formatDateTime(form.createdAt)}
+                            {t('medicalHistory.card.created')} {formatDateTime(form.createdAt)}
                           </p>
                           {form.updatedAt && form.updatedAt !== form.createdAt && (
                             <p className="text-[11px] text-content-faint">
-                              Updated: {formatDateTime(form.updatedAt)}
+                              {t('medicalHistory.card.updated')} {formatDateTime(form.updatedAt)}
                             </p>
                           )}
                         </div>
@@ -1001,9 +1003,9 @@ const Assessment = () => {
               {filteredForms.length === 0 && (
                 <div className="col-span-full text-center py-12 text-content-muted">
                   {forms.length === 0 ? (
-                    <>No forms created yet. Click on "Create Medical History" to get started.</>
+                    <>{t('medicalHistory.empty.noForms')}</>
                   ) : (
-                    <>No forms match your search criteria. Try adjusting your filters.</>
+                    <>{t('medicalHistory.empty.noMatch')}</>
                   )}
                 </div>
               )}
@@ -1045,7 +1047,7 @@ const Assessment = () => {
       <button
         onClick={handleCreateForm}
         className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
-        aria-label="Create Medical History"
+        aria-label={t('medicalHistory.createForm')}
       >
         <Plus size={22} />
       </button>

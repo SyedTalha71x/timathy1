@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react"
 import { Search, Calendar, Clock, CheckCircle, X, ArrowUp, ArrowDown, UserX } from "lucide-react"
 import toast from "../../components/shared/SharedToast"
+import { useTranslation } from "react-i18next"
 import DatePickerField from "../../components/shared/DatePickerField"
 import { useDispatch, useSelector } from "react-redux"
 import { fetchAllAppointments } from "../../features/appointments/AppointmentSlice"
@@ -8,6 +9,7 @@ import { fetchAllMember } from "../../features/member/memberSlice"
 import { fetchAllLeadsThunk } from "../../features/lead/leadSlice"
 
 export default function CheckIns() {
+  const { t } = useTranslation()
   const dispatch = useDispatch()
   const { members } = useSelector((state) => state.member)
   const { leads } = useSelector((state) => state.leads)
@@ -168,9 +170,9 @@ export default function CheckIns() {
 
   // Sort options
   const sortOptions = [
-    { value: 'time', label: 'Time' },
-    { value: 'name', label: 'Name' },
-    { value: 'type', label: 'Type' }
+    { value: 'time', label: t('checkIn.sortOptions.time') },
+    { value: 'name', label: t('checkIn.sortOptions.name') },
+    { value: 'type', label: t('checkIn.sortOptions.type') }
   ]
 
   const handleSortOptionClick = (newSortBy) => {
@@ -317,7 +319,7 @@ export default function CheckIns() {
         <div className="flex flex-col gap-3 mb-5">
           {/* Top Row: Title */}
           <div className="flex items-center justify-between">
-            <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Check-In</h1>
+            <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">{t("checkIn.title")}</h1>
 
             {/* Sort Button - Mobile only (next to title) */}
             <div className="relative sm:hidden" ref={sortDropdownMobileRef}>
@@ -332,7 +334,7 @@ export default function CheckIns() {
               {showSortDropdown && (
                 <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[120px]">
                   <div className="py-1">
-                    <div className="px-3 py-1.5 text-[10px] text-content-faint font-medium border-b border-border">Sort by</div>
+                    <div className="px-3 py-1.5 text-[10px] text-content-faint font-medium border-b border-border">{t("common.sortBy")}</div>
                     {sortOptions.map((option) => (
                       <button
                         key={option.value}
@@ -361,7 +363,7 @@ export default function CheckIns() {
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 px-2 py-1.5 bg-surface-button rounded-lg border border-border flex-1 sm:flex-none">
               <span className={`text-[11px] sm:text-xs flex-1 ${dateFrom ? 'text-content-primary' : 'text-content-muted'}`}>
-                {dateFrom ? new Date(dateFrom + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'From'}
+                {dateFrom ? new Date(dateFrom + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : t('checkIn.dateRange.from')}
               </span>
               <DatePickerField
                 value={dateFrom}
@@ -369,10 +371,10 @@ export default function CheckIns() {
                 iconSize={12}
               />
             </div>
-            <span className="text-content-faint text-xs">to</span>
+            <span className="text-content-faint text-xs">{t("checkIn.dateRange.to")}</span>
             <div className="flex items-center gap-1.5 px-2 py-1.5 bg-surface-button rounded-lg border border-border flex-1 sm:flex-none">
               <span className={`text-[11px] sm:text-xs flex-1 ${dateTo ? 'text-content-primary' : 'text-content-muted'}`}>
-                {dateTo ? new Date(dateTo + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'To'}
+                {dateTo ? new Date(dateTo + 'T00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : t('checkIn.dateRange.to')}
               </span>
               <DatePickerField
                 value={dateTo}
@@ -386,19 +388,19 @@ export default function CheckIns() {
         {/* Stats Cards - 2x2 on mobile, 4 cols on larger */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
           <div className="bg-surface-card rounded-xl p-2.5 sm:p-3 border border-border">
-            <p className="text-content-muted text-[10px] sm:text-xs">Total</p>
+            <p className="text-content-muted text-[10px] sm:text-xs">{t("checkIn.stats.total")}</p>
             <p className="text-base sm:text-xl font-bold text-content-primary">{stats.total}</p>
           </div>
           <div className="bg-surface-card rounded-xl p-2.5 sm:p-3 border border-border">
-            <p className="text-content-muted text-[10px] sm:text-xs">Checked-In</p>
+            <p className="text-content-muted text-[10px] sm:text-xs">{t("checkIn.stats.checkedIn")}</p>
             <p className="text-base sm:text-xl font-bold text-content-primary">{stats.checkedIn}</p>
           </div>
           <div className="bg-surface-card rounded-xl p-2.5 sm:p-3 border border-border">
-            <p className="text-content-muted text-[10px] sm:text-xs">Pending</p>
+            <p className="text-content-muted text-[10px] sm:text-xs">{t("checkIn.stats.pending")}</p>
             <p className="text-base sm:text-xl font-bold text-content-primary">{stats.pending}</p>
           </div>
           <div className="bg-surface-card rounded-xl p-2.5 sm:p-3 border border-border">
-            <p className="text-content-muted text-[10px] sm:text-xs">No Shows</p>
+            <p className="text-content-muted text-[10px] sm:text-xs">{t("checkIn.stats.noShows")}</p>
             <p className="text-base sm:text-xl font-bold text-content-primary">{stats.noShowCount}</p>
           </div>
         </div>
@@ -438,7 +440,7 @@ export default function CheckIns() {
               <input
                 ref={searchInputRef}
                 type="text"
-                placeholder={memberFilters.length > 0 ? "Add more..." : "Search members..."}
+                placeholder={memberFilters.length > 0 ? t("checkIn.searchPlaceholderMore") : t("checkIn.searchPlaceholder")}
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value)
@@ -457,7 +459,7 @@ export default function CheckIns() {
                     setMemberFilters([])
                   }}
                   className="p-1 hover:bg-surface-button rounded-lg transition-colors flex-shrink-0"
-                  title="Clear all filters"
+                  title={t("checkIn.clearAllFilters")}
                 >
                   <X size={14} className="text-content-muted hover:text-content-primary" />
                 </button>
@@ -488,7 +490,7 @@ export default function CheckIns() {
             {/* No results message */}
             {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 p-3">
-                <p className="text-sm text-content-faint text-center">No members found</p>
+                <p className="text-sm text-content-faint text-center">{t("checkIn.empty.noMembers")}</p>
               </div>
             )}
           </div>
@@ -504,7 +506,7 @@ export default function CheckIns() {
                 : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                 }`}
             >
-              All
+              {t("checkIn.filters.all")}
             </button>
             <button
               onClick={() => setFilterStatus('checked')}
@@ -513,7 +515,7 @@ export default function CheckIns() {
                 : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                 }`}
             >
-              Checked-In
+              {t("checkIn.filters.checkedIn")}
             </button>
             <button
               onClick={() => setFilterStatus('pending')}
@@ -522,7 +524,7 @@ export default function CheckIns() {
                 : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                 }`}
             >
-              Pending
+              {t("checkIn.filters.pending")}
             </button>
             <button
               onClick={() => setFilterStatus('noshow')}
@@ -531,7 +533,7 @@ export default function CheckIns() {
                 : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                 }`}
             >
-              No Shows
+              {t("checkIn.filters.noShows")}
             </button>
           </div>
 
@@ -548,7 +550,7 @@ export default function CheckIns() {
             {showSortDropdown && (
               <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[120px]">
                 <div className="py-1">
-                  <div className="px-3 py-1.5 text-[10px] text-content-faint font-medium border-b border-border">Sort by</div>
+                  <div className="px-3 py-1.5 text-[10px] text-content-faint font-medium border-b border-border">{t("common.sortBy")}</div>
                   {sortOptions.map((option) => (
                     <button
                       key={option.value}
@@ -582,7 +584,7 @@ export default function CheckIns() {
               : "text-content-muted hover:text-content-primary"
               }`}
           >
-            Today ({filteredUpcomingAppointments.length})
+            {t("checkIn.tabs.today", { count: filteredUpcomingAppointments.length })}
           </button>
           <button
             onClick={() => setActiveTab("past")}
@@ -591,7 +593,7 @@ export default function CheckIns() {
               : "text-content-muted hover:text-content-primary"
               }`}
           >
-            History ({filteredPastCheckIns.length})
+            {t("checkIn.tabs.history", { count: filteredPastCheckIns.length })}
           </button>
         </div>
 
@@ -628,7 +630,7 @@ export default function CheckIns() {
                           {appointment.isCheckedIn && appointment.checkInTime && (
                             <>
                               <span className="text-content-faint text-[10px]">•</span>
-                              <span className="text-primary text-[10px] sm:text-xs">Checked-In {appointment.checkInTime}</span>
+                              <span className="text-primary text-[10px] sm:text-xs">{t("checkIn.status.checkedInAt", { time: appointment.checkInTime })}</span>
                             </>
                           )}
                         </div>
@@ -643,12 +645,12 @@ export default function CheckIns() {
                         <>
                           <span className="flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 bg-secondary/20 text-secondary rounded-lg text-[10px] sm:text-xs font-medium">
                             <UserX size={10} className="sm:w-3 sm:h-3" />
-                            No Show
+                            {t("checkIn.status.noShow")}
                           </span>
                           <button
                             onClick={() => handleUndoNoShow(appointment.id)}
                             className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
-                            title="Undo"
+                            title={t("checkIn.actions.undo")}
                           >
                             <X size={12} className="sm:w-3.5 sm:h-3.5" />
                           </button>
@@ -657,12 +659,12 @@ export default function CheckIns() {
                         <>
                           <span className="flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 bg-primary/20 text-primary rounded-lg text-[10px] sm:text-xs font-medium">
                             <CheckCircle size={10} className="sm:w-3 sm:h-3" />
-                            Checked-In
+                            {t("checkIn.status.checkedIn")}
                           </span>
                           <button
                             onClick={() => handleUndoCheckIn(appointment.id)}
                             className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
-                            title="Undo"
+                            title={t("checkIn.actions.undo")}
                           >
                             <X size={12} className="sm:w-3.5 sm:h-3.5" />
                           </button>
@@ -674,14 +676,14 @@ export default function CheckIns() {
                             className="p-1.5 sm:px-2.5 sm:py-1.5 bg-surface-button hover:bg-secondary/20 text-content-secondary hover:text-secondary rounded-lg text-[10px] sm:text-xs transition-colors flex items-center gap-1"
                           >
                             <UserX size={12} className="sm:w-3 sm:h-3" />
-                            <span className="hidden sm:inline">No Show</span>
+                            <span className="hidden sm:inline">{t("checkIn.actions.noShow")}</span>
                           </button>
                           <button
                             onClick={() => handleCheckIn(appointment.id)}
                             className="px-2.5 py-1.5 sm:px-3 bg-primary hover:bg-primary-hover text-white rounded-lg text-[10px] sm:text-xs transition-colors flex items-center gap-1"
                           >
                             <CheckCircle size={10} className="sm:w-3 sm:h-3" />
-                            <span>Check-In</span>
+                            <span>{t("checkIn.actions.checkIn")}</span>
                           </button>
                         </>
                       )}
@@ -692,11 +694,11 @@ export default function CheckIns() {
             ) : (
               <div className="text-center py-10">
                 <Calendar className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-content-faint mb-3" strokeWidth={1} />
-                <h3 className="text-base sm:text-lg font-medium text-content-secondary mb-2">No appointments found</h3>
+                <h3 className="text-base sm:text-lg font-medium text-content-secondary mb-2">{t("checkIn.empty.noAppointments")}</h3>
                 <p className="text-content-faint text-xs sm:text-sm">
                   {searchQuery || filterStatus !== 'all'
-                    ? "Try adjusting your search or filters"
-                    : "No appointments scheduled for this period"}
+                    ? t("checkIn.empty.adjustFilters")
+                    : t("checkIn.empty.noScheduled")}
                 </p>
               </div>
             )
@@ -724,7 +726,7 @@ export default function CheckIns() {
                           <span className="text-content-faint text-[10px]">•</span>
                           <span className="text-content-muted text-[10px] sm:text-xs">{checkin.scheduledTime}</span>
                           <span className="text-content-faint text-[10px]">•</span>
-                          <span className="text-primary text-[10px] sm:text-xs">Checked-In {checkin.checkInTime}</span>
+                          <span className="text-primary text-[10px] sm:text-xs">{t("checkIn.status.checkedInAt", { time: checkin.checkInTime })}</span>
                         </div>
                         <span className="text-content-muted text-[10px] xs:hidden">{checkin.appointmentType}</span>
                       </div>
@@ -732,7 +734,7 @@ export default function CheckIns() {
 
                     <span className="flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 bg-primary/20 text-primary rounded-lg text-[10px] sm:text-xs font-medium self-end sm:self-auto flex-shrink-0">
                       <CheckCircle size={10} className="sm:w-3 sm:h-3" />
-                      Completed
+                      {t("checkIn.status.completed")}
                     </span>
                   </div>
                 </div>
@@ -740,11 +742,11 @@ export default function CheckIns() {
             ) : (
               <div className="text-center py-10">
                 <Clock className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-content-faint mb-3" strokeWidth={1} />
-                <h3 className="text-base sm:text-lg font-medium text-content-secondary mb-2">No check-in history</h3>
+                <h3 className="text-base sm:text-lg font-medium text-content-secondary mb-2">{t("checkIn.empty.noHistory")}</h3>
                 <p className="text-content-faint text-xs sm:text-sm">
                   {searchQuery
-                    ? "Try adjusting your search"
-                    : "Check-in history will appear here"}
+                    ? t("checkIn.empty.adjustSearch")
+                    : t("checkIn.empty.historyHint")}
                 </p>
               </div>
             )

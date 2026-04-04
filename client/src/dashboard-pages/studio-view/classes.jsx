@@ -2,6 +2,7 @@
 /* eslint-disable no-unused-vars */
 import { X, Clock, Search, ChevronRight, ChevronLeft, ChevronDown, ChevronUp, Plus, Users, Briefcase } from "lucide-react"
 import { useState, useEffect, useCallback, useRef, useMemo } from "react"
+import { useTranslation } from "react-i18next"
 import toast from "../../components/shared/SharedToast"
 import { GoArrowLeft, GoArrowRight } from "react-icons/go"
 
@@ -30,6 +31,7 @@ import { fetchAllStudios } from "../../features/studio/studioSlice"
 import { fetchAllMember } from "../../features/member/memberSlice"
 
 export default function Classes() {
+  const { t } = useTranslation()
   const calendarRef = useRef(null);
 
   // Redux state - with safe defaults
@@ -343,7 +345,7 @@ export default function Classes() {
     // Block fully past slots
     const slotEnd = slot.end || new Date(slot.start.getTime() + 30 * 60000);
     if (slotEnd <= new Date()) {
-      toast.error("Cannot create class in the past");
+      toast.error(t("studioClasses.toast.cannotCreatePast"));
       return;
     }
     setPrefilledSlotTime(slot.formattedTime);
@@ -366,13 +368,13 @@ export default function Classes() {
 
 
       await dispatch(createClassThunk(data)).unwrap();
-      toast.success(data.bookingType === "recurring" ? "Class series created" : "Class created");
+      toast.success(data.bookingType === "recurring" ? t("studioClasses.toast.seriesCreated") : t("studioClasses.toast.classCreated"));
       refreshData();
       setIsCreateModalOpen(false);
       setPrefilledSlotTime(null);
     } catch (error) {
       console.error("Error creating class:", error);
-      toast.error(error.response?.data?.message || error.message || "Failed to create class");
+      toast.error(error.response?.data?.message || error.message || t("studioClasses.toast.createFailed"));
     }
   };
 
@@ -381,11 +383,11 @@ export default function Classes() {
        console.log("Enrolling member:", { classId, memberId });
   
       await dispatch(enrolledMemberInClass({ classId, memberId })).unwrap();
-      toast.success("Member enrolled successfully");
+      toast.success(t("studioClasses.toast.enrolled"));
       refreshData();
     } catch (error) {
       console.error("Error enrolling member:", error);
-      toast.error(error.message || "Failed to enroll member");
+      toast.error(error.message || t("studioClasses.toast.enrollFailed"));
     }
   };
 
@@ -394,11 +396,11 @@ export default function Classes() {
       console.log("Removing member:", { classId, memberId });
 
       await dispatch(removeEnrollMemberThunk({ classId, memberId })).unwrap();
-      toast.success("Member removed successfully");
+      toast.success(t("studioClasses.toast.removed"));
       refreshData();
     } catch (error) {
       console.error("Error removing member:", error);
-      toast.error(error.message || "Failed to remove member");
+      toast.error(error.message || t("studioClasses.toast.removeFailed"));
     }
   };
 
@@ -406,7 +408,7 @@ export default function Classes() {
 
   const handleCancelClass = async (classId) => {
     if (!classId) {
-      toast.error("Class ID is required");
+      toast.error(t("studioClasses.toast.classIdRequired"));
       return;
     }
 
@@ -420,13 +422,13 @@ export default function Classes() {
         cancelType: "single"
       })).unwrap();
 
-      toast.success(result.message || "Class cancelled successfully");
+      toast.success(result.message || t("studioClasses.toast.cancelled"));
       refreshData();
       // Optionally set filter to show cancelled classes
       setClassFilters(prev => ({ ...prev, "Cancelled Classes": true }));
     } catch (error) {
       console.error("Error cancelling class:", error);
-      toast.error(error.response?.data?.message || error.message || "Failed to cancel class");
+      toast.error(error.response?.data?.message || error.message || t("studioClasses.toast.cancelFailed"));
     }
   };
 
@@ -434,7 +436,7 @@ export default function Classes() {
   // cancel class and also upcoming classes of this series
   const handleCancelSeries = async (seriesId, classDate) => {
     if (!seriesId) {
-      toast.error("Series ID is required");
+      toast.error(t("studioClasses.toast.seriesIdRequired"));
       return;
     }
 
@@ -447,7 +449,7 @@ export default function Classes() {
     );
 
     if (classesInSeries.length === 0) {
-      toast.error("No upcoming classes found in this series to cancel");
+      toast.error(t("studioClasses.toast.noUpcomingInSeries"));
       return;
     }
 
@@ -464,7 +466,7 @@ export default function Classes() {
       const classId = classesInSeries[0]?._id;
 
       if (!classId) {
-        toast.error("Unable to identify class in series");
+        toast.error(t("studioClasses.toast.unableToIdentify"));
         return;
       }
 
@@ -478,18 +480,18 @@ export default function Classes() {
       setClassFilters(prev => ({ ...prev, "Cancelled Classes": true }));
     } catch (error) {
       console.error("Error cancelling series:", error);
-      toast.error(error.response?.data?.message || error.message || "Failed to cancel series");
+      toast.error(error.response?.data?.message || error.message || t("studioClasses.toast.seriesCancelFailed"));
     }
   };
 
   const handleDeleteClass = async (classId) => {
     try {
       await dispatch(deleteClassThunk(classId)).unwrap();
-      toast.success("Class deleted permanently");
+      toast.success(t("studioClasses.toast.deleted"));
       refreshData();
     } catch (error) {
       console.error("Error deleting class:", error);
-      toast.error(error.message || "Failed to delete class");
+      toast.error(error.message || t("studioClasses.toast.deleteFailed"));
     }
   };
 
@@ -509,7 +511,7 @@ export default function Classes() {
     console.log("Editing class:", { classId, extractedId: id, changes });
 
     if (!id) {
-      toast.error("Class ID is required");
+      toast.error(t("studioClasses.toast.classIdRequired"));
       return;
     }
 
@@ -520,11 +522,11 @@ export default function Classes() {
         updateData: changes
       })).unwrap();
 
-      toast.success("Class updated successfully");
+      toast.success(t("studioClasses.toast.updated"));
       refreshData();
     } catch (error) {
       console.error("Error updating class:", error);
-      toast.error(error.response?.data?.message || error.message || "Failed to update class");
+      toast.error(error.response?.data?.message || error.message || t("studioClasses.toast.updateFailed"));
     }
   };
 
@@ -566,7 +568,7 @@ export default function Classes() {
       <div className="flex items-center justify-center h-full bg-surface-base text-content-primary rounded-3xl">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-content-muted">Loading classes...</p>
+          <p className="text-content-muted">{t("studioClasses.loading")}</p>
         </div>
       </div>
     );
@@ -598,7 +600,7 @@ export default function Classes() {
         <main className="flex-1 min-w-0 flex flex-col min-h-0 pt-4 pb-4 pl-4 pr-0">
           {/* Header */}
           <div className="flex items-center justify-between mb-4 flex-shrink-0 relative pr-4">
-            <h1 className="text-xl sm:text-2xl oxanium_font font-bold text-content-primary">Classes</h1>
+            <h1 className="text-xl sm:text-2xl oxanium_font font-bold text-content-primary">{t("studioClasses.title")}</h1>
 
             <div className={`hidden lg:flex items-center gap-3 absolute top-1/2 -translate-y-1/2 ${isSidebarCollapsed ? 'left-[calc(50%+18px)] -translate-x-1/2' : 'left-[calc(50%+168px)] -translate-x-1/2'}`}>
               <button
@@ -618,7 +620,7 @@ export default function Classes() {
               </button>
               <div className="flex items-center bg-surface-base rounded-xl p-1">
                 {["timeGridDay", "timeGridWeek", "dayGridMonth"].map(view => {
-                  const labels = { timeGridDay: "Day", timeGridWeek: "Week", dayGridMonth: "Month" };
+                  const labels = { timeGridDay: t("studioClasses.view.day"), timeGridWeek: t("studioClasses.view.week"), dayGridMonth: t("studioClasses.view.month") };
                   return (
                     <button
                       key={view}
@@ -647,7 +649,7 @@ export default function Classes() {
                 }`}
             >
               <Plus size={16} />
-              New Class
+              {t("studioClasses.newClass")}
             </button>
           </div>
 
@@ -674,7 +676,7 @@ export default function Classes() {
                 }`}
             >
               <ChevronDown size={12} className={`transition-transform ${isMobileFiltersExpanded ? 'rotate-180' : ''}`} />
-              Filters
+              {t("studioClasses.filters")}
             </button>
           </div>
 
@@ -684,14 +686,14 @@ export default function Classes() {
             <div className="bg-surface-base rounded-xl p-3">
               {/* Courses Filters */}
               <div className="flex items-center justify-between mb-1.5 cursor-pointer" onClick={() => setIsCoursesInFiltersCollapsed(!isCoursesInFiltersCollapsed)}>
-                <span className="text-content-primary text-xs font-medium">Courses</span>
+                <span className="text-content-primary text-xs font-medium">{t("studioClasses.courses")}</span>
                 <div className="flex items-center gap-2">
                   {!isCoursesInFiltersCollapsed && (
                     <button
                       onClick={(e) => { e.stopPropagation(); toggleAllFilters(); }}
                       className="text-[10px] text-primary hover:text-primary-hover"
                     >
-                      {classTypesData.every(t => classFilters[t.id]) ? "Deselect All" : "Select All"}
+                      {classTypesData.every(t => classFilters[t.id]) ? t("studioClasses.deselectAll") : t("studioClasses.selectAll")}
                     </button>
                   )}
                   <ChevronDown size={12} className={`text-content-muted transition-transform ${!isCoursesInFiltersCollapsed ? 'rotate-180' : ''}`} />
@@ -718,7 +720,7 @@ export default function Classes() {
                       onChange={() => handleFilterChange("Cancelled Classes")}
                       className="w-3 h-3 accent-primary"
                     />
-                    <span className="text-content-primary text-[11px]">Cancelled</span>
+                    <span className="text-content-primary text-[11px]">{t("studioClasses.cancelled")}</span>
                   </label>
                   <label className="flex items-center gap-1.5 cursor-pointer">
                     <input
@@ -727,7 +729,7 @@ export default function Classes() {
                       onChange={() => handleFilterChange("Past Classes")}
                       className="w-3 h-3 accent-primary"
                     />
-                    <span className="text-content-primary text-[11px]">Past</span>
+                    <span className="text-content-primary text-[11px]">{t("studioClasses.past")}</span>
                   </label>
                 </div>
               )}
@@ -735,14 +737,14 @@ export default function Classes() {
               {/* Staff Filters */}
               <div className="border-t border-border pt-2">
                 <div className="flex items-center justify-between mb-1.5 cursor-pointer" onClick={() => setIsStaffInFiltersCollapsed(!isStaffInFiltersCollapsed)}>
-                  <span className="text-content-primary text-xs font-medium">Staff</span>
+                  <span className="text-content-primary text-xs font-medium">{t("studioClasses.staff")}</span>
                   <div className="flex items-center gap-2">
                     {!isStaffInFiltersCollapsed && (
                       <button
                         onClick={(e) => { e.stopPropagation(); toggleAllStaffFilters(); }}
                         className="text-[10px] text-primary hover:text-primary-hover"
                       >
-                        {allActiveStaff.every(s => staffFilters[s.id]) ? "Deselect All" : "Select All"}
+                        {allActiveStaff.every(s => staffFilters[s.id]) ? t("studioClasses.deselectAll") : t("studioClasses.selectAll")}
                       </button>
                     )}
                     <ChevronDown size={12} className={`text-content-muted transition-transform ${!isStaffInFiltersCollapsed ? 'rotate-180' : ''}`} />
@@ -821,14 +823,14 @@ export default function Classes() {
                       <div className="mt-3 w-full space-y-1">
                         {/* Courses Sub-section */}
                         <div className="flex items-center justify-between cursor-pointer py-0.5" onClick={() => setIsCoursesInFiltersCollapsed(!isCoursesInFiltersCollapsed)}>
-                          <span className="text-content-primary text-xs font-semibold">Courses</span>
+                          <span className="text-content-primary text-xs font-semibold">{t("studioClasses.courses")}</span>
                           <div className="flex items-center gap-2">
                             {!isCoursesInFiltersCollapsed && (
                               <button
                                 onClick={(e) => { e.stopPropagation(); toggleAllFilters(); }}
                                 className="text-[10px] text-primary hover:text-primary-hover"
                               >
-                                {classTypesData.every(t => classFilters[t.id]) ? "Deselect All" : "Select All"}
+                                {classTypesData.every(t => classFilters[t.id]) ? t("studioClasses.deselectAll") : t("studioClasses.selectAll")}
                               </button>
                             )}
                             <button className="p-0.5 text-content-muted">
@@ -859,7 +861,7 @@ export default function Classes() {
                                 onChange={() => handleFilterChange("Cancelled Classes")}
                                 className="w-3.5 h-3.5 accent-primary bg-surface-button border-border rounded cursor-pointer"
                               />
-                              <span className="text-content-primary text-xs">Cancelled</span>
+                              <span className="text-content-primary text-xs">{t("studioClasses.cancelled")}</span>
                             </label>
                             <label className="flex items-center gap-2 cursor-pointer w-full py-0.5">
                               <input
@@ -868,7 +870,7 @@ export default function Classes() {
                                 onChange={() => handleFilterChange("Past Classes")}
                                 className="w-3.5 h-3.5 accent-primary bg-surface-button border-border rounded cursor-pointer"
                               />
-                              <span className="text-content-primary text-xs">Past</span>
+                              <span className="text-content-primary text-xs">{t("studioClasses.past")}</span>
                             </label>
                           </div>
                         )}
@@ -876,14 +878,14 @@ export default function Classes() {
                         {/* Staff Sub-section */}
                         <div className="border-t border-border my-1.5" />
                         <div className="flex items-center justify-between cursor-pointer py-0.5" onClick={() => setIsStaffInFiltersCollapsed(!isStaffInFiltersCollapsed)}>
-                          <span className="text-content-primary text-xs font-semibold">Staff</span>
+                          <span className="text-content-primary text-xs font-semibold">{t("studioClasses.staff")}</span>
                           <div className="flex items-center gap-2">
                             {!isStaffInFiltersCollapsed && (
                               <button
                                 onClick={(e) => { e.stopPropagation(); toggleAllStaffFilters(); }}
                                 className="text-[10px] text-primary hover:text-primary-hover"
                               >
-                                {allActiveStaff.every(s => staffFilters[s.id]) ? "Deselect All" : "Select All"}
+                                {allActiveStaff.every(s => staffFilters[s.id]) ? t("studioClasses.deselectAll") : t("studioClasses.selectAll")}
                               </button>
                             )}
                             <button className="p-0.5 text-content-muted">

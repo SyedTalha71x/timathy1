@@ -24,6 +24,7 @@ import {
   File,
   ClipboardList,
 } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import toast from "../../components/shared/SharedToast"
 import BirthdayBadge from "../../components/shared/BirthdayBadge"
 import AddStaffModal from "../../components/studio-components/staff-components/add-staff-modal"
@@ -123,6 +124,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
 };
 
 export default function StaffManagement({ studioId: studioIdProp = null, mode = "studio", studioName: studioNameProp = null }) {
+  const { t } = useTranslation()
   const navigate = useNavigate();
   const location = useLocation();
   const isAdminMode = mode === "admin" && studioIdProp !== null
@@ -243,8 +245,8 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
 
   // Sort options
   const sortOptions = [
-    { value: "name", label: "Name" },
-    { value: "staffRole", label: "Staff Role" },
+    { value: "name", label: t("admin.staff.sort.name") },
+    { value: "staffRole", label: t("admin.staff.sort.staffRole") },
   ]
 
   // Get unique roles for filter
@@ -518,10 +520,10 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
         updateData: updateData  // Spread the data, don't nest it
       })).unwrap();
 
-      toast.success("Vacation contingent updated successfully");
+      toast.success(t("admin.staff.toast.vacationUpdated"));
     } catch (error) {
       console.error('Update error:', error);
-      toast.error(error.message || "Failed to update vacation contingent");
+      toast.error(error.message || t("admin.staff.toast.vacationUpdateFailed"));
     }
   };
 
@@ -620,7 +622,7 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
       setAssessmentFromDocumentManagement(false)
     }
 
-    toast.success("Medical history saved successfully")
+    toast.success(t("admin.staff.toast.medicalHistorySaved"))
   }
 
   const handleEditAssessmentClick = (staff, doc) => {
@@ -648,12 +650,12 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
     setIsRemoveModalOpen(false)
     setStaffToRemove(null)
     setIsShowDetails(false)
-    toast.success("Staff deleted successfully")
+    toast.success(t("admin.staff.toast.deleted"))
   }
 
   const handleVacationRequest = async (staffId, startDate, endDate) => {
     console.log(`Vacation request for staff ${staffId} from ${startDate} to ${endDate}`)
-    toast.success("Vacation request submitted for approval")
+    toast.success(t("admin.staff.toast.vacationRequested"))
   }
 
   const handleHistoryClick = (staff) => {
@@ -710,14 +712,14 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
   // Send email
   const handleSendEmail = () => {
     console.log("Sending email:", emailData);
-    toast.success("Email sent successfully!");
+    toast.success(t("admin.staff.toast.emailSent"));
     handleCloseEmailModal();
   };
 
   // Save email as draft
   const handleSaveEmailAsDraft = (draftData) => {
     console.log("Saving draft:", draftData);
-    toast.success("Draft saved!");
+    toast.success(t("admin.staff.toast.draftSaved"));
   };
 
   // Template select
@@ -817,8 +819,8 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
           </svg>
         </div>
         <div>
-          <p className="text-sm font-medium text-blue-300">Admin Mode — {studioNameProp || `Studio #${studioIdProp}`}</p>
-          <p className="text-xs text-content-muted">Viewing staff for this studio. Changes are saved per-studio.</p>
+          <p className="text-sm font-medium text-blue-300">{t("admin.staff.adminMode.banner", { studio: studioNameProp || `Studio #${studioIdProp}` })}</p>
+          <p className="text-xs text-content-muted">{t("admin.staff.adminMode.description")}</p>
         </div>
       </div>
     )
@@ -884,7 +886,7 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
             {/* Error State */}
             {staffError && (
               <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-4">
-                <p className="text-red-400 text-sm">Failed to load staff: {staffError}</p>
+                <p className="text-red-400 text-sm">{t("admin.staff.adminMode.failedToLoad", { error: staffError })}</p>
               </div>
             )}
 
@@ -894,7 +896,7 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
                 {/* Header */}
                 <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
                   <div className="flex items-center gap-3">
-                    <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Staff</h1>
+                    <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">{t("admin.staff.title")}</h1>
 
                     {/* Sort Button - Mobile: next to title */}
                     <div className="lg:hidden relative" ref={mobileSortDropdownRef}>
@@ -914,7 +916,7 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
                         <div className="absolute left-0 mt-1 bg-surface-hover border border-border-subtle rounded-lg shadow-lg z-50 min-w-[180px]">
                           <div className="py-1">
                             <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border-subtle">
-                              Sort by
+                              {t("admin.staff.sort.sortBy")}
                             </div>
                             {sortOptions.map((option) => (
                               <button
@@ -960,7 +962,7 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
 
                           {/* Tooltip */}
                           <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                            <span className="font-medium">Grid View</span>
+                            <span className="font-medium">{t("admin.staff.gridView")}</span>
                             <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">V</span>
                             <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
                           </div>
@@ -979,7 +981,7 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
 
                           {/* Tooltip */}
                           <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                            <span className="font-medium">List View</span>
+                            <span className="font-medium">{t("admin.staff.listView")}</span>
                             <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">V</span>
                             <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
                           </div>
@@ -1006,7 +1008,7 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
 
                           {/* Tooltip */}
                           <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                            <span className="font-medium">{isCompactView ? "Compact View" : "Detailed View"}</span>
+                            <span className="font-medium">{isCompactView ? t("admin.staff.compactView") : t("admin.staff.detailedView")}</span>
                             <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
                           </div>
                         </div>
@@ -1023,12 +1025,12 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
                           className="bg-surface-dark py-2 px-4 text-sm rounded-xl flex items-center gap-2 hover:bg-surface-hover transition-colors"
                         >
                           <Users className="h-4 w-4" />
-                          <span>Staff Planning</span>
+                          <span>{t("admin.staff.staffPlanning")}</span>
                         </button>
 
                         {/* Tooltip */}
                         <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                          <span className="font-medium">Staff Planning</span>
+                          <span className="font-medium">{t("admin.staff.staffPlanning")}</span>
                           <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">P</span>
                           <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
                         </div>
@@ -1040,12 +1042,12 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
                           className="bg-surface-dark py-2 px-4 text-sm rounded-xl flex items-center gap-2 hover:bg-surface-hover transition-colors"
                         >
                           <Calendar className="h-4 w-4" />
-                          <span>Vacation Calendar</span>
+                          <span>{t("admin.staff.vacationCalendar")}</span>
                         </button>
 
                         {/* Tooltip */}
                         <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                          <span className="font-medium">Vacation Calendar</span>
+                          <span className="font-medium">{t("admin.staff.vacationCalendar")}</span>
                           <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">K</span>
                           <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
                         </div>
@@ -1057,12 +1059,12 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
                           className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-xl text-sm flex items-center gap-2 transition-colors"
                         >
                           <Plus size={18} />
-                          <span>Create Staff</span>
+                          <span>{t("admin.staff.createStaff")}</span>
                         </button>
 
                         {/* Tooltip */}
                         <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                          <span className="font-medium">Create Staff</span>
+                          <span className="font-medium">{t("admin.staff.createStaff")}</span>
                           <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">C</span>
                           <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
                         </div>
@@ -1078,14 +1080,14 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
                     className="flex-1 bg-surface-dark py-2.5 px-3 text-sm rounded-xl flex items-center justify-center gap-2"
                   >
                     <Users className="h-4 w-4" />
-                    <span>Planning</span>
+                    <span>{t("admin.staff.planning")}</span>
                   </button>
                   <button
                     onClick={() => setIsVacationRequestModalOpen(true)}
                     className="flex-1 bg-surface-dark py-2.5 px-3 text-sm rounded-xl flex items-center justify-center gap-2"
                   >
                     <Calendar className="h-4 w-4" />
-                    <span>Vacation</span>
+                    <span>{t("admin.staff.vacation")}</span>
                   </button>
                 </div>
 
@@ -1124,7 +1126,7 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
                       <input
                         ref={searchInputRef}
                         type="text"
-                        placeholder={staffFilters.length > 0 ? "Add more..." : "Search staff..."}
+                        placeholder={staffFilters.length > 0 ? t("admin.staff.search.addMore") : t("admin.staff.search.placeholder")}
                         value={searchQuery}
                         onChange={(e) => {
                           setSearchQuery(e.target.value);
@@ -1182,7 +1184,7 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
                     {/* No results message */}
                     {showSearchDropdown && searchQuery.trim() && getSearchSuggestions.length === 0 && (
                       <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 p-3">
-                        <p className="text-sm text-content-faint text-center">No staff found</p>
+                        <p className="text-sm text-content-faint text-center">{t("admin.staff.search.noResults")}</p>
                       </div>
                     )}
                   </div>
@@ -1380,7 +1382,7 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
                                   <button
                                     onClick={() => handleDocumentClick(staff)}
                                     className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
-                                    title="Documents"
+                                    title={t("admin.staff.actions.documents")}
                                   >
                                     <FileText size={isCompactView ? 16 : 18} />
                                   </button>
@@ -1389,21 +1391,21 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
                                 <button
                                   onClick={() => handleVacationContingentClick(staff)}
                                   className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
-                                  title="Vacation Contingent"
+                                  title={t("admin.staff.actions.vacationContingent")}
                                 >
                                   <TbPlusMinus size={isCompactView ? 16 : 18} />
                                 </button>
                                 <button
                                   onClick={() => handleHistoryClick(staff)}
                                   className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
-                                  title="History"
+                                  title={t("admin.staff.actions.history")}
                                 >
                                   <History size={isCompactView ? 16 : 18} />
                                 </button>
                                 <button
                                   onClick={() => handleViewDetails(staff)}
                                   className={`${isCompactView ? 'p-1.5' : 'p-2'} text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors`}
-                                  title="View Details"
+                                  title={t("admin.staff.actions.viewDetails")}
                                 >
                                   <Eye size={isCompactView ? 16 : 18} />
                                 </button>
@@ -1601,7 +1603,7 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
                                       <button
                                         onClick={() => handleDocumentClick(staff)}
                                         className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                        title="Documents"
+                                        title={t("admin.staff.actions.documents")}
                                       >
                                         <FileText size={14} />
                                       </button>
@@ -1610,14 +1612,14 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
                                     <button
                                       onClick={() => handleVacationContingentClick(staff)}
                                       className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                      title="Vacation"
+                                      title={t("admin.staff.actions.vacationContingent")}
                                     >
                                       <TbPlusMinus size={14} />
                                     </button>
                                     <button
                                       onClick={() => handleHistoryClick(staff)}
                                       className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
-                                      title="History"
+                                      title={t("admin.staff.actions.history")}
                                     >
                                       <History size={14} />
                                     </button>
@@ -1626,7 +1628,7 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
                                     <button
                                       onClick={() => handleViewDetails(staff)}
                                       className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center gap-1"
-                                      title="View Details"
+                                      title={t("admin.staff.actions.viewDetails")}
                                     >
                                       <Eye size={14} />
                                     </button>
@@ -1725,7 +1727,7 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
                                     <button
                                       onClick={() => handleDocumentClick(staff)}
                                       className="p-2.5 text-secondary hover:text-secondary-hover bg-surface-dark hover:bg-surface-hover rounded-xl transition-colors"
-                                      title="Documents"
+                                      title={t("admin.staff.actions.documents")}
                                     >
                                       <FileText size={18} />
                                     </button>
@@ -1734,21 +1736,21 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
                                   <button
                                     onClick={() => handleVacationContingentClick(staff)}
                                     className="p-2.5 text-secondary hover:text-secondary-hover bg-surface-dark hover:bg-surface-hover rounded-xl transition-colors"
-                                    title="Vacation Contingent"
+                                    title={t("admin.staff.actions.vacationContingent")}
                                   >
                                     <TbPlusMinus size={18} />
                                   </button>
                                   <button
                                     onClick={() => handleHistoryClick(staff)}
                                     className="p-2.5 text-secondary hover:text-secondary-hover bg-surface-dark hover:bg-surface-hover rounded-xl transition-colors"
-                                    title="History"
+                                    title={t("admin.staff.actions.history")}
                                   >
                                     <History size={18} />
                                   </button>
                                   <button
                                     onClick={() => handleViewDetails(staff)}
                                     className="p-2.5 text-secondary hover:text-secondary-hover bg-surface-dark hover:bg-surface-hover rounded-xl transition-colors"
-                                    title="View Details"
+                                    title={t("admin.staff.actions.viewDetails")}
                                   >
                                     <Eye size={18} />
                                   </button>
@@ -1799,22 +1801,22 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
         {isRemoveModalOpen && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1001]">
             <div className="bg-surface-card rounded-xl p-6 max-w-md mx-4 text-content-primary">
-              <h3 className="text-lg font-semibold mb-4">Delete Staff</h3>
+              <h3 className="text-lg font-semibold mb-4">{t("admin.staff.deleteModal.title")}</h3>
               <p className="text-content-secondary mb-6">
-                Are you sure you want to delete {staffToRemove?.firstName} {staffToRemove?.lastName}? This action cannot be undone.
+                {t("admin.staff.deleteModal.message", { name: `${staffToRemove?.firstName} ${staffToRemove?.lastName}` })}
               </p>
               <div className="flex gap-3 justify-end">
                 <button
                   onClick={() => setIsRemoveModalOpen(false)}
                   className="px-4 py-2 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover"
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
                 <button
                   onClick={confirmRemoveStaff}
                   className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700"
                 >
-                  Delete
+                  {t("common.delete")}
                 </button>
               </div>
             </div>
@@ -1877,8 +1879,8 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
             onViewAssessment={(doc) => handleViewAssessmentClick(selectedMemberForDocuments, doc)}
             onDocumentsUpdate={handleDocumentsUpdate}
             sections={[
-              { id: "general", label: "General", icon: File },
-              { id: "medicalHistory", label: "Medical History", icon: ClipboardList },
+              { id: "general", label: t("admin.staff.documents.general"), icon: File },
+              { id: "medicalHistory", label: t("admin.staff.documents.medicalHistory"), icon: ClipboardList },
             ]}
           />
         )}
@@ -1986,7 +1988,7 @@ export default function StaffManagement({ studioId: studioIdProp = null, mode = 
         <button
           onClick={() => setIsModalOpen(true)}
           className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
-          aria-label="Create Staff"
+          aria-label={t("admin.staff.createStaff")}
         >
           <Plus size={22} />
         </button>

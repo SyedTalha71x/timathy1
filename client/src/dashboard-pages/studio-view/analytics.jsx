@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 
 import { useState, useRef, useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import { Toaster } from "react-hot-toast"
 import { useNavigate } from "react-router-dom"
 import Chart from "react-apexcharts"
@@ -322,7 +323,7 @@ const LeadOriginMap = ({ data, height = 450 }) => {
       `}</style>
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-        <h3 className="text-lg font-semibold text-content-primary">Lead Origin</h3>
+        <h3 className="text-lg font-semibold text-content-primary">{t("studioAnalytics.leads.leadOrigin")}</h3>
         <div className="text-sm text-content-muted">
           Total: <span className="font-bold text-primary">{data.totalLeads}</span> leads
         </div>
@@ -349,21 +350,21 @@ const LeadOriginMap = ({ data, height = 450 }) => {
         <div className="flex flex-wrap items-center gap-3 sm:gap-4">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded-full bg-blue-500 border-2 border-white shadow-md"></div>
-            <span className="text-xs text-content-muted">Studio</span>
+            <span className="text-xs text-content-muted">{t("studioAnalytics.map.studio")}</span>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs text-content-muted">
-            <span>Density:</span>
+            <span>{t("studioAnalytics.map.density")}:</span>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 rounded-full bg-orange-200 opacity-60"></div>
-              <span>Low</span>
+              <span>{t("studioAnalytics.map.low")}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 rounded-full bg-orange-400 opacity-70"></div>
-              <span>Med</span>
+              <span>{t("studioAnalytics.map.med")}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 rounded-full bg-orange-500 opacity-80"></div>
-              <span>High</span>
+              <span>{t("studioAnalytics.map.high")}</span>
             </div>
           </div>
         </div>
@@ -379,22 +380,27 @@ const LeadOriginMap = ({ data, height = 450 }) => {
 // ==============================
 // TIME PERIOD OPTIONS
 // ==============================
-const timePeriodOptions = [
-  { value: "7days", label: "Last 7 Days" },
-  { value: "30days", label: "Last 30 Days" },
-  { value: "90days", label: "Last 90 Days" },
-  { value: "thisMonth", label: "This Month" },
-  { value: "lastMonth", label: "Last Month" },
-  { value: "thisYear", label: "This Year" },
-  { value: "lastYear", label: "Last Year" },
-  { value: "allTime", label: "All Time" },
-]
+const useTimePeriodOptions = () => {
+  const { t } = useTranslation()
+  return [
+    { value: "7days", label: t("studioAnalytics.timePeriod.last7Days") },
+    { value: "30days", label: t("studioAnalytics.timePeriod.last30Days") },
+    { value: "90days", label: t("studioAnalytics.timePeriod.last90Days") },
+    { value: "thisMonth", label: t("studioAnalytics.timePeriod.thisMonth") },
+    { value: "lastMonth", label: t("studioAnalytics.timePeriod.lastMonth") },
+    { value: "thisYear", label: t("studioAnalytics.timePeriod.thisYear") },
+    { value: "lastYear", label: t("studioAnalytics.timePeriod.lastYear") },
+    { value: "allTime", label: t("studioAnalytics.timePeriod.allTime") },
+  ]
+}
 
 export default function AnalyticsDashboard() {
+  const { t } = useTranslation()
   // ==============================
   // USESELECTOR & DISPATCH
   // ==============================
   const dispatch = useDispatch();
+  const timePeriodOptions = useTimePeriodOptions()
   const { appointments = [] } = useSelector((state) => state.appointments || {})
   const { members = [] } = useSelector((state) => state.member || {})
   const { leads = [] } = useSelector((state) => state.leads || {})
@@ -550,7 +556,7 @@ export default function AnalyticsDashboard() {
             {/* Stat Cards - Responsive Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
               <StatCard
-                title="Bookings"
+                title={t("studioAnalytics.appointments.bookings")}
                 value={processedAppointmentsData.totals.bookings}
                 change={12}
                 icon={CalendarDays}
@@ -558,7 +564,7 @@ export default function AnalyticsDashboard() {
                 iconColor="text-blue-400"
               />
               <StatCard
-                title="Check-ins"
+                title={t("studioAnalytics.appointments.checkIns")}
                 value={processedAppointmentsData.totals.checkIns}
                 change={8}
                 icon={UserCheck}
@@ -566,7 +572,7 @@ export default function AnalyticsDashboard() {
                 iconColor="text-green-400"
               />
               <StatCard
-                title="Cancellations"
+                title={t("studioAnalytics.appointments.cancellations")}
                 value={processedAppointmentsData.totals.cancellations}
                 change={-15}
                 icon={UserX}
@@ -574,7 +580,7 @@ export default function AnalyticsDashboard() {
                 iconColor="text-red-400"
               />
               <StatCard
-                title="Late Cancellations"
+                title={t("studioAnalytics.appointments.lateCancellations")}
                 value={processedAppointmentsData.totals.lateCancellations}
                 change={0}
                 icon={Clock}
@@ -582,7 +588,7 @@ export default function AnalyticsDashboard() {
                 iconColor="text-yellow-400"
               />
               <StatCard
-                title="No Shows"
+                title={t("studioAnalytics.appointments.noShows")}
                 value={processedAppointmentsData.totals.noShows}
                 change={0}
                 icon={AlertCircle}
@@ -592,7 +598,7 @@ export default function AnalyticsDashboard() {
             </div>
 
             {/* Monthly Breakdown Chart */}
-            <ChartCard title="Monthly Breakdown">
+            <ChartCard title={t("studioAnalytics.appointments.monthlyBreakdown")}>
               <div className="w-full overflow-x-auto">
                 <div className="min-w-[500px] sm:min-w-0">
                   <Chart
@@ -612,7 +618,7 @@ export default function AnalyticsDashboard() {
             </ChartCard>
 
             {/* Popular Booking Times Chart */}
-            <ChartCard title="Most Popular Booking Times">
+            <ChartCard title={t("studioAnalytics.appointments.popularBookingTimes")}>
               <div className="w-full overflow-x-auto">
                 <div className="min-w-[400px] sm:min-w-0">
                   <Chart
@@ -640,7 +646,7 @@ export default function AnalyticsDashboard() {
             {/* Member Stat Cards - Full Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
               <StatCard
-                title="Total Members"
+                title={t("studioAnalytics.members.totalMembers")}
                 value={processedMembersData.totalMembers}
                 change={18}
                 icon={Users}
@@ -648,7 +654,7 @@ export default function AnalyticsDashboard() {
                 iconColor="text-blue-400"
               />
               <StatCard
-                title="Full Members"
+                title={t("studioAnalytics.members.fullMembers")}
                 value={processedMembersData.fullMembers}
                 change={12}
                 icon={UserCheck}
@@ -656,7 +662,7 @@ export default function AnalyticsDashboard() {
                 iconColor="text-green-400"
               />
               <StatCard
-                title="Temporary Members"
+                title={t("studioAnalytics.members.temporaryMembers")}
                 value={processedMembersData.temporaryMembers}
                 change={-5}
                 icon={UserPlus}
@@ -664,7 +670,7 @@ export default function AnalyticsDashboard() {
                 iconColor="text-yellow-400"
               />
               <StatCard
-                title="Active Members"
+                title={t("studioAnalytics.members.activeMembers")}
                 value={processedMembersData.activeMembers}
                 change={15}
                 icon={TrendingUp}
@@ -672,7 +678,7 @@ export default function AnalyticsDashboard() {
                 iconColor="text-emerald-400"
               />
               <StatCard
-                title="Inactive Members"
+                title={t("studioAnalytics.members.inactiveMembers")}
                 value={processedMembersData.inactiveMembers}
                 change={-8}
                 icon={UserX}
@@ -680,7 +686,7 @@ export default function AnalyticsDashboard() {
                 iconColor="text-red-400"
               />
               <StatCard
-                title="Paused Members"
+                title={t("studioAnalytics.members.pausedMembers")}
                 value={processedMembersData.pausedMembers}
                 change={0}
                 icon={Clock}
@@ -690,7 +696,7 @@ export default function AnalyticsDashboard() {
             </div>
 
             {/* Member Activity Chart */}
-            <ChartCard title="Member Activity">
+            <ChartCard title={t("studioAnalytics.members.memberActivity")}>
               <div className="w-full overflow-x-auto">
                 <div className="min-w-[500px] sm:min-w-0">
                   <Chart
@@ -710,7 +716,7 @@ export default function AnalyticsDashboard() {
             </ChartCard>
 
             {/* Members by Type Chart */}
-            <ChartCard title="Members by Membership Type">
+            <ChartCard title={t("studioAnalytics.members.membersByType")}>
               <div className="flex justify-center">
                 <div className="w-full max-w-md">
                   <Chart
@@ -734,7 +740,7 @@ export default function AnalyticsDashboard() {
             {/* Total Leads Card */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               <StatCard
-                title="Total Leads"
+                title={t("studioAnalytics.leads.totalLeads")}
                 value={processedLeadsData.totalLeads}
                 change={24}
                 icon={UserPlus}
@@ -747,7 +753,7 @@ export default function AnalyticsDashboard() {
             <LeadOriginMap data={leadOriginMapData} height={350} />
 
             {/* New Leads & Converted Chart */}
-            <ChartCard title="New Leads & Converted">
+            <ChartCard title={t("studioAnalytics.leads.newLeadsConverted")}>
               <div className="w-full overflow-x-auto">
                 <div className="min-w-[500px] sm:min-w-0">
                   <Chart
@@ -768,7 +774,7 @@ export default function AnalyticsDashboard() {
             </ChartCard>
 
             {/* Conversion Rate Chart */}
-            <ChartCard title="Conversion Rate (%)">
+            <ChartCard title={t("studioAnalytics.leads.conversionRate")}>
               <div className="w-full overflow-x-auto">
                 <div className="min-w-[500px] sm:min-w-0">
                   <Chart
@@ -795,7 +801,7 @@ export default function AnalyticsDashboard() {
             {/* Financial Stat Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               <StatCard
-                title="Total Revenue"
+                title={t("studioAnalytics.finances.totalRevenue")}
                 value={financesData.totalRevenue}
                 change={22}
                 icon={DollarSign}
@@ -804,7 +810,7 @@ export default function AnalyticsDashboard() {
                 iconColor="text-green-400"
               />
               <StatCard
-                title="Avg Revenue/Member"
+                title={t("studioAnalytics.finances.avgRevenueMember")}
                 value={financesData.averageRevenuePerMember.toFixed(2)}
                 change={5}
                 icon={CreditCard}
@@ -813,7 +819,7 @@ export default function AnalyticsDashboard() {
                 iconColor="text-blue-400"
               />
               <StatCard
-                title="Outstanding Payments"
+                title={t("studioAnalytics.finances.outstandingPayments")}
                 value={financesData.outstandingPayments}
                 change={-8}
                 icon={AlertCircle}
@@ -824,7 +830,7 @@ export default function AnalyticsDashboard() {
             </div>
 
             {/* Top Services by Revenue Chart */}
-            <ChartCard title="Top Services/Products by Revenue">
+            <ChartCard title={t("studioAnalytics.finances.topServicesByRevenue")}>
               <div className="w-full overflow-x-auto">
                 <div className="min-w-[400px] sm:min-w-0">
                   <Chart
@@ -845,7 +851,7 @@ export default function AnalyticsDashboard() {
             </ChartCard>
 
             {/* Most Frequently Sold Chart */}
-            <ChartCard title="Most Frequently Sold">
+            <ChartCard title={t("studioAnalytics.finances.mostFrequentlySold")}>
               <div className="w-full overflow-x-auto">
                 <div className="min-w-[400px] sm:min-w-0">
                   <Chart
@@ -929,7 +935,7 @@ export default function AnalyticsDashboard() {
           {/* HEADER */}
           {/* ============================== */}
           <div className="flex items-center justify-between mb-6 sm:mb-8">
-            <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Analytics</h1>
+            <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">{t("studioAnalytics.title")}</h1>
 
             {/* Time Period Filter - right aligned */}
             <div className="relative" ref={timePeriodRef}>
