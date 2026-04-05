@@ -54,7 +54,6 @@ import { QRCode } from "antd"
 import toast from "../../components/shared/SharedToast"
 import DeleteModal from "../../components/shared/DeleteModal"
 import AddItemModal from "../../components/shared/AddItemModal"
-import dayjs from "dayjs"
 import debounce from "lodash/debounce"
 
 import ContractBuilder from "../../components/shared/contract-builder/ContractBuilder"
@@ -124,10 +123,23 @@ import {
   createRenewReasonThunk,
   updateRenewReasonThunk,
   deleteRenewReasonThunk,
-  fetchRenewReasonThunk
+  fetchRenewReasonThunk,
 
+  // Contract Form Template
+  createContractFormThunk,
+  updateContractFormThunk,
+  deleteContractFormThunk,
+  fetchContractFormThunk
 
 } from '../../features/contract/contractSlice'
+
+// ++++++ Lead sources +++++++
+import {
+  fetchLeadSourcesThunk,
+  createLeadSourcesThunk,
+  updateLeadSourcesThunk,
+  deleteLeadSourcesThunk
+} from '../../features/lead/leadSlice'
 
 
 import { useSelector, useDispatch } from 'react-redux'
@@ -539,8 +551,12 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const { categories = [], types = [], classes = [], loading, rooms = [] } = useSelector((state) => state.classes) || {}
   const { appointmentCategories: reduxAppointmentCategories = [], appointmentTypes: reduxAppointmentTypes = [] } = useSelector((state) => state.appointments) || {}
 
+  // lead
+  const { leadSources: reduxLeadSources = [] } = useSelector((state) => state.leads) || {}
+
+
   // contract reason
-  const { pauseReasons: reduxPauseReason = [], changeReasons: reduxChangeReason = [], renewReasons: reduxRenewReason = [], bonusReasons: reduxBonusReason = [] } = useSelector((state) => state.contracts)
+  const { pauseReasons: reduxPauseReason = [], changeReasons: reduxChangeReason = [], renewReasons: reduxRenewReason = [], bonusReasons: reduxBonusReason = [], contractForms: reduxContractForms = [] } = useSelector((state) => state.contracts)
   // introductions
   const { materials: reduxMaterial = [] } = useSelector((state) => state.materials) || {}
 
@@ -548,8 +564,6 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const { roles: reduxRoles = [] } = useSelector((state) => state.auth)
 
 
-  // console.log('Categories', categories)
-  // console.log('Types', types)
   // ============================================
   // Load configuration via shared hook
   // ============================================
@@ -609,6 +623,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     dispatch(getAppointmentTypesThunk())
     dispatch(getAllRolesThunk())
     dispatch(fetchMaterialThunk())
+    dispatch(fetchLeadSourcesThunk())
+    dispatch(fetchContractFormThunk())
   }, [dispatch])
   // ============================================
   // Profile State Variables
@@ -764,9 +780,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
 
   // Members
+  const [localLeadSources, setLocalLeadSources] = useState({});
+
   const [allowMemberQRCheckIn, setAllowMemberQRCheckIn] = useState(false)
   const [memberQRCodeUrl, setMemberQRCodeUrl] = useState("")
-  const [leadSources, setLeadSources] = useState([])
   const [introductoryMaterials, setIntroductoryMaterials] = useState([])
   const [introMaterialEditorVisible, setIntroMaterialEditorVisible] = useState(false)
   const [editingIntroMaterial, setEditingIntroMaterial] = useState(null)
@@ -886,6 +903,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   const mobileContentRef = useRef(null)
   const desktopContentRef = useRef(null)
   const prevCountryRef = useRef(null)
+  const debouncedUpdatesRef = useRef({});
+
 
 
   // ============================================
@@ -991,7 +1010,6 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
 
 
-
   useEffect(() => {
     if (reduxAppointmentCategories && reduxAppointmentCategories.length > 0) {
       setAppointmentCategories(reduxAppointmentCategories);
@@ -1002,6 +1020,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     if (reduxPauseReason.length > 0) {
       // Map _id to id and reasonName to name
       const mappedReasons = reduxPauseReason.map(reason => ({
+        _id: reason._id,
         id: reason._id,
         name: reason.reasonName,
         maxDuration: reason.maxDuration
@@ -1013,6 +1032,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   useEffect(() => {
     if (reduxChangeReason.length > 0) {
       const mappedReasons = reduxChangeReason.map(reason => ({
+        _id: reason._id,
         id: reason._id,
         name: reason.reasonName
       }));
@@ -1023,6 +1043,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   useEffect(() => {
     if (reduxRenewReason.length > 0) {
       const mappedReasons = reduxRenewReason.map(reason => ({
+        _id: reason._id,
         id: reason._id,
         name: reason.reasonName
       }));
@@ -1033,23 +1054,13 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   useEffect(() => {
     if (reduxBonusReason.length > 0) {
       const mappedReasons = reduxBonusReason.map(reason => ({
+        _id: reason._id,
         id: reason._id,
         name: reason.reasonName
       }));
       setContractBonusTimeReasons(mappedReasons);
     }
   }, [reduxBonusReason]);
-
-  // Roles
-  useEffect(() => {
-    if (reduxRoles.length > 0) {
-      const mappedRoles = reduxRoles.map(role => ({
-        id: role._id,
-        name: role.name
-      }));
-      setRoles(mappedRoles);
-    }
-  }, [reduxRoles]);
 
 
   // ============================================
@@ -1389,14 +1400,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     setCalendarSettings(config.appointments?.calendarSettings || {})
 
     // Classes
-    setClassTypes(DEFAULT_CLASS_TYPES)
-    setClassCategories(DEFAULT_CLASS_CATEGORIES)
-    setClassCalendarSettings(DEFAULT_CLASS_CALENDAR_SETTINGS)
+    // setClassTypes(DEFAULT_CLASS_TYPES)
+    // setClassCategories(DEFAULT_CLASS_CATEGORIES)
+    // setClassCalendarSettings(DEFAULT_CLASS_CALENDAR_SETTINGS)
 
     // Members & Leads
     setAllowMemberQRCheckIn(config.members?.allowMemberQRCheckIn || false)
     setMemberQRCodeUrl(config.members?.memberQRCodeUrl || "")
-    setLeadSources(config.members?.leadSources || [])
+    // setLeadSources(config.members?.leadSources || [])
     // setIntroductoryMaterials(config.members?.introductoryMaterials || [])
 
     // Contracts
@@ -2832,24 +2843,71 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     )
   }
 
-  const handleCreateContractForm = () => {
+  const handleCreateContractForm = async () => {
     if (!newContractFormName.trim()) {
-      toast.error("Please enter a name")
-      return
+      toast.error("Please enter a name");
+      return;
     }
+
     const newForm = {
-      id: Date.now(),
       name: newContractFormName.trim(),
-      pages: [{ id: 1, title: 'Contract Page 1', elements: [] }],
-      createdAt: new Date().toISOString()
+      pages: [{
+        id: 1,
+        title: 'Contract Page 1',
+        elements: []
+      }],
+      globalHeader: {
+        enabled: false,
+        content: '',
+        fontSize: 12,
+        alignment: 'center'
+      },
+      globalFooter: {
+        enabled: false,
+        content: '',
+        fontSize: 12,
+        alignment: 'center'
+      }
+    };
+
+    try {
+      // Create via Redux thunk
+      const result = await dispatch(createContractFormThunk(newForm)).unwrap();
+
+      // Refresh the list
+      await dispatch(fetchContractFormThunk());
+
+      // Update local state
+      setContractForms(prev => [...prev, result]);
+      setSelectedContractForm(result);
+      setNewContractFormName("");
+      setShowCreateFormModal(false);
+      setContractBuilderModalVisible(true);
+
+      toast.success("Contract form created");
+    } catch (error) {
+      toast.error(error.message || "Failed to create contract form");
     }
-    setContractForms([...contractForms, newForm])
-    setSelectedContractForm(newForm)
-    setNewContractFormName("")
-    setShowCreateFormModal(false)
-    setContractBuilderModalVisible(true)
-    toast.success("Contract form created")
-  }
+  };
+
+  // Add this function to handle contract form updates from the builder
+  const handleUpdateContractForm = async (updatedForm) => {
+    try {
+      await dispatch(updateContractFormThunk({
+        formId: updatedForm._id,
+        updateData: updatedForm
+      })).unwrap();
+
+      // Update local state
+      setContractForms(prev => prev.map(f =>
+        f._id === updatedForm._id ? updatedForm : f
+      ));
+
+      toast.success("Contract form saved");
+    } catch (error) {
+      toast.error(error.message || "Failed to save contract form");
+    }
+  };
 
   // Lead source handlers
   const handleAddLeadSource = () => {
@@ -2859,31 +2917,108 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         { key: "name", label: "Source Name", type: "text", placeholder: "e.g. Instagram, Referral", required: true },
         { key: "color", label: "Color", type: "color" },
       ],
-      (data) => {
-        setLeadSources([...leadSources, { id: Date.now(), name: data.name, color: data.color }])
-        closeAddItemModal()
-        toast.success("Lead source created")
+      async (data) => {
+        try {
+          await dispatch(createLeadSourcesThunk(data)).unwrap();
+          await dispatch(fetchLeadSourcesThunk()); // Refresh the list
+          closeAddItemModal();
+          toast.success("Lead source created");
+        } catch (error) {
+          toast.error(error.message || "Failed to create lead source");
+        }
       }
-    )
-  }
+    );
+  };
 
-  const handleUpdateLeadSource = (id, field, value) => {
-    setLeadSources(leadSources.map(s => s.id === id ? { ...s, [field]: value } : s))
-  }
+
+  // Initialize local state from Redux
+  useEffect(() => {
+    const initialLocalState = {};
+    reduxLeadSources.forEach(source => {
+      initialLocalState[source._id] = {
+        name: source.name,
+        color: source.color
+      };
+    });
+    setLocalLeadSources(initialLocalState);
+  }, [reduxLeadSources]);
+
+  // Debounced update handler
+  const handleUpdateLeadSource = useCallback(
+    debounce(async (id, field, value) => {
+      try {
+        // Save to backend
+        await dispatch(updateLeadSourcesThunk({
+          sourceId: id,
+          updateData: { [field]: value }
+        })).unwrap();
+        toast.success("Lead source updated");
+
+        // Refresh Redux state to ensure consistency
+        await dispatch(fetchLeadSourcesThunk());
+      } catch (error) {
+        toast.error(error.message || "Failed to update lead source");
+        // Revert local state on error
+        const originalSource = reduxLeadSources.find(s => s._id === id);
+        if (originalSource) {
+          setLocalLeadSources(prev => ({
+            ...prev,
+            [id]: {
+              name: originalSource.name,
+              color: originalSource.color
+            }
+          }));
+        }
+        await dispatch(fetchLeadSourcesThunk());
+      }
+    }, 800),
+    [dispatch, reduxLeadSources]
+  );
+
+  // Immediate local update handler
+  const handleLocalLeadSourceChange = (id, field, value) => {
+    // Update local state immediately for responsive UI
+    setLocalLeadSources(prev => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        [field]: value
+      }
+    }));
+
+    // Trigger debounced save
+    handleUpdateLeadSource(id, field, value);
+  };
+
+
+
+  // Add cleanup on unmount
+  useEffect(() => {
+    return () => {
+      handleUpdateLeadSource.cancel();
+    };
+  }, [handleUpdateLeadSource]);
 
   const handleRemoveLeadSource = (id) => {
-    const source = leadSources.find(s => s.id === id)
+    const source = reduxLeadSources.find(s => s._id === id);
     openDeleteModal(
       "Delete Lead Source",
       source?.name || "this lead source",
       "This cannot be undone.",
-      () => {
-        setLeadSources(leadSources.filter(s => s.id !== id))
-        closeDeleteModal()
-        toast.success("Lead source deleted")
+      async () => {
+        try {
+          await dispatch(deleteLeadSourcesThunk(id)).unwrap();
+          // No need to manually filter - Redux handles it
+          await dispatch(fetchLeadSourcesThunk()); // Refresh to ensure consistency
+          closeDeleteModal();
+          toast.success("Lead source deleted");
+        } catch (error) {
+          toast.error(error.message || "Failed to delete lead source");
+          await dispatch(fetchLeadSourcesThunk()); // Refresh to ensure consistency
+        }
       }
-    )
-  }
+    );
+  };
 
   // VAT handlers
   const handleAddVatRate = () => {
@@ -2901,6 +3036,80 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
     )
   }
 
+  // +++++++++++
+  // Contract Form Reasons With Debounce
+  // ****************
+
+  // Generic function to handle debounced updates for any reason type
+  const createDebouncedReasonUpdate = (type, updateThunk, fetchThunk, stateSetter, idField) => {
+      return useCallback((reasonId, field, value, index) => {
+      // Update local state immediately (UI feels responsive)
+      stateSetter(prev => {
+        const updated = [...prev];
+        if (field === 'name') {
+          updated[index] = { ...updated[index], name: value };
+        } else if (field === 'maxDuration') {
+          updated[index] = { ...updated[index], maxDuration: value };
+        }
+        return updated;
+      });
+
+      // Create unique key for this reason and field
+      const updateKey = `${reasonId}_${field}`;
+
+      // Clear existing timeout
+      if (debouncedUpdatesRef.current[updateKey]) {
+        clearTimeout(debouncedUpdatesRef.current[updateKey]);
+      }
+
+      // Set new timeout
+      debouncedUpdatesRef.current[updateKey] = setTimeout(async () => {
+        try {
+          const updateData = field === 'name'
+            ? { reasonName: value }
+            : { maxDuration: value };
+
+          await dispatch(updateThunk({
+            [idField]: reasonId,
+            updateData: updateData
+          })).unwrap();
+
+          await dispatch(fetchThunk());
+          toast.success(`${type} ${field} updated`);
+        } catch (error) {
+          console.error(`Update error for ${type}:`, error);
+          toast.error(`Failed to update ${type} ${field}`);
+          await dispatch(fetchThunk());
+        }
+      }, 800);
+    }, [dispatch]);
+  };
+
+  // Create handlers for each reason type
+  const handlePauseReasonUpdate = createDebouncedReasonUpdate(
+    'pause', updatePauseReasonThunk, fetchPauseReasonThunk, setContractPauseReasons, 'pauseId'
+  );
+
+  const handleChangeReasonUpdate = createDebouncedReasonUpdate(
+    'change', updateChangeReasonThunk, fetchChangeReasonThunk, setContractChangeReasons, 'changeId'
+  );
+
+  const handleRenewReasonUpdate = createDebouncedReasonUpdate(
+    'renew', updateRenewReasonThunk, fetchRenewReasonThunk, setContractRenewReasons, 'renewId'
+  );
+
+  const handleBonusReasonUpdate = createDebouncedReasonUpdate(
+    'bonus', updateBonusReasonThunk, fetchBonusReasonThunk, setContractBonusTimeReasons, 'bonusId'
+  );
+
+
+  useEffect(() => {
+    return () => {
+      Object.values(debouncedUpdatesRef.current).forEach(timeout => {
+        clearTimeout(timeout);
+      });
+    };
+  }, []);
   // Reason handlers (contract pause/change/renew/bonus)
   const handleAddPauseReason = async () => {
     openAddItemModal(
@@ -4923,41 +5132,53 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               }
             />
             <SettingsCard>
-              {leadSources.length === 0 ? (
+              {reduxLeadSources.length === 0 ? (
                 <div className="text-center py-8 text-content-muted">
                   <UserPlus className="w-12 h-12 mx-auto mb-3 opacity-50" />
                   <p>No lead sources configured</p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {leadSources.map((source) => (
-                    <div key={source.id} className="flex items-center gap-3 p-3 bg-surface-card rounded-xl">
-                      <button
-                        onClick={() => openColorPicker(source.color || '#3B82F6', 'Source Color', (color) => handleUpdateLeadSource(source.id, 'color', color))}
-                        className="w-8 h-8 rounded-lg border border-border flex-shrink-0 cursor-pointer hover:scale-105 transition-transform"
-                        style={{ backgroundColor: source.color }}
-                        title="Pick a color"
-                      />
-                      <input
-                        type="text"
-                        value={source.name}
-                        onChange={(e) => handleUpdateLeadSource(source.id, "name", e.target.value)}
-                        placeholder="Source name"
-                        className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
-                      />
-                      <button
-                        onClick={() => handleRemoveLeadSource(source.id)}
-                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
+                  {reduxLeadSources.map((source) => {
+                    // Use local state for the value if available, otherwise use Redux state
+                    const localValue = localLeadSources[source._id] || {
+                      name: source.name,
+                      color: source.color
+                    };
+
+                    return (
+                      <div key={source._id} className="flex items-center gap-3 p-3 bg-surface-card rounded-xl">
+                        <button
+                          onClick={() => openColorPicker(
+                            localValue.color || '#3B82F6',
+                            'Source Color',
+                            (color) => handleLocalLeadSourceChange(source._id, 'color', color)
+                          )}
+                          className="w-8 h-8 rounded-lg border border-border flex-shrink-0 cursor-pointer hover:scale-105 transition-transform"
+                          style={{ backgroundColor: localValue.color }}
+                          title="Pick a color"
+                        />
+                        <input
+                          type="text"
+                          value={localValue.name}
+                          onChange={(e) => handleLocalLeadSourceChange(source._id, "name", e.target.value)}
+                          placeholder="Source name"
+                          className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
+                        />
+                        <button
+                          onClick={() => handleRemoveLeadSource(source._id)}
+                          className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </SettingsCard>
           </div>
-        )
+        );
 
       case "intro-materials":
         return (
@@ -5269,7 +5490,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 }
               />
 
-              {contractForms.length === 0 ? (
+              {reduxContractForms.length === 0 ? (
                 <SettingsCard>
                   <div className="text-center py-12 text-content-muted">
                     <FileText className="w-16 h-16 mx-auto mb-4 opacity-50" />
@@ -5286,7 +5507,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 </SettingsCard>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {contractForms.map((form) => (
+                  {reduxContractForms.map((form) => (
                     <div key={form.id} className="bg-surface-hover rounded-xl overflow-hidden border border-border hover:border-border transition-colors group">
                       <div className="p-4 sm:p-5">
                         <div className="space-y-3">
@@ -5356,9 +5577,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                                   "Delete Contract Form",
                                   form.name || "this form",
                                   "This will permanently delete all pages and content. This action cannot be undone.",
-                                  () => {
+                                  async () => {
                                     setContractForms(contractForms.filter(f => f.id !== form.id))
                                     closeDeleteModal()
+                                    dispatch(deleteContractFormThunk(form.id))
+                                    await dispatch(fetchContractFormThunk())
                                     toast.success("Contract form deleted")
                                   }
                                 )}
@@ -5544,59 +5767,56 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {contractPauseReasons.map((reason, index) => (
-                    <div key={reason.id || index} className="flex items-center gap-3 p-3 bg-surface-card rounded-xl">
-                      <input
-                        type="text"
-                        value={reason.name}
-                        onChange={(e) => {
-                          const updated = [...contractPauseReasons]
-                          updated[index].name = e.target.value
-                          setContractPauseReasons(updated)
-                          // TODO: Call update API
-                        }}
-                        placeholder="Reason name"
-                        className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
-                      />
-                      {reason.maxDuration !== undefined && (
+                  {contractPauseReasons.map((reason, index) => {
+                    const reasonId = reason.id || reason._id;
+                    return (
+                      <div key={reasonId || index} className="flex items-center gap-3 p-3 bg-surface-card rounded-xl">
+                        <input
+                          type="text"
+                          value={reason.name}
+                          onChange={(e) => handlePauseReasonUpdate(reasonId, 'name', e.target.value, index)}
+                          placeholder="Reason name"
+                          className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
+                        />
                         <div className="flex items-center gap-2">
                           <input
                             type="number"
                             value={reason.maxDuration}
-                            onChange={(e) => {
-                              const updated = [...contractPauseReasons]
-                              updated[index].maxDuration = parseInt(e.target.value)
-                              setContractPauseReasons(updated)
-                            }}
+                            onChange={(e) => handlePauseReasonUpdate(reasonId, 'maxDuration', parseInt(e.target.value) || 0, index)}
                             className="w-20 bg-surface-hover text-content-primary rounded-lg px-3 py-2 text-sm border border-border"
                             placeholder="Max days"
                           />
                           <span className="text-xs text-content-faint">days</span>
                         </div>
-                      )}
-                      <button
-                        onClick={() => openDeleteModal(
-                          "Delete Pause Reason",
-                          reason.name || "this reason",
-                          "This cannot be undone.",
-                          async () => {
-                            // TODO: Call delete API
-                            setContractPauseReasons(contractPauseReasons.filter((_, i) => i !== index))
-                            closeDeleteModal()
-                            toast.success("Pause reason deleted")
-                          }
-                        )}
-                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
+                        <button
+                          onClick={() => openDeleteModal(
+                            "Delete Pause Reason",
+                            reason.name || "this reason",
+                            "This cannot be undone.",
+                            async () => {
+                              try {
+                                await dispatch(deletePauseReasonThunk(reasonId)).unwrap();
+                                await dispatch(fetchPauseReasonThunk());
+                                closeDeleteModal();
+                                toast.success("Pause reason deleted");
+                              } catch (error) {
+                                toast.error(error.message || "Failed to delete pause reason");
+                                await dispatch(fetchPauseReasonThunk());
+                              }
+                            }
+                          )}
+                          className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </SettingsCard>
           </div>
-        )
+        );
 
       case "change-reasons":
         return (
@@ -5622,41 +5842,46 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {contractChangeReasons.map((reason, index) => (
-                    <div key={index} className="flex items-center gap-3 p-3 bg-surface-card rounded-xl">
-                      <input
-                        type="text"
-                        value={reason.name}
-                        onChange={(e) => {
-                          const updated = [...contractChangeReasons]
-                          updated[index].name = e.target.value
-                          setContractChangeReasons(updated)
-                        }}
-                        placeholder="Reason name"
-                        className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
-                      />
-                      <button
-                        onClick={() => openDeleteModal(
-                          "Delete Change Reason",
-                          reason.name || "this reason",
-                          "This cannot be undone.",
-                          () => {
-                            setContractChangeReasons(contractChangeReasons.filter((_, i) => i !== index))
-                            closeDeleteModal()
-                            toast.success("Change reason deleted")
-                          }
-                        )}
-                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
+                  {contractChangeReasons.map((reason, index) => {
+                    const reasonId = reason.id || reason._id;
+                    return (
+                      <div key={reasonId || index} className="flex items-center gap-3 p-3 bg-surface-card rounded-xl">
+                        <input
+                          type="text"
+                          value={reason.name}
+                          onChange={(e) => handleChangeReasonUpdate(reasonId, 'name', e.target.value, index)}
+                          placeholder="Reason name"
+                          className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
+                        />
+                        <button
+                          onClick={() => openDeleteModal(
+                            "Delete Change Reason",
+                            reason.name || "this reason",
+                            "This cannot be undone.",
+                            async () => {
+                              try {
+                                await dispatch(deleteChangeReasonThunk(reasonId)).unwrap();
+                                await dispatch(fetchChangeReasonThunk());
+                                closeDeleteModal();
+                                toast.success("Change reason deleted");
+                              } catch (error) {
+                                toast.error(error.message || "Failed to delete change reason");
+                                await dispatch(fetchChangeReasonThunk());
+                              }
+                            }
+                          )}
+                          className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </SettingsCard>
           </div>
-        )
+        );
 
       case "renew-reasons":
         return (
@@ -5682,41 +5907,46 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {contractRenewReasons.map((reason, index) => (
-                    <div key={index} className="flex items-center gap-3 p-3 bg-surface-card rounded-xl">
-                      <input
-                        type="text"
-                        value={reason.name}
-                        onChange={(e) => {
-                          const updated = [...contractRenewReasons]
-                          updated[index].name = e.target.value
-                          setContractRenewReasons(updated)
-                        }}
-                        placeholder="Reason name"
-                        className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
-                      />
-                      <button
-                        onClick={() => openDeleteModal(
-                          "Delete Renew Reason",
-                          reason.name || "this reason",
-                          "This cannot be undone.",
-                          () => {
-                            setContractRenewReasons(contractRenewReasons.filter((_, i) => i !== index))
-                            closeDeleteModal()
-                            toast.success("Renew reason deleted")
-                          }
-                        )}
-                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
+                  {contractRenewReasons.map((reason, index) => {
+                    const reasonId = reason.id || reason._id;
+                    return (
+                      <div key={reasonId || index} className="flex items-center gap-3 p-3 bg-surface-card rounded-xl">
+                        <input
+                          type="text"
+                          value={reason.name}
+                          onChange={(e) => handleRenewReasonUpdate(reasonId, 'name', e.target.value, index)}
+                          placeholder="Reason name"
+                          className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
+                        />
+                        <button
+                          onClick={() => openDeleteModal(
+                            "Delete Renew Reason",
+                            reason.name || "this reason",
+                            "This cannot be undone.",
+                            async () => {
+                              try {
+                                await dispatch(deleteRenewReasonThunk(reasonId)).unwrap();
+                                await dispatch(fetchRenewReasonThunk());
+                                closeDeleteModal();
+                                toast.success("Renew reason deleted");
+                              } catch (error) {
+                                toast.error(error.message || "Failed to delete renew reason");
+                                await dispatch(fetchRenewReasonThunk());
+                              }
+                            }
+                          )}
+                          className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </SettingsCard>
           </div>
-        )
+        );
 
       case "bonus-time-reasons":
         return (
@@ -5742,41 +5972,46 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {contractBonusTimeReasons.map((reason, index) => (
-                    <div key={index} className="flex items-center gap-3 p-3 bg-surface-card rounded-xl">
-                      <input
-                        type="text"
-                        value={reason.name}
-                        onChange={(e) => {
-                          const updated = [...contractBonusTimeReasons]
-                          updated[index].name = e.target.value
-                          setContractBonusTimeReasons(updated)
-                        }}
-                        placeholder="Reason name"
-                        className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
-                      />
-                      <button
-                        onClick={() => openDeleteModal(
-                          "Delete Bonus Time Reason",
-                          reason.name || "this reason",
-                          "This cannot be undone.",
-                          () => {
-                            setContractBonusTimeReasons(contractBonusTimeReasons.filter((_, i) => i !== index))
-                            closeDeleteModal()
-                            toast.success("Bonus time reason deleted")
-                          }
-                        )}
-                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
+                  {contractBonusTimeReasons.map((reason, index) => {
+                    const reasonId = reason.id || reason._id;
+                    return (
+                      <div key={reasonId || index} className="flex items-center gap-3 p-3 bg-surface-card rounded-xl">
+                        <input
+                          type="text"
+                          value={reason.name}
+                          onChange={(e) => handleBonusReasonUpdate(reasonId, 'name', e.target.value, index)}
+                          placeholder="Reason name"
+                          className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
+                        />
+                        <button
+                          onClick={() => openDeleteModal(
+                            "Delete Bonus Time Reason",
+                            reason.name || "this reason",
+                            "This cannot be undone.",
+                            async () => {
+                              try {
+                                await dispatch(deleteBonusReasonThunk(reasonId)).unwrap();
+                                await dispatch(fetchBonusReasonThunk());
+                                closeDeleteModal();
+                                toast.success("Bonus time reason deleted");
+                              } catch (error) {
+                                toast.error(error.message || "Failed to delete bonus time reason");
+                                await dispatch(fetchBonusReasonThunk());
+                              }
+                            }
+                          )}
+                          className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </SettingsCard>
           </div>
-        )
+        );
 
       // ========================
       // COMMUNICATION SECTIONS
@@ -7813,16 +8048,16 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
           <ContractBuilder
             contractForm={selectedContractForm}
             onUpdate={(updatedForm) => {
-              // FIX: Only update the forms list, do NOT call setSelectedContractForm here.
-              // Calling setSelectedContractForm would change the contractForm prop, causing
-              // ContractBuilder's sync effect to fire, which triggers onUpdate again → infinite loop.
-              setContractForms(contractForms.map(f => f.id === selectedContractForm.id ? updatedForm : f))
+              // Call the update handler
+              handleUpdateContractForm(updatedForm);
             }}
-            onClose={() => setContractBuilderModalVisible(false)}
+            onClose={() => {
+              setContractBuilderModalVisible(false);
+              setSelectedContractForm(null);
+            }}
           />
         </div>
       )}
-
       <AppointmentTypeModal
         isOpen={showAppointmentTypeModal}
         onClose={() => setShowAppointmentTypeModal(false)}

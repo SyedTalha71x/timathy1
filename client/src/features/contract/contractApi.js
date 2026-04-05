@@ -125,3 +125,55 @@ export const deleteChangeReasonApi = async (changeId) => {
     const res = await api.delete(`/contract/change/${changeId}`, { withCredentials: true })
     return res.data
 }
+
+
+
+// ***********
+// VAtRate Apis 
+// ++++++++++++++++
+
+
+export const getVatRateApi = async () => {
+    const res = await api.get('/service/vat-rates', { withCredentials: true })
+    return res.data
+}
+export const createVatRateApi = async (data) => {
+    const res = await api.post('/service/vat-rates/create', data, { withCredentials: true })
+    return res.data
+}
+export const updateVatRateApi = async (id, updateData) => {
+    const res = await api.put(`/service/vat-rates/${id}`, updateData, { withCredentials: true })
+    return res.data
+}
+export const deleteVatRateApi = async (id) => {
+    const res = await api.delete(`/service/vat-rates/${id}`, { withCredentials: true })
+    return res.data
+}
+
+
+
+
+
+// contract forms
+
+export const getContractFormsApi = async () => {
+    const res = await api.get('/contract/contractForms', { withCredentials: true })
+    return res.data
+}
+
+
+export const createContractFormApi = async (data) => {
+    const res = await api.post('/contract/contractForms/create', data, { withCredentials: true })
+    return res.data
+}
+
+
+export const updateContractFormApi = async (formId, updateData) => {
+    const res = await api.put(`/contract/contractForms/${formId}`, updateData, { withCredentials: true })
+    return res.data
+}
+
+export const deleteContractFormApi = async (formId) => {
+    const res = await api.delete(`/contract/contractForms/${formId}`, { withCredentials: true })
+    return res.data
+}

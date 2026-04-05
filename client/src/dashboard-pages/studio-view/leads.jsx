@@ -53,13 +53,13 @@ import { trainingVideosData } from "../../utils/studio-states/training-states"
 import { availableMembersLeadsMain as availableMembersLeads, appointmentTypesData, freeAppointmentsData, leadsData as leadsDataMain } from "../../utils/studio-states"
 import { useStudioLeads } from "../../hooks/useStudioLeads"
 import { useDispatch, useSelector } from "react-redux"
-import { createLeadThunk, fetchAllLeadsThunk, updateLeadByStaffThunk } from "../../features/lead/leadSlice"
+import { createLeadThunk, fetchAllLeadsThunk, fetchLeadSourcesThunk, updateLeadByStaffThunk } from "../../features/lead/leadSlice"
 import { createNoteThunk } from "../../features/specialNotes/specialNoteSlice"
 
 
 export default function LeadManagement({ studioId: studioIdProp = null, mode = "studio", studioName: studioNameProp = null }) {
 
-  const { leads, loading } = useSelector((state) => state.leads)
+  const { leads = [], leadSources: reduxSources = [], loading } = useSelector((state) => state.leads) || {}
   const dispatch = useDispatch();
   const navigate = useNavigate()
   const location = useLocation()
@@ -220,6 +220,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
   // ===========================
   useEffect(() => {
     dispatch(fetchAllLeadsThunk())
+    dispatch(fetchLeadSourcesThunk())
   }, [dispatch])
 
 
@@ -1026,8 +1027,8 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
         });
       }
 
-      // console.log('Converted specialsNotes array:', specialsNotesArray)
-      // Prepare the update data matching backend schema
+      const sources = reduxSources.find(s => s._id)
+
       const updateData = {
         firstName: data.firstName || existingLead.firstName,
         lastName: data.surname || data.lastName || existingLead.lastName,
@@ -1041,7 +1042,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
         country: data.country || existingLead.country,
         zipCode: data.zipCode || existingLead.zipCode,
         column: pendingMove && pendingMove.leadId === leadId ? pendingMove.targetColumnId : (data.status || existingLead.column),
-        source: data.source || data.leadSource || existingLead.source,
+        sourceId: data.sources?.name || data.leadSource || existingLead.source,
         about: data.details || existingLead.about,
         trainingGoal: data.trainingGoal || existingLead.trainingGoal,
         specialsNotes: specialsNotesArray,
@@ -1814,7 +1815,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
           // onSave={handleSaveLead}
           columns={columns}
           availableMembersLeads={availableMembersLeads}
-          leadSources={DEFAULT_LEAD_SOURCES}
+          leadSources={reduxSources}
         />
 
         <EditLeadModal
@@ -1839,7 +1840,7 @@ export default function LeadManagement({ studioId: studioIdProp = null, mode = "
           handleAddRelationLead={handleAddRelationLead}
           handleDeleteRelationLead={handleDeleteRelationLead}
           initialTab={selectedEditTab}
-          leadSources={DEFAULT_LEAD_SOURCES}
+          leadSources={reduxSources}
         />
 
         <ViewLeadDetailsModal

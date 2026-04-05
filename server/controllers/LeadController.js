@@ -1,4 +1,4 @@
-const LeadModel = require('../models/LeadModel');
+const { LeadModel, leadSourceModel } = require('../models/LeadModel');
 const StudioModel = require('../models/StudioModel');
 const { NotFoundError, BadRequestError, ConflictError } = require('../middleware/error/httpErrors');
 const { uploadToCloudinary } = require('../utils/CloudinaryUpload');
@@ -22,7 +22,7 @@ const createLead = async (req, res, next) => {
             country,
             zipCode,
             column,
-            source,
+            sourceId,
             trainingGoal,
             about,
             notes,
@@ -30,7 +30,7 @@ const createLead = async (req, res, next) => {
             leadId
         } = req.body;
 
-        console.log('Received data:', { firstName, lastName, email, column, notes }); // Debug log
+        // console.log('Received data:', { firstName, lastName, email, column, notes }); // Debug log
 
         const studio = await StudioModel.findById(studioId);
         if (!studio) throw new NotFoundError("Invalid studio Id");
@@ -40,6 +40,9 @@ const createLead = async (req, res, next) => {
             const existingLead = await LeadModel.findOne({ email });
             if (existingLead) throw new ConflictError("Email Already Registered");
         }
+
+        const source = await leadSourceModel.findById(sourceId)
+        if (!source) throw new BadRequestError("Invalid source Id ")
 
         const leadNumber = await generateLeadId(leadId);
 
@@ -66,7 +69,7 @@ const createLead = async (req, res, next) => {
             country,
             zipCode,
             column,
-            source,
+            source: sourceId,
             about,
             trainingGoal,
             relations: Array.isArray(relation) ? relation.map(r => ({
@@ -91,8 +94,8 @@ const createLead = async (req, res, next) => {
             leadNo: leadNumber
         });
 
-        console.log('Lead created with notes:', lead.specialsNotes); // Check if notes were saved
-        console.log('Lead created with relation:', lead.relations); // Check if notes were saved
+        // console.log('Lead created with notes:', lead.specialsNotes); // Check if notes were saved
+        // console.log('Lead created with relation:', lead.relations); // Check if notes were saved
 
         // Add lead to studio's leads array
         await StudioModel.findByIdAndUpdate(studioId, {
@@ -114,7 +117,7 @@ const updateLeadByStaff = async (req, res, next) => {
     try {
         const userId = req.user?._id;
         const { leadId } = req.params;
-
+        const { sourceId } = req.body
         const updateData = { ...req.body };
 
         // If specialsNotes exists, parse it from JSON string
@@ -134,6 +137,8 @@ const updateLeadByStaff = async (req, res, next) => {
                 return res.status(400).json({ error: "Invalid relations format" });
             }
         }
+
+        if (sourceId !== undefined) updateData.source = sourceId
 
         // Handle file upload
         if (req.file) {
@@ -176,6 +181,10 @@ const allLeads = async (req, res, next) => {
 
         // Get leads with proper population based on schema
         const leads = await LeadModel.find(query)
+            .populate({
+                path: 'source',
+                select: 'name color'
+            })
             .populate({
                 path: 'studioId',
                 select: 'name address'
@@ -220,6 +229,10 @@ const getLeadById = async (req, res, next) => {
             studioId: studioId // Ensure lead belongs to user's studio
         })
             .populate({
+                path: 'source',
+                select: 'name color'
+            })
+            .populate({
                 path: 'studioId',
                 select: 'name address'
             })
@@ -262,6 +275,10 @@ const getLeadsByConversionStatus = async (req, res, next) => {
             studioId,
             isConverted: isConverted
         })
+            .populate({
+                path: 'source',
+                select: 'name color'
+            })
             .populate({
                 path: 'relations.leadId',
                 select: 'firstName lastName email'
@@ -341,6 +358,107 @@ const deleteLead = async (req, res, next) => {
     }
 };
 
+
+
+
+const createSource = async (req, res, next) => {
+    try {
+        const studioId = req.user?.studio
+
+
+        const { name, color } = req.body
+
+        const source = await leadSourceModel.create({
+            name,
+            color,
+            studioId: studioId
+        })
+
+        return res.status(200).json({
+            success: true,
+            source: source
+        })
+    }
+    catch (error) {
+        next(error)
+    }
+}
+const updateSource = async (req, res, next) => {
+    try {
+        const studioId = req.user?.studio
+        const { sourceId } = req.params
+        const { name, color } = req.body
+
+        // First find the document to verify studio ownership
+        const existingSource = await leadSourceModel.findOne({
+            _id: sourceId,
+            studioId: studioId
+        })
+
+        if (!existingSource) {
+            return res.status(404).json({
+                success: false,
+                message: "Lead source not found"
+            })
+        }
+
+        // Then update using findByIdAndUpdate
+        const updatedSource = await leadSourceModel.findByIdAndUpdate(
+            sourceId,  // ← Just the ID string
+            { name, color },
+            { new: true }
+        )
+
+        return res.status(200).json({
+            success: true,
+            source: updatedSource
+        })
+    }
+    catch (error) {
+        next(error)
+    }
+}
+const deleteSource = async (req, res, next) => {
+    try {
+        const studioId = req.user?.studio
+        const { sourceId } = req.params
+
+
+        const source = await leadSourceModel.findById({ _id:sourceId, studioId: studioId })
+
+        if (!source) throw new BadRequestError("Invalid ID")
+        await leadSourceModel.findByIdAndDelete(sourceId)
+        return res.status(200).json({
+            success: true,
+            message: "Source Deleted Successfully"
+        })
+    }
+    catch (error) {
+        next(error)
+    }
+}
+const getSources = async (req, res, next) => {
+    try {
+        const studioId = req.user?.studio
+
+        const sources = await leadSourceModel.find({
+            studioId: studioId
+        })
+
+        if (sources.length === 0) throw new NotFoundError("No source available")
+        return res.status(200).json({
+            success: true,
+            sources: sources
+        })
+    }
+    catch (error) {
+        next(error)
+    }
+}
+
+
+
+
 module.exports = {
     createLead,
     allLeads,
@@ -348,5 +466,13 @@ module.exports = {
     getLeadById,
     getLeadsByConversionStatus,
     convertLead,
-    deleteLead
+    deleteLead,
+
+    // lead sources
+
+    createSource,
+    updateSource,
+    deleteSource,
+    getSources
+
 };

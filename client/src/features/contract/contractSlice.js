@@ -172,7 +172,46 @@ export const fetchChangeReasonThunk = createAsyncThunk('/contract/reason/changes
 })
 
 
+// *********
+// Contract Forms Templates Thunk
+// **************
 
+export const fetchContractFormThunk = createAsyncThunk('/contract/contractForm/fetch-forms', async (_, { rejectWithValue }) => {
+    try {
+        const res = await contractApi.getContractFormsApi()
+        return res.forms
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+export const createContractFormThunk = createAsyncThunk('/contract/contractForm/create-forms', async (data, { rejectWithValue }) => {
+    try {
+        const res = await contractApi.createContractFormApi(data)
+        return res.form
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+export const updateContractFormThunk = createAsyncThunk('/contract/contractForm/update-forms', async ({ formId, updateData }, { rejectWithValue }) => {
+    try {
+        const res = await contractApi.updateContractFormApi(formId, updateData)
+        return res.form
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+export const deleteContractFormThunk = createAsyncThunk('/contract/contractForm/delete-forms', async (formId, { rejectWithValue }) => {
+    try {
+        const res = await contractApi.deleteContractFormApi()
+        return res.message
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
 
 
 
@@ -186,197 +225,102 @@ const contractSlice = createSlice({
         renewReasons: [],
         changeReasons: [],
         bonusReasons: [],
+        contractForms: [],
         loading: false,
         error: null
     },
     reducers: {},
     extraReducers: (builder) => {
         builder
-            // ********
-            // Pause Slice
-            // ************
-
-            // get
-            .addCase(fetchPauseReasonThunk.pending, (state) => {
-                state.loading = true;
-                state.error = null
-            })
+            // ========== PAUSE REASONS ==========
+            // GET
             .addCase(fetchPauseReasonThunk.fulfilled, (state, action) => {
                 state.loading = false;
-                state.pauseReasons = action.payload;
-                state.error = null
+                state.pauseReasons = action.payload; // Should be an array
+                state.error = null;
             })
-            .addCase(fetchPauseReasonThunk.rejected, (state, action) => {
-                state.loading = true;
-                state.error = action.payload?.message
-            })
-            // create
-            .addCase(createPauseReasonThunk.pending, (state) => {
-                state.loading = true;
-                state.error = null
-            })
+            // CREATE
             .addCase(createPauseReasonThunk.fulfilled, (state, action) => {
                 state.loading = false;
-                state.pauseReasons = action.payload;
-                state.error = null
+                // Add the new reason to the array
+                state.pauseReasons.push(action.payload);
+                state.error = null;
             })
-            .addCase(createPauseReasonThunk.rejected, (state, action) => {
-                state.loading = true;
-                state.error = action.payload?.message
-            })
-            // update
-            .addCase(updatePauseReasonThunk.pending, (state) => {
-                state.loading = true;
-                state.error = null
-            })
+            // UPDATE - FIX THIS ONE
             .addCase(updatePauseReasonThunk.fulfilled, (state, action) => {
                 state.loading = false;
-                state.pauseReasons = action.payload;
-                state.error = null
+                // Find and replace the updated reason in the array
+                const updatedReason = action.payload;
+                const index = state.pauseReasons.findIndex(r => r._id === updatedReason._id);
+                if (index !== -1) {
+                    state.pauseReasons[index] = updatedReason;
+                }
+                state.error = null;
             })
-            .addCase(updatePauseReasonThunk.rejected, (state, action) => {
-                state.loading = true;
-                state.error = action.payload?.message
-            })
-            // delete
-            .addCase(deletePauseReasonThunk.pending, (state) => {
-                state.loading = true;
-                state.error = null
-            })
+            // DELETE - FIX THIS ONE
             .addCase(deletePauseReasonThunk.fulfilled, (state, action) => {
                 state.loading = false;
-                state.pauseReasons = action.payload;
-                state.error = null
+                // Filter out the deleted reason
+                const deletedId = action.payload?._id || action.payload;
+                state.pauseReasons = state.pauseReasons.filter(r => r._id !== deletedId);
+                state.error = null;
             })
-            .addCase(deletePauseReasonThunk.rejected, (state, action) => {
-                state.loading = true;
-                state.error = action.payload?.message
-            })
-            // ********
-            // Renew Slice
-            // ************
 
-            // get
-            .addCase(fetchRenewReasonThunk.pending, (state) => {
-                state.loading = true;
-                state.error = null
-            })
+            // ========== RENEW REASONS ==========
             .addCase(fetchRenewReasonThunk.fulfilled, (state, action) => {
                 state.loading = false;
                 state.renewReasons = action.payload;
-                state.error = null
-            })
-            .addCase(fetchRenewReasonThunk.rejected, (state, action) => {
-                state.loading = true;
-                state.error = action.payload?.message
-            })
-            // create
-            .addCase(createRenewReasonThunk.pending, (state) => {
-                state.loading = true;
-                state.error = null
+                state.error = null;
             })
             .addCase(createRenewReasonThunk.fulfilled, (state, action) => {
                 state.loading = false;
-                state.renewReasons = action.payload;
-                state.error = null
-            })
-            .addCase(createRenewReasonThunk.rejected, (state, action) => {
-                state.loading = true;
-                state.error = action.payload?.message
-            })
-            // update
-            .addCase(updateRenewReasonThunk.pending, (state) => {
-                state.loading = true;
-                state.error = null
+                state.renewReasons.push(action.payload);
+                state.error = null;
             })
             .addCase(updateRenewReasonThunk.fulfilled, (state, action) => {
                 state.loading = false;
-                state.renewReasons = action.payload;
-                state.error = null
-            })
-            .addCase(updateRenewReasonThunk.rejected, (state, action) => {
-                state.loading = true;
-                state.error = action.payload?.message
-            })
-            // delete
-            .addCase(deleteRenewReasonThunk.pending, (state) => {
-                state.loading = true;
-                state.error = null
+                const updatedReason = action.payload;
+                const index = state.renewReasons.findIndex(r => r._id === updatedReason._id);
+                if (index !== -1) {
+                    state.renewReasons[index] = updatedReason;
+                }
+                state.error = null;
             })
             .addCase(deleteRenewReasonThunk.fulfilled, (state, action) => {
                 state.loading = false;
-                state.renewReasons = action.payload;
-                state.error = null
+                const deletedId = action.payload?._id || action.payload;
+                state.renewReasons = state.renewReasons.filter(r => r._id !== deletedId);
+                state.error = null;
             })
-            .addCase(deleteRenewReasonThunk.rejected, (state, action) => {
-                state.loading = true;
-                state.error = action.payload?.message
-            })
-            // ********
-            // Bonus Slice
-            // ************
 
-            // get
-            .addCase(fetchBonusReasonThunk.pending, (state) => {
-                state.loading = true;
-                state.error = null
-            })
+            // ========== BONUS REASONS ==========
             .addCase(fetchBonusReasonThunk.fulfilled, (state, action) => {
                 state.loading = false;
                 state.bonusReasons = action.payload;
-                state.error = null
-            })
-            .addCase(fetchBonusReasonThunk.rejected, (state, action) => {
-                state.loading = true;
-                state.error = action.payload?.message
-            })
-            // create
-            .addCase(createBonusReasonThunk.pending, (state) => {
-                state.loading = true;
-                state.error = null
+                state.error = null;
             })
             .addCase(createBonusReasonThunk.fulfilled, (state, action) => {
                 state.loading = false;
-                state.bonusReasons = action.payload;
-                state.error = null
-            })
-            .addCase(createBonusReasonThunk.rejected, (state, action) => {
-                state.loading = true;
-                state.error = action.payload?.message
-            })
-            // update
-            .addCase(updateBonusReasonThunk.pending, (state) => {
-                state.loading = true;
-                state.error = null
+                state.bonusReasons.push(action.payload);
+                state.error = null;
             })
             .addCase(updateBonusReasonThunk.fulfilled, (state, action) => {
                 state.loading = false;
-                state.bonusReasons = action.payload;
-                state.error = null
-            })
-            .addCase(updateBonusReasonThunk.rejected, (state, action) => {
-                state.loading = true;
-                state.error = action.payload?.message
-            })
-            // delete
-            .addCase(deleteBonusReasonThunk.pending, (state) => {
-                state.loading = true;
-                state.error = null
+                const updatedReason = action.payload;
+                const index = state.bonusReasons.findIndex(r => r._id === updatedReason._id);
+                if (index !== -1) {
+                    state.bonusReasons[index] = updatedReason;
+                }
+                state.error = null;
             })
             .addCase(deleteBonusReasonThunk.fulfilled, (state, action) => {
                 state.loading = false;
-                state.bonusReasons = action.payload;
-                state.error = null
+                const deletedId = action.payload?._id || action.payload;
+                state.bonusReasons = state.bonusReasons.filter(r => r._id !== deletedId);
+                state.error = null;
             })
-            .addCase(deleteBonusReasonThunk.rejected, (state, action) => {
-                state.loading = true;
-                state.error = action.payload?.message
-            })
-            // ********
-            // Change Slice
-            // ************
 
-            // get
+            // ========== CHANGE REASONS ==========
             .addCase(fetchChangeReasonThunk.pending, (state) => {
                 state.loading = true;
                 state.error = null
@@ -384,7 +328,7 @@ const contractSlice = createSlice({
             .addCase(fetchChangeReasonThunk.fulfilled, (state, action) => {
                 state.loading = false;
                 state.changeReasons = action.payload;
-                state.error = null
+                state.error = null;
             })
             .addCase(fetchChangeReasonThunk.rejected, (state, action) => {
                 state.loading = true;
@@ -397,8 +341,8 @@ const contractSlice = createSlice({
             })
             .addCase(createChangeReasonThunk.fulfilled, (state, action) => {
                 state.loading = false;
-                state.changeReasons = action.payload;
-                state.error = null
+                state.changeReasons.push(action.payload);
+                state.error = null;
             })
             .addCase(createChangeReasonThunk.rejected, (state, action) => {
                 state.loading = true;
@@ -411,26 +355,107 @@ const contractSlice = createSlice({
             })
             .addCase(updateChangeReasonThunk.fulfilled, (state, action) => {
                 state.loading = false;
-                state.changeReasons = action.payload;
-                state.error = null
+                const updatedReason = action.payload;
+                const index = state.changeReasons.findIndex(r => r._id === updatedReason._id);
+                if (index !== -1) {
+                    state.changeReasons[index] = updatedReason;
+                }
+                state.error = null;
             })
             .addCase(updateChangeReasonThunk.rejected, (state, action) => {
-                state.loading = true;
-                state.error = action.payload?.message
+                state.loading = false;
+                state.error = action.payload?.message || 'Failed to create material'
             })
-            // delete
             .addCase(deleteChangeReasonThunk.pending, (state) => {
                 state.loading = true;
                 state.error = null
             })
             .addCase(deleteChangeReasonThunk.fulfilled, (state, action) => {
                 state.loading = false;
-                state.changeReasons = action.payload;
-                state.error = null
+                const deletedId = action.payload?._id || action.payload;
+                state.changeReasons = state.changeReasons.filter(r => r._id !== deletedId);
+                state.error = null;
             })
             .addCase(deleteChangeReasonThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message || 'Failed to create material'
+            })
+
+            // **********
+            // Contract Forms Templates Slice
+            // **************
+            // GET ALL
+            .addCase(fetchContractFormThunk.pending, (state) => {
                 state.loading = true;
-                state.error = action.payload?.message
+                state.error = null
+            })
+            .addCase(fetchContractFormThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.contractForms = action.payload || [];  // Ensure it's always an array
+                state.error = null
+            })
+            .addCase(fetchContractFormThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message || 'Failed to fetch materials'
+            })
+
+            // CREATE
+            .addCase(createContractFormThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(createContractFormThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                // Add the new material to the existing array
+                if (action.payload) {
+                    state.contractForms = [...state.contractForms, action.payload];
+                }
+                state.error = null
+            })
+            .addCase(createContractFormThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message || 'Failed to create material'
+            })
+
+            // UPDATE
+            .addCase(updateContractFormThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(updateContractFormThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                // Replace the updated material in the array
+                if (action.payload) {
+                    const index = state.contractForms.findIndex(m => m._id === action.payload._id);
+                    if (index !== -1) {
+                        state.contractForms[index] = action.payload;
+                    } else {
+                        // If not found (shouldn't happen), add it
+                        state.contractForms.push(action.payload);
+                    }
+                }
+                state.error = null
+            })
+            .addCase(updateContractFormThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message || 'Failed to update material'
+            })
+
+            // DELETE
+            .addCase(deleteContractFormThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null
+            })
+            .addCase(deleteContractFormThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                // Remove the deleted material from the array
+                const deletedId = action.payload.id;
+                state.contractForms = state.contractForms.filter(m => m._id !== deletedId);
+                state.error = null
+            })
+            .addCase(deleteContractFormThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message || 'Failed to delete material'
             })
     }
 })

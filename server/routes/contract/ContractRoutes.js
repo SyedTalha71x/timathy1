@@ -26,6 +26,17 @@ const {
     getAllChangeReason
 } = require('../../controllers/contracts/ContractController')
 
+
+
+
+
+const {
+    getContractForms,
+    createContractForm,
+    updateContractForm,
+    deleteContractForm
+} = require('../../controllers/contracts/ContractFormController')
+
 const { verifyAccessToken } = require('../../middleware/verifyToken')
 
 
@@ -57,6 +68,17 @@ router.get('/bonuses', getAllBonusReason)
 router.post('/bonus/create', createBonusReason)
 router.put('/bonus/:bonusId', updateBonusReason)
 router.delete('/bonus/:bonusId', deleteBonusReason)
+
+
+
+// contract Forms
+
+router.get('/contractForms', getContractForms)
+router.post('/contractForms/create', createContractForm)
+router.put('/contractForms/:formId', updateContractForm)
+router.delete('/contractForms/:formId', deleteContractForm)
+
+
 
 
 

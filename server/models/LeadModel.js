@@ -1,5 +1,27 @@
 const mongoose = require('mongoose')
 
+
+const leadSourceSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    color: {
+        type: String
+    },
+    studioId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Studio'
+    }
+}, { timestamps: true })
+
+const leadSourceModel = mongoose.model('leadSource', leadSourceSchema)
+
+
+
+
+
 const leadSchema = new mongoose.Schema({
     firstName: {
         type: String,
@@ -51,7 +73,8 @@ const leadSchema = new mongoose.Schema({
         required: true,
     },
     source: {
-        type: String
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'leadSource'
     },
     column: {
         type: String
@@ -145,4 +168,4 @@ const leadSchema = new mongoose.Schema({
 
 const LeadModel = mongoose.model('lead', leadSchema)
 
-module.exports = LeadModel
+module.exports = { LeadModel, leadSourceModel }

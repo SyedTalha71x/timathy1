@@ -37,6 +37,7 @@ const EditLeadModal = ({
   onClose,
   onSave,
   leadData,
+  leadSource,
   memberRelationsLead,
   setMemberRelationsLead,
   // availableMembersLeads = [],
@@ -124,32 +125,13 @@ const EditLeadModal = ({
   const [showPersonDropdown, setShowPersonDropdown] = useState(false)
   const personSearchRef = useRef(null)
 
-  const sourceOptions = [
-    "Website",
-    "Google Ads",
-    "Social Media Ads",
-    "Email Campaign",
-    "Cold Call (Outbound)",
-    "Inbound Call",
-    "Event",
-    "Offline Advertising",
-    "Other",
-  ]
 
-  const getSourceColor = (source) => {
-    const sourceColors = {
-      Website: "bg-blue-600 text-blue-100",
-      "Google Ads": "bg-green-600 text-green-100",
-      "Social Media Ads": "bg-purple-600 text-purple-100",
-      "Email Campaign": "bg-primary-hover text-orange-100",
-      "Cold Call (Outbound)": "bg-red-600 text-red-100",
-      "Inbound Call": "bg-emerald-600 text-emerald-100",
-      Event: "bg-yellow-600 text-yellow-100",
-      "Offline Advertising": "bg-pink-600 text-pink-100",
-      Other: "bg-surface-button text-content-secondary",
-    }
-    return sourceColors[source] || "bg-surface-button text-content-secondary"
-  }
+
+  const getSourceColor = (sourceName, leadSources) => {
+    const source = leadSources.find(s => (s.name || s) === sourceName);
+    return source?.color || '#3b82f6';
+  };
+
 
   // Get status options from columns (exclude trial column)
   const statusOptions = columns.filter(col => col.id !== "trial")
@@ -182,7 +164,7 @@ const EditLeadModal = ({
         telephoneNumber: leadData.telephoneNumber || "",
         status: leadData.status || "",
         hasTrialTraining: leadData.hasTrialTraining || false,
-        source: leadData.leadSource || "",
+        sourceId: leadData.leadSource?.name || "",
         gender: leadData.gender || "",
         birthday: leadData.birthday || "",
         street: leadData.street || "",
@@ -638,7 +620,7 @@ const EditLeadModal = ({
   }
 
 
-// Member filter and Led Filter for search query
+  // Member filter and Led Filter for search query
   const filteredMembers = members && Array.isArray(members)
     ? members.filter((p) => {
       if (!p) return false
@@ -905,7 +887,7 @@ const EditLeadModal = ({
                               onClick={() => setIsSourceDropdownOpen(false)}
                             />
                             <div className="absolute z-20 w-full mt-1 bg-surface-card border border-border rounded-xl shadow-lg max-h-60 overflow-auto">
-                              {sourceOptions.map(option => (
+                              {leadSource.map(option => (
                                 <button
                                   key={option}
                                   type="button"

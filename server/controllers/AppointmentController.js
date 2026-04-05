@@ -4,7 +4,7 @@ const { AppointmentModel, AppointmentCategoryModel, AppointmentTypeModel } = req
 const { MemberModel } = require('../models/Discriminators');
 const StudioModel = require('../models/StudioModel');
 const { NotFoundError, UnAuthorizedError, BadRequestError } = require('../middleware/error/httpErrors');
-const LeadModel = require('../models/LeadModel');
+const { LeadModel } = require('../models/LeadModel');
 const { notifyUser } = require('../utils/NotificationService');
 const { uploadToCloudinary } = require('../utils/CloudinaryUpload');
 
@@ -42,7 +42,7 @@ const createAppointment = async (req, res, next) => {
         const today = new Date();
         const selectedDate = new Date(date);
         let status = "scheduled";
-        
+
         if (selectedDate < new Date(today.getFullYear(), today.getMonth(), today.getDate())) {
             status = "completed";
             view = 'past';
@@ -235,7 +235,7 @@ const createAppointmentByStaff = async (req, res, next) => {
         const today = new Date();
         const selectedDate = new Date(date);
         let status = "confirmed";
-        
+
         if (selectedDate < new Date(today.getFullYear(), today.getMonth(), today.getDate())) {
             status = "completed";
         }
@@ -404,14 +404,14 @@ const getMyAppointment = async (req, res, next) => {
             .populate('appointmentType', 'name duration calenderColor contingentUsage')
             .populate('studio', 'studioName')
             .sort({ createdAt: -1 });
-        
+
         if (!appointments || appointments.length === 0) {
             return res.status(200).json({
                 success: true,
                 appointments: []
             });
         }
-        
+
         return res.status(200).json({
             success: true,
             appointments
@@ -488,7 +488,7 @@ const allAppointments = async (req, res, next) => {
             .populate('studio', 'studioName')
             .populate('appointmentType', 'name duration calenderColor')
             .sort({ createdAt: -1 });
-        
+
         return res.status(200).json({
             success: true,
             appointments: appointments
@@ -623,7 +623,7 @@ const deleteAppointmentById = async (req, res, next) => {
         }
 
         await AppointmentModel.findByIdAndDelete(appointmentId);
-        
+
         return res.status(200).json({
             success: true,
             message: "Appointment Deleted Successfully"
@@ -639,8 +639,8 @@ const deleteAppointmentById = async (req, res, next) => {
 const getAllPendingAppointment = async (req, res, next) => {
     try {
         const studioId = req.user?.studio;
-        const appointments = await AppointmentModel.find({ 
-            studio: studioId, 
+        const appointments = await AppointmentModel.find({
+            studio: studioId,
             status: { $in: ['scheduled', 'pending'] }
         })
             .populate('member', 'firstName lastName email')

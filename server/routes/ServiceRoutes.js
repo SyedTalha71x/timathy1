@@ -58,13 +58,13 @@ router.delete('/category/:id', verifyAccessToken, deleteCategory);
 // vate rate
 
 router.get('/vat-rates', verifyAccessToken, isStaff, getAllVatRates);
-router.get('/vat-rates/:id', verifyAccessToken, isStaff, getVatRateById);
-router.post('/vat-rates', verifyAccessToken, isStaff, createVatRate);
+router.post('/vat-rates/create', verifyAccessToken, isStaff, createVatRate);
 router.put('/vat-rates/:id', verifyAccessToken, isStaff, updateVatRate);
 router.delete('/vat-rates/:id', verifyAccessToken, isStaff, deleteVatRate);
 
 
 
+router.get('/vat-rates/:id', verifyAccessToken, isStaff, getVatRateById);
 router.get('/:id', verifyAccessToken, getServiceById);
 
 module.exports = router;
