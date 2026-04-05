@@ -2,14 +2,15 @@
 /* eslint-disable no-unused-vars */
 import { X, Clock, Users, MapPin, ChevronDown, Check, Briefcase } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import DatePickerField from '../../shared/DatePickerField';
 import { getRoleColorHex } from '../../../utils/studio-states/staff-states';
 import { toast } from 'react-toastify'
-const getColorHex = (t) => {
-  if (!t) return "#808080";
-  if (t.colorHex) return t.colorHex;
-  if (t.calenderColor) return t.calenderColor;
-  if (t.color?.startsWith("#")) return t.color;
+const getColorHex = (clr) => {
+  if (!clr) return "#808080";
+  if (clr.colorHex) return clr.colorHex;
+  if (clr.calenderColor) return clr.calenderColor;
+  if (clr.color?.startsWith("#")) return clr.color;
   return "#808080";
 };
 
@@ -60,6 +61,7 @@ const CreateClassModal = ({
   isOpen, onClose, onSubmit, classTypes = [], trainers = [], rooms = [],
   selectedDate = null, selectedTime = null,
 }) => {
+  const { t, i18n } = useTranslation();
 
   const getDate = (d) => d ? fmtDate(new Date(d)) : "";
   const getTime = (t) => {
@@ -188,8 +190,8 @@ const CreateClassModal = ({
 
     const searchId = String(commonForm.typeId);
 
-    const found = classTypes.find(t => {
-      const typeId = String(t.id || t._id);
+    const found = classTypes.find(ct => {
+      const typeId = String(ct.id || ct._id);
       return typeId === searchId;
     });
 
@@ -203,8 +205,8 @@ const CreateClassModal = ({
 
     const searchId = String(commonForm.trainerId);
 
-    const found = trainers.find(t => {
-      const trainerId = String(t.id || t._id);
+    const found = trainers.find(tr => {
+      const trainerId = String(tr.id || tr._id);
       return trainerId === searchId;
     });
 
@@ -263,7 +265,7 @@ const CreateClassModal = ({
 
     if (!selType || !selTrainer) {
       console.log("Missing required data - type or trainer");
-      toast.error("Please select both class type and staff");
+      toast.error(t("studioClasses.createModal.missingData"));
       return;
     }
 
@@ -292,7 +294,7 @@ const CreateClassModal = ({
     if (showRecurring) {
       const dates = generateRecurringDates();
       if (dates.length === 0) {
-        toast.error("No valid dates generated for recurring class");
+        toast.error(t("studioClasses.createModal.noValidDates"));
         return;
       }
 
@@ -376,9 +378,9 @@ const CreateClassModal = ({
   const recHours = filteredHours(isRecDateToday);
   const recMinutes = filteredMinutes(isRecDateToday, recurringForm.startHour);
 
-  const getInitials = (t) => {
-    if (!t) return "?";
-    return `${t.firstName?.charAt(0) || ''}${t.lastName?.charAt(0) || ''}`.toUpperCase();
+  const getInitials = (s) => {
+    if (!s) return "?";
+    return `${s.firstName?.charAt(0) || ''}${s.lastName?.charAt(0) || ''}`.toUpperCase();
   };
 
   const previewDates = showRecurring ? generateRecurringDates().slice(0, 4) : [];
@@ -387,7 +389,7 @@ const CreateClassModal = ({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[999] p-4" onClick={onClose}>
       <div className="bg-surface-card w-full max-w-lg rounded-xl overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-content-primary">New Class</h2>
+          <h2 className="text-lg font-semibold text-content-primary">{t("studioClasses.createModal.title")}</h2>
           <button onClick={onClose} className="p-2 hover:bg-surface-button text-content-muted hover:text-content-primary rounded-lg">
             <X size={20} />
           </button>
@@ -396,8 +398,8 @@ const CreateClassModal = ({
         <div className="p-6 max-h-[65vh] overflow-y-auto space-y-5">
           {/* Class Type */}
           <div>
-            <label className="block text-sm font-medium text-content-secondary mb-2">Class Type</label>
-            <CustomDropdown value={commonForm.typeId} placeholder="Select class type..."
+            <label className="block text-sm font-medium text-content-secondary mb-2">{t("studioClasses.createModal.classType")}</label>
+            <CustomDropdown value={commonForm.typeId} placeholder={t("studioClasses.createModal.selectType")}
               renderSelected={() => (
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: getColorHex(selType) }} />
@@ -405,15 +407,15 @@ const CreateClassModal = ({
                   <span className="text-content-faint text-xs">({selType?.duration} min)</span>
                 </div>
               )}>
-              {(close) => classTypes.map(t => (
-                <button key={t.id} onClick={() => { updateCommon("typeId", t.id); close(); }}
-                  className={`w-full text-left p-3 flex items-center gap-3 ${commonForm.typeId === t.id ? "bg-surface-hover" : "hover:bg-surface-hover"}`}>
-                  <div className="w-4 h-4 rounded-full" style={{ backgroundColor: getColorHex(t) }} />
+              {(close) => classTypes.map(ct => (
+                <button key={ct.id} onClick={() => { updateCommon("typeId", ct.id); close(); }}
+                  className={`w-full text-left p-3 flex items-center gap-3 ${commonForm.typeId === ct.id ? "bg-surface-hover" : "hover:bg-surface-hover"}`}>
+                  <div className="w-4 h-4 rounded-full" style={{ backgroundColor: getColorHex(ct) }} />
                   <div className="flex-1">
-                    <div className="text-sm text-content-primary">{t.name}</div>
-                    <div className="text-xs text-content-faint">{t.duration} min</div>
+                    <div className="text-sm text-content-primary">{ct.name}</div>
+                    <div className="text-xs text-content-faint">{ct.duration} min</div>
                   </div>
-                  {commonForm.typeId === t.id && <Check size={16} className="text-primary" />}
+                  {commonForm.typeId === ct.id && <Check size={16} className="text-primary" />}
                 </button>
               ))}
             </CustomDropdown>
@@ -421,14 +423,14 @@ const CreateClassModal = ({
 
           {/* Staff */}
           <div>
-            <label className="block text-sm font-medium text-content-secondary mb-2">Staff</label>
+            <label className="block text-sm font-medium text-content-secondary mb-2">{t("studioClasses.createModal.staff")}</label>
             <CustomDropdown
               value={commonForm.trainerId}
-              placeholder="Select staff..."
+              placeholder={t("studioClasses.createModal.selectStaff")}
               renderSelected={() => {
                 // Find staff by either id or _id
-                const selected = trainers.find(t => {
-                  const trainerId = String(t.id || t._id);
+                const selected = trainers.find(tr => {
+                  const trainerId = String(tr.id || tr._id);
                   return trainerId === String(commonForm.trainerId);
                 });
 
@@ -442,7 +444,7 @@ const CreateClassModal = ({
                       </div>
                     }
                     <span className="text-content-primary">
-                      {selected ? `${selected.firstName} ${selected.lastName}` : "Select staff..."}
+                      {selected ? `${selected.firstName} ${selected.lastName}` : t("studioClasses.createModal.selectStaff")}
                     </span>
                     {selected?.staffRole &&
                       <span className="inline-flex items-center gap-1 text-white px-1.5 py-0.5 rounded-md text-[10px] font-medium"
@@ -454,17 +456,14 @@ const CreateClassModal = ({
                 );
               }}>
               {(close) => {
-                return trainers.map(t => {
-                  // Get the correct ID - use _id since that's what's available
-                  const staffId = String(t._id || t.id);
-                  const staffName = `${t.firstName} ${t.lastName}`;
+                return trainers.map(tr => {
+                  const staffId = String(tr._id || tr.id);
+                  const staffName = `${tr.firstName} ${tr.lastName}`;
 
                   return (
                     <button
                       key={staffId}
                       onClick={() => {
-                        console.log("Selected staff ID:", staffId);
-                        console.log("Selected staff:", staffName);
                         updateCommon("trainerId", staffId);
                         close();
                       }}
@@ -472,19 +471,19 @@ const CreateClassModal = ({
                         ? "bg-surface-hover"
                         : "hover:bg-surface-hover"
                         }`}>
-                      {t.img?.url ?
-                        <img src={t.img.url} alt="" className="w-8 h-8 rounded-lg object-cover" /> :
+                      {tr.img?.url ?
+                        <img src={tr.img.url} alt="" className="w-8 h-8 rounded-lg object-cover" /> :
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-semibold"
-                          style={{ backgroundColor: t.color || t.staffColor || 'var(--color-primary)' }}>
-                          {getInitials(t)}
+                          style={{ backgroundColor: tr.color || tr.staffColor || 'var(--color-primary)' }}>
+                          {getInitials(tr)}
                         </div>
                       }
                       <div className="flex-1">
                         <div className="text-sm text-content-primary text-left">{staffName}</div>
-                        {t.staffRole &&
+                        {tr.staffRole &&
                           <div className="inline-flex items-center gap-1 text-white px-1.5 py-0.5 rounded-md text-[10px] font-medium mt-0.5"
-                            style={{ backgroundColor: getRoleColorHex(t.role) }}>
-                            <Briefcase size={9} className="flex-shrink-0" />{t.staffRole}
+                            style={{ backgroundColor: getRoleColorHex(tr.role) }}>
+                            <Briefcase size={9} className="flex-shrink-0" />{tr.staffRole}
                           </div>
                         }
                       </div>
@@ -500,15 +499,15 @@ const CreateClassModal = ({
 
           {/* Booking Type */}
           <div>
-            <label className="block text-sm font-medium text-content-secondary mb-2">Booking Type</label>
+            <label className="block text-sm font-medium text-content-secondary mb-2">{t("studioClasses.createModal.bookingType")}</label>
             <div className="flex bg-surface-dark p-1 rounded-xl">
               <button type="button" onClick={() => setShowRecurring(false)}
                 className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${!showRecurring ? "bg-primary text-white" : "text-content-muted hover:text-content-primary"}`}>
-                Single
+                {t("studioClasses.createModal.singleClass")}
               </button>
               <button type="button" onClick={() => setShowRecurring(true)}
                 className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${showRecurring ? "bg-primary text-white" : "text-content-muted hover:text-content-primary"}`}>
-                Recurring
+                {t("studioClasses.createModal.recurring")}
               </button>
             </div>
           </div>
@@ -517,26 +516,26 @@ const CreateClassModal = ({
           {!showRecurring && (
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-content-faint mb-2">Date</label>
+                <label className="block text-xs text-content-faint mb-2">{t("studioClasses.createModal.date")}</label>
                 <div className="w-full flex items-center justify-between bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5">
                   <span className={singleForm.date ? "text-content-primary" : "text-content-faint"}>
-                    {singleForm.date ? (() => { const [y, m, d] = singleForm.date.split("-"); return `${d}.${m}.${y}`; })() : "Select date"}
+                    {singleForm.date ? (() => { const [y, m, d] = singleForm.date.split("-"); return `${d}.${m}.${y}`; })() : t("studioClasses.createModal.selectDate")}
                   </span>
                   <DatePickerField value={singleForm.date} onChange={v => updateSingle("date", v)} minDate={todayStr} />
                 </div>
               </div>
               <div>
-                <label className="block text-xs text-content-faint mb-2">Start Time</label>
+                <label className="block text-xs text-content-faint mb-2">{t("studioClasses.createModal.startTime")}</label>
                 <div className="flex gap-1.5 items-center">
                   <select value={singleForm.startHour} onChange={e => updateSingle("startHour", e.target.value)}
                     className={`flex-1 bg-surface-dark border border-border text-sm rounded-xl px-2 py-2.5 appearance-none focus:outline-none focus:border-primary cursor-pointer ${singleForm.startHour ? "text-content-primary" : "text-content-faint"}`}>
-                    <option value="" disabled>HH</option>
+                    <option value="" disabled>{t("studioClasses.createModal.hourPlaceholder")}</option>
                     {singleHours.map(h => { const v = String(h).padStart(2, "0"); return <option key={h} value={v}>{v}</option> })}
                   </select>
                   <span className="text-content-muted font-semibold">:</span>
                   <select value={singleForm.startMinute} onChange={e => updateSingle("startMinute", e.target.value)}
                     className={`flex-1 bg-surface-dark border border-border text-sm rounded-xl px-2 py-2.5 appearance-none focus:outline-none focus:border-primary cursor-pointer ${singleForm.startMinute ? "text-content-primary" : "text-content-faint"}`}>
-                    <option value="" disabled>MM</option>
+                    <option value="" disabled>{t("studioClasses.createModal.minutePlaceholder")}</option>
                     {singleMinutes.map(m => <option key={m} value={m}>{m}</option>)}
                   </select>
                 </div>
@@ -548,9 +547,9 @@ const CreateClassModal = ({
           {showRecurring && (
             <div className="space-y-4 bg-surface-dark rounded-xl p-4">
               <div>
-                <label className="block text-xs text-content-faint mb-2">Frequency</label>
+                <label className="block text-xs text-content-faint mb-2">{t("studioClasses.createModal.frequency")}</label>
                 <div className="grid grid-cols-3 gap-1 bg-surface-card p-1 rounded-xl">
-                  {[{ v: "daily", l: "Daily" }, { v: "weekly", l: "Weekly" }, { v: "monthly", l: "Monthly" }].map(f => (
+                  {[{ v: "daily", l: t("studioClasses.createModal.daily") }, { v: "weekly", l: t("studioClasses.createModal.weekly") }, { v: "monthly", l: t("studioClasses.createModal.monthly") }].map(f => (
                     <button key={f.v} type="button" onClick={() => updateRecurrence("frequency", f.v)}
                       className={`py-2 text-xs font-medium rounded-lg transition-colors ${rec.frequency === f.v ? "bg-primary text-white" : "text-content-muted hover:text-content-primary"}`}>
                       {f.l}
@@ -561,10 +560,10 @@ const CreateClassModal = ({
 
               <div className={`grid gap-4 ${rec.frequency === "weekly" ? "grid-cols-2" : "grid-cols-1"}`}>
                 <div>
-                  <label className="block text-xs text-content-faint mb-2">Start Date</label>
+                  <label className="block text-xs text-content-faint mb-2">{t("studioClasses.createModal.startDate")}</label>
                   <div className="w-full flex items-center justify-between bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5">
                     <span className={rec.startDate ? "text-content-primary" : "text-content-faint"}>
-                      {rec.startDate ? (() => { const [y, m, d] = rec.startDate.split("-"); return `${d}.${m}.${y}`; })() : "Select date"}
+                      {rec.startDate ? (() => { const [y, m, d] = rec.startDate.split("-"); return `${d}.${m}.${y}`; })() : t("studioClasses.createModal.selectDate")}
                     </span>
                     <DatePickerField value={rec.startDate} onChange={v => {
                       updateRecurrence("startDate", v);
@@ -577,19 +576,19 @@ const CreateClassModal = ({
                 </div>
                 {rec.frequency === "weekly" && (
                   <div>
-                    <label className="block text-xs text-content-faint mb-2">Day of Week</label>
+                    <label className="block text-xs text-content-faint mb-2">{t("studioClasses.createModal.dayOfWeek")}</label>
                     <select
                       value={rec.dayOfWeek}
                       onChange={e => updateRecurrence("dayOfWeek", e.target.value)}
                       className="w-full bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5 text-content-primary appearance-none focus:outline-none focus:border-primary"
                     >
-                      <option value="monday">Monday</option>
-                      <option value="tuesday">Tuesday</option>
-                      <option value="wednesday">Wednesday</option>
-                      <option value="thursday">Thursday</option>
-                      <option value="friday">Friday</option>
-                      <option value="saturday">Saturday</option>
-                      <option value="sunday">Sunday</option>
+                      <option value="monday">{t("studioClasses.createModal.days.monday")}</option>
+                      <option value="tuesday">{t("studioClasses.createModal.days.tuesday")}</option>
+                      <option value="wednesday">{t("studioClasses.createModal.days.wednesday")}</option>
+                      <option value="thursday">{t("studioClasses.createModal.days.thursday")}</option>
+                      <option value="friday">{t("studioClasses.createModal.days.friday")}</option>
+                      <option value="saturday">{t("studioClasses.createModal.days.saturday")}</option>
+                      <option value="sunday">{t("studioClasses.createModal.days.sunday")}</option>
                     </select>
                   </div>
                 )}
@@ -597,23 +596,23 @@ const CreateClassModal = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-content-faint mb-2">Start Time</label>
+                  <label className="block text-xs text-content-faint mb-2">{t("studioClasses.createModal.startTime")}</label>
                   <div className="flex gap-1.5 items-center">
                     <select value={recurringForm.startHour} onChange={e => updateRecurring("startHour", e.target.value)}
                       className={`flex-1 bg-surface-card border border-border text-sm rounded-xl px-2 py-2.5 appearance-none focus:outline-none focus:border-primary cursor-pointer ${recurringForm.startHour ? "text-content-primary" : "text-content-faint"}`}>
-                      <option value="" disabled>HH</option>
+                      <option value="" disabled>{t("studioClasses.createModal.hourPlaceholder")}</option>
                       {recHours.map(h => { const v = String(h).padStart(2, "0"); return <option key={h} value={v}>{v}</option> })}
                     </select>
                     <span className="text-content-muted font-semibold">:</span>
                     <select value={recurringForm.startMinute} onChange={e => updateRecurring("startMinute", e.target.value)}
                       className={`flex-1 bg-surface-card border border-border text-sm rounded-xl px-2 py-2.5 appearance-none focus:outline-none focus:border-primary cursor-pointer ${recurringForm.startMinute ? "text-content-primary" : "text-content-faint"}`}>
-                      <option value="" disabled>MM</option>
+                      <option value="" disabled>{t("studioClasses.createModal.minutePlaceholder")}</option>
                       {recMinutes.map(m => <option key={m} value={m}>{m}</option>)}
                     </select>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs text-content-faint mb-2">Occurrences</label>
+                  <label className="block text-xs text-content-faint mb-2">{t("studioClasses.createModal.occurrences")}</label>
                   <input type="number" min={1} max={52} value={rec.occurrences} onChange={e => updateRecurrence("occurrences", parseInt(e.target.value) || 1)}
                     className="w-full bg-surface-card border border-border text-sm rounded-xl px-3 py-2.5 text-content-primary focus:outline-none focus:border-primary" />
                 </div>
@@ -621,30 +620,27 @@ const CreateClassModal = ({
 
               {/* Frequency description */}
               <div className="text-xs text-content-faint">
-                {rec.frequency === "daily" && "Creates a class every day starting from the selected date."}
-                {rec.frequency === "weekly" && "Creates a class every week on the selected day."}
+                {rec.frequency === "daily" && t("studioClasses.createModal.descDaily")}
+                {rec.frequency === "weekly" && t("studioClasses.createModal.descWeekly")}
                 {rec.frequency === "monthly" && rec.startDate && (() => {
                   const day = new Date(rec.startDate).getDate();
-                  const s = ["th", "st", "nd", "rd"];
-                  const v = day % 100;
-                  const suffix = s[(v - 20) % 10] || s[v] || s[0];
-                  return `Creates a class on the ${day}${suffix} of each month.`;
+                  return t("studioClasses.createModal.descMonthly", { day });
                 })()}
-                {rec.frequency === "monthly" && !rec.startDate && "Creates a class on the same day each month. Select a start date."}
+                {rec.frequency === "monthly" && !rec.startDate && t("studioClasses.createModal.descMonthlyNoDate")}
               </div>
 
               {/* Preview */}
               {previewDates.length > 0 && (
                 <div className="text-xs text-content-muted bg-surface-card rounded-lg p-2.5 space-y-0.5">
-                  <div className="text-content-secondary font-medium mb-1">Preview ({rec.occurrences} classes):</div>
+                  <div className="text-content-secondary font-medium mb-1">{t("studioClasses.createModal.preview", { count: rec.occurrences })}</div>
                   {previewDates.map((d, i) => {
                     const dt = new Date(d);
                     return <div key={i}>
-                      {dt.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })}
+                      {dt.toLocaleDateString(i18n.language, { weekday: "short", month: "short", day: "numeric", year: "numeric" })}
                       {recurringForm.startHour && recurringForm.startMinute ? ` · ${recurringForm.startHour}:${recurringForm.startMinute}` : ""}
                     </div>;
                   })}
-                  {parseInt(rec.occurrences) > 4 && <div className="text-content-faint">...and {parseInt(rec.occurrences) - 4} more</div>}
+                  {parseInt(rec.occurrences) > 4 && <div className="text-content-faint">{t("studioClasses.createModal.andMore", { count: parseInt(rec.occurrences) - 4 })}</div>}
                 </div>
               )}
             </div>
@@ -654,8 +650,8 @@ const CreateClassModal = ({
           {selType && (
             <div className="flex items-center gap-2 text-xs text-content-muted bg-surface-dark rounded-xl px-4 py-2.5 border border-border">
               <Clock size={13} />
-              <span>Duration: {selType.duration} min</span>
-              {calcEnd() && <><span className="text-content-faint">·</span><span>Ends at {calcEnd()}</span></>}
+              <span>{t("studioClasses.createModal.duration", { minutes: selType.duration })}</span>
+              {calcEnd() && <><span className="text-content-faint">·</span><span>{t("studioClasses.createModal.endsAt", { time: calcEnd() })}</span></>}
             </div>
           )}
 
@@ -663,10 +659,10 @@ const CreateClassModal = ({
           {/* Room & Max */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-content-faint mb-2">Room</label>
+              <label className="block text-xs text-content-faint mb-2">{t("studioClasses.createModal.room")}</label>
               <CustomDropdown
                 value={commonForm.room}
-                placeholder="Select room..."
+                placeholder={t("studioClasses.createModal.selectRoom")}
                 renderSelected={() => {
                   // Find the selected room to display its name
                   const selectedRoom = rooms.find(r => {
@@ -677,7 +673,7 @@ const CreateClassModal = ({
                   // Get the display name
                   const displayName = selectedRoom
                     ? (selectedRoom.name || selectedRoom.studioName || selectedRoom)
-                    : commonForm.room || "Select room...";
+                    : commonForm.room || t("studioClasses.createModal.selectRoom");
 
                   return (
                     <div className="flex items-center gap-2">
@@ -709,7 +705,7 @@ const CreateClassModal = ({
             </div>
             <div>
               <label className="block text-xs text-content-faint mb-2 flex items-center gap-1.5">
-                <Users size={12} className="text-content-faint" />Max Participants
+                <Users size={12} className="text-content-faint" />{t("studioClasses.createModal.maxParticipants")}
               </label>
               <input type="number" min={1} max={100} value={currentMax}
                 onChange={e => showRecurring
@@ -726,16 +722,16 @@ const CreateClassModal = ({
           <div className="px-6 pb-1">
             <div className="flex items-center gap-2 text-xs text-red-400 bg-red-500/10 rounded-xl px-3 py-2">
               <Clock size={13} />
-              <span>{isPastRecurring ? "Start date is in the past" : "Cannot create a class in the past"}</span>
+              <span>{isPastRecurring ? t("studioClasses.createModal.pastDateWarning") : t("studioClasses.createModal.cannotCreatePast")}</span>
             </div>
           </div>
         )}
 
         <div className="px-6 py-4 border-t border-border flex gap-3">
-          <button onClick={onClose} className="flex-1 py-2.5 text-sm font-medium text-content-muted bg-surface-button hover:bg-surface-button-hover rounded-xl">Cancel</button>
+          <button onClick={onClose} className="flex-1 py-2.5 text-sm font-medium text-content-muted bg-surface-button hover:bg-surface-button-hover rounded-xl">{t("studioClasses.createModal.cancel")}</button>
           <button disabled={!isValid || isPast} onClick={handleSubmit}
             className="flex-1 py-2.5 text-sm font-medium text-white bg-primary hover:bg-primary-hover disabled:bg-surface-button disabled:text-content-muted rounded-xl">
-            {showRecurring ? `Create ${rec.occurrences} Classes` : "Create Class"}
+            {showRecurring ? t("studioClasses.createModal.createClasses", { count: rec.occurrences }) : t("studioClasses.createModal.createClass")}
           </button>
         </div>
       </div>

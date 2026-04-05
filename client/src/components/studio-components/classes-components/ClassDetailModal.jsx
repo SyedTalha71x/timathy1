@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import React, { useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { X, Clock, Users, MapPin, Calendar, Repeat, Search, UserMinus, Trash2, Plus, AlertTriangle, Ban, ChevronDown, Check, Briefcase } from "lucide-react";
 import NotifyModalMain from '../../shared/NotifyModal';
 import DatePickerField from '../../shared/DatePickerField';
@@ -12,11 +13,11 @@ const fmtDate = (d) => {
   return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
 };
 
-const getColorHex = (t) => {
-  if (!t) return "#808080";
-  if (t.colorHex) return t.colorHex;
-  if (t.calenderColor) return t.calenderColor;
-  if (t.color?.startsWith("#")) return t.color;
+const getColorHex = (clr) => {
+  if (!clr) return "#808080";
+  if (clr.colorHex) return clr.colorHex;
+  if (clr.calenderColor) return clr.calenderColor;
+  if (clr.color?.startsWith("#")) return clr.color;
   return "#808080";
 };
 
@@ -122,6 +123,7 @@ const ClassDetailModal = ({
   onEnrollMember, onRemoveMember, onCancelClass, onCancelSeries, onDeleteClass, onEditClass,
   rooms = [], trainers = [], classTypes = [],
 }) => {
+  const { t, i18n } = useTranslation();
   // ===== ALL HOOKS FIRST (useState, useEffect, useRef, useMemo) =====
 
   const [activeTab, setActiveTab] = useState("details");
@@ -311,21 +313,21 @@ const ClassDetailModal = ({
 
   // Format functions
   const formatDate = (ds) => {
-    if (!ds) return "N/A";
+    if (!ds) return t("studioClasses.detailModal.na");
     const d = typeof ds === "string" ? new Date(ds) : ds;
     if (isNaN(d.getTime())) return ds;
-    return d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+    return d.toLocaleDateString(i18n.language, { weekday: "long", month: "long", day: "numeric", year: "numeric" });
   };
 
   const formatDateDisplay = (ds) => {
-    if (!ds) return "Select date";
+    if (!ds) return t("studioClasses.detailModal.selectDate", "Select date");
     const [y, m, d] = ds.split("-");
     return `${d}.${m}.${y}`;
   };
 
   // Recurring info helpers
-  const dayNames = { "0": "Sunday", "1": "Monday", "2": "Tuesday", "3": "Wednesday", "4": "Thursday", "5": "Friday", "6": "Saturday" };
-  const freqLabels = { daily: "Daily", weekly: "Weekly", biweekly: "Bi-weekly", monthly: "Monthly" };
+  const dayNames = { "0": t("studioClasses.detailModal.dayNames.0"), "1": t("studioClasses.detailModal.dayNames.1"), "2": t("studioClasses.detailModal.dayNames.2"), "3": t("studioClasses.detailModal.dayNames.3"), "4": t("studioClasses.detailModal.dayNames.4"), "5": t("studioClasses.detailModal.dayNames.5"), "6": t("studioClasses.detailModal.dayNames.6") };
+  const freqLabels = { daily: t("studioClasses.detailModal.freqLabels.daily"), weekly: t("studioClasses.detailModal.freqLabels.weekly"), biweekly: t("studioClasses.detailModal.freqLabels.biweekly"), monthly: t("studioClasses.detailModal.freqLabels.monthly") };
   const getRecurringLabel = () => {
     if (!hasSeries) return null;
     const freq = data.frequency || data.recurrencePattern;
@@ -396,7 +398,7 @@ const ClassDetailModal = ({
     if (!hasChanges) return;
 
     if (isTimePast(editDate, editHour, editMinute)) {
-      toast.error("Cannot schedule class in the past");
+      toast.error(t("studioClasses.detailModal.toast.cannotSchedulePast"));
       return;
     }
 
@@ -404,7 +406,7 @@ const ClassDetailModal = ({
     const classId = data.id;
 
     if (!classId) {
-      toast.error("Unable to identify class");
+      toast.error(t("studioClasses.detailModal.toast.unableToIdentify"));
       return;
     }
 
@@ -462,7 +464,7 @@ const ClassDetailModal = ({
           onCancelSeries?.(seriesId);
           onClose();
         } else {
-          toast.error("Unable to identify series");
+          toast.error(t("studioClasses.detailModal.toast.unableToIdentifySeries"));
         }
       }
     } else {
@@ -476,7 +478,7 @@ const ClassDetailModal = ({
           onCancelClass?.(classId);
           onClose();
         } else {
-          toast.error("Unable to identify class");
+          toast.error(t("studioClasses.detailModal.toast.unableToIdentify"));
         }
       }
     }
@@ -489,7 +491,7 @@ const ClassDetailModal = ({
       onDeleteClass?.(classId);
       onClose();
     } else {
-      toast.error("Unable to identify class");
+      toast.error(t("studioClasses.detailModal.toast.unableToIdentify"));
     }
   };
 
@@ -560,7 +562,7 @@ const ClassDetailModal = ({
                     onMouseEnter={() => { if (window.innerWidth >= 1024) setShowRecurringInfo(true) }}
                     onMouseLeave={() => { if (window.innerWidth >= 1024) setShowRecurringInfo(false) }}
                     className="p-1 rounded-md text-content-muted hover:text-primary hover:bg-primary/10 transition-colors"
-                    title="Recurring class">
+                    title={t("studioClasses.detailModal.recurringClass")}>
                     <Repeat size={14} />
                   </button>
                   {showRecurringInfo && recurringLabel && (
@@ -568,22 +570,22 @@ const ClassDetailModal = ({
                       <div className="bg-surface-dark border border-border rounded-xl shadow-xl p-3 text-xs">
                         <div className="flex items-center gap-2 mb-2">
                           <Repeat size={12} className="text-primary" />
-                          <span className="text-content-primary font-semibold">Recurring Class</span>
+                          <span className="text-content-primary font-semibold">{t("studioClasses.detailModal.recurringClass")}</span>
                         </div>
                         <div className="space-y-1.5 text-content-secondary">
                           <div className="flex justify-between">
-                            <span className="text-content-faint">Frequency</span>
+                            <span className="text-content-faint">{t("studioClasses.detailModal.frequency")}</span>
                             <span className="text-content-primary font-medium">{recurringLabel.freq}</span>
                           </div>
                           {recurringLabel.day && (
                             <div className="flex justify-between">
-                              <span className="text-content-faint">Day</span>
+                              <span className="text-content-faint">{t("studioClasses.detailModal.day")}</span>
                               <span className="text-content-primary font-medium">{recurringLabel.day}</span>
                             </div>
                           )}
                           {recurringLabel.occurrences && (
                             <div className="flex justify-between">
-                              <span className="text-content-faint">Occurrences</span>
+                              <span className="text-content-faint">{t("studioClasses.detailModal.occurrences")}</span>
                               <span className="text-content-primary font-medium">{recurringLabel.occurrences}</span>
                             </div>
                           )}
@@ -594,8 +596,8 @@ const ClassDetailModal = ({
                   )}
                 </div>
               )}
-              {isCancelled && <span className="text-[10px] font-medium text-red-400 bg-red-500/15 px-2 py-0.5 rounded-lg flex-shrink-0">Cancelled</span>}
-              {isPast && !isCancelled && <span className="text-[10px] font-medium text-content-faint bg-surface-button px-2 py-0.5 rounded-lg flex-shrink-0">Past</span>}
+              {isCancelled && <span className="text-[10px] font-medium text-red-400 bg-red-500/15 px-2 py-0.5 rounded-lg flex-shrink-0">{t("studioClasses.detailModal.cancelled")}</span>}
+              {isPast && !isCancelled && <span className="text-[10px] font-medium text-content-faint bg-surface-button px-2 py-0.5 rounded-lg flex-shrink-0">{t("studioClasses.detailModal.past")}</span>}
             </div>
             <button onClick={handleClose} className="p-2 hover:bg-surface-button text-content-muted hover:text-content-primary rounded-lg transition-colors flex-shrink-0">
               <X size={20} />
@@ -606,8 +608,8 @@ const ClassDetailModal = ({
         {/* Tabs */}
         <div className="px-6 flex gap-0 border-b border-border flex-shrink-0">
           {[
-            { id: "details", label: "Details", badge: null },
-            { id: "participants", label: "Participants", badge: `${enrolled.length}/${classData.maxParticipants}` },
+            { id: "details", label: t("studioClasses.detailModal.details"), badge: null },
+            { id: "participants", label: t("studioClasses.detailModal.participants"), badge: `${enrolled.length}/${classData.maxParticipants}` },
           ].map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-2.5 text-sm font-medium transition-colors relative flex items-center gap-2 ${activeTab === tab.id ? "text-content-primary" : "text-content-muted hover:text-content-secondary"
@@ -632,7 +634,7 @@ const ClassDetailModal = ({
               {/* Date & Time */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-content-secondary mb-2">Date</label>
+                  <label className="block text-sm font-medium text-content-secondary mb-2">{t("studioClasses.detailModal.date")}</label>
                   {canEdit ? (
                     <div className="w-full flex items-center justify-between bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5">
                       <span className={editDate ? "text-content-primary" : "text-content-faint"}>{formatDateDisplay(editDate)}</span>
@@ -645,7 +647,7 @@ const ClassDetailModal = ({
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-content-secondary mb-2">Time</label>
+                  <label className="block text-sm font-medium text-content-secondary mb-2">{t("studioClasses.detailModal.time")}</label>
                   {canEdit ? (
                     <div className="flex items-center gap-1.5">
                       <select value={editHour} onChange={e => handleHourChange(e.target.value)}
@@ -670,19 +672,19 @@ const ClassDetailModal = ({
               {canEdit && (
                 <div className="flex items-center gap-2 text-xs text-content-muted bg-surface-dark rounded-xl px-4 py-2.5 border border-border">
                   <Clock size={13} />
-                  <span>Duration: {classData.duration || 60} min</span>
+                  <span>{t("studioClasses.detailModal.duration", { minutes: classData.duration || 60 })}</span>
                   <span className="text-content-faint">·</span>
-                  <span>Ends at {editEndTime}</span>
+                  <span>{t("studioClasses.detailModal.endsAt", { time: editEndTime })}</span>
                 </div>
               )}
 
               {/* Staff */}
               <div>
-                <label className="block text-sm font-medium text-content-secondary mb-2">Staff</label>
+                <label className="block text-sm font-medium text-content-secondary mb-2">{t("studioClasses.detailModal.staff")}</label>
                 {canEdit && normalizedTrainers.length > 0 ? (
                   <CustomDropdown
                     value={editTrainerId}
-                    placeholder="Select staff..."
+                    placeholder={t("studioClasses.detailModal.selectStaff")}
                     renderSelected={() => (
                       <div className="flex items-center gap-3">
                         {editTrainer?.img ? (
@@ -737,24 +739,24 @@ const ClassDetailModal = ({
               {/* Room & Max Participants */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-content-secondary mb-2">Room</label>
+                  <label className="block text-sm font-medium text-content-secondary mb-2">{t("studioClasses.detailModal.room")}</label>
                   {canEdit && rooms.length > 0 ? (
                     <div className="relative">
                       <select value={editRoom} onChange={e => setEditRoom(e.target.value)}
                         className="w-full bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5 text-content-primary appearance-none focus:outline-none focus:border-primary cursor-pointer">
-                        <option value="">Select room</option>
+                        <option value="">{t("studioClasses.detailModal.selectRoom")}</option>
                         {rooms.map(r => <option key={r.id || r} value={r.id || r}>{r.name || r}</option>)}
                       </select>
                       <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-content-faint pointer-events-none" />
                     </div>
                   ) : (
                     <div className="bg-surface-dark border border-border text-sm rounded-xl px-4 py-2.5 text-content-primary">
-                      {classData.roomName || classData.room?.studioName || "N/A"}
+                      {classData.roomName || classData.room?.studioName || t("studioClasses.detailModal.na")}
                     </div>
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-content-secondary mb-2">Max Participants</label>
+                  <label className="block text-sm font-medium text-content-secondary mb-2">{t("studioClasses.detailModal.maxParticipants")}</label>
                   {canEdit ? (
                     <input type="number" min={(enrolled.length) || 1} max={100}
                       value={editMax}
@@ -777,18 +779,18 @@ const ClassDetailModal = ({
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-content-secondary">
-                    {enrolled.length}/{classData.maxParticipants} enrolled
+                    {t("studioClasses.detailModal.enrolled", { current: enrolled.length, max: classData.maxParticipants })}
                   </span>
                   {canEdit && (
                     <span className={`text-xs font-medium ${isFull ? "text-red-400" : "text-primary"}`}>
-                      {isFull ? "· Full" : `· ${spotsLeft} spot${spotsLeft !== 1 ? "s" : ""} left`}
+                      {isFull ? `· ${t("studioClasses.detailModal.full")}` : `· ${t("studioClasses.detailModal.spotsLeft", { count: spotsLeft })}`}
                     </span>
                   )}
                 </div>
                 {!isFull && canEdit && (
                   <button onClick={() => setShowSearch(!showSearch)}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-medium rounded-xl transition-colors">
-                    <Plus size={13} />Add
+                    <Plus size={13} />{t("studioClasses.detailModal.add")}
                   </button>
                 )}
               </div>
@@ -798,7 +800,7 @@ const ClassDetailModal = ({
                 <div className="mb-4">
                   <div className="bg-surface-dark rounded-xl px-3 py-2.5 flex items-center gap-2 border border-border focus-within:border-primary transition-colors">
                     <Search size={14} className="text-content-muted flex-shrink-0" />
-                    <input ref={searchInputRef} type="text" placeholder="Search members..." value={searchQuery}
+                    <input ref={searchInputRef} type="text" placeholder={t("studioClasses.detailModal.searchMembers")} value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
                       className="flex-1 bg-transparent outline-none text-sm text-content-primary placeholder-content-faint" />
                     <button onClick={() => { setShowSearch(false); setSearchQuery("") }} className="text-content-muted hover:text-content-primary">
@@ -823,7 +825,7 @@ const ClassDetailModal = ({
                   )}
                   {searchQuery && filtered.length === 0 && (
                     <div className="mt-1.5 bg-surface-dark border border-border rounded-xl p-3">
-                      <p className="text-xs text-content-faint text-center">No members found</p>
+                      <p className="text-xs text-content-faint text-center">{t("studioClasses.detailModal.noMembersFound")}</p>
                     </div>
                   )}
                 </div>
@@ -834,7 +836,7 @@ const ClassDetailModal = ({
                 {enrolled.length === 0 ? (
                   <div className="text-center py-10 text-content-muted text-sm">
                     <Users size={28} className="mx-auto mb-2 text-content-faint" />
-                    No members enrolled yet
+                    {t("studioClasses.detailModal.noMembersEnrolled")}
                   </div>
                 ) : enrolled.map(m => (
                   <div key={m._id || m.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-surface-dark hover:bg-surface-hover transition-colors">
@@ -846,7 +848,7 @@ const ClassDetailModal = ({
                     </div>
                     {canEdit && (
                       <button onClick={() => handleRemoveClick(m)}
-                        className="p-1.5 text-content-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors" title="Remove">
+                        className="p-1.5 text-content-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors" title={t("studioClasses.detailModal.remove")}>
                         <UserMinus size={14} />
                       </button>
                     )}
@@ -862,19 +864,19 @@ const ClassDetailModal = ({
           {canEdit && onCancelClass && (
             <button onClick={() => { setCancelScope("single"); setShowCancelConfirm(true); }}
               className="px-4 py-2.5 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-colors">
-              Cancel Class
+              {t("studioClasses.detailModal.cancelClass")}
             </button>
           )}
           {isCancelled && onDeleteClass && (
             <button onClick={() => setShowDeleteConfirm(true)}
               className="px-4 py-2.5 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-colors">
-              Delete Permanently
+              {t("studioClasses.detailModal.deletePermanently")}
             </button>
           )}
           <div className="flex-1" />
           <button onClick={handleClose}
             className="px-5 py-2.5 text-sm font-medium text-content-muted hover:text-content-primary bg-surface-button hover:bg-surface-button-hover rounded-xl transition-colors">
-            Close
+            {t("studioClasses.detailModal.close")}
           </button>
           {canEdit && activeTab === "details" && (
             <button onClick={handleSaveChanges} disabled={!hasChanges}
@@ -882,7 +884,7 @@ const ClassDetailModal = ({
                 ? "text-white bg-primary hover:bg-primary-hover"
                 : "text-content-faint bg-surface-button cursor-not-allowed"
                 }`}>
-              Save Changes
+              {t("studioClasses.detailModal.saveChanges")}
             </button>
           )}
         </div>
@@ -893,14 +895,14 @@ const ClassDetailModal = ({
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1001] p-4" onClick={() => setShowCancelConfirm(false)}>
           <div className="bg-surface-card w-full max-w-md rounded-xl overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-content-primary">Cancel Class</h2>
+              <h2 className="text-lg font-semibold text-content-primary">{t("studioClasses.detailModal.cancelConfirm.title")}</h2>
               <button onClick={() => setShowCancelConfirm(false)} className="p-2 hover:bg-surface-button text-content-muted hover:text-content-primary rounded-lg"><X size={20} /></button>
             </div>
             <div className="p-6 space-y-4">
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center flex-shrink-0"><AlertTriangle size={20} className="text-red-400" /></div>
                 <div>
-                  <p className="text-sm text-content-primary mb-1">Are you sure you want to cancel <span className="font-semibold text-primary">{classData.typeName || classData.classType?.name}</span>?</p>
+                  <p className="text-sm text-content-primary mb-1">{t("studioClasses.detailModal.cancelConfirm.message")} <span className="font-semibold text-primary">{classData.typeName || classData.classType?.name}</span>?</p>
                   <p className="text-xs text-content-muted">
                     {formatDateDisplay(classData.date)} · {displayStartTime} – {displayEndTime}
                   </p>
@@ -919,10 +921,10 @@ const ClassDetailModal = ({
                       {cancelScope === "single" && <div className="w-2 h-2 rounded-full bg-primary" />}
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-content-primary">Only this class</p>
+                      <p className="text-sm font-medium text-content-primary">{t("studioClasses.detailModal.cancelConfirm.onlyThis")}</p>
                       <p className="text-xs text-content-muted">
-                        Cancel the class on {formatDateDisplay(classData.date)}
-                        {enrolled.length > 0 && <span> · <span className="text-red-400 font-medium">{enrolled.length} member{enrolled.length !== 1 ? "s" : ""} affected</span></span>}
+                        {t("studioClasses.detailModal.cancelConfirm.onlyThisDesc", { date: formatDateDisplay(classData.date) })}
+                        {enrolled.length > 0 && <span> · <span className="text-red-400 font-medium">{t("studioClasses.detailModal.cancelConfirm.membersAffected", { count: enrolled.length })}</span></span>}
                       </p>
                     </div>
                   </label>
@@ -936,12 +938,12 @@ const ClassDetailModal = ({
                     </div>
                     <div>
                       <p className="text-sm font-medium text-content-primary flex items-center gap-2">
-                        Entire series
-                        <span className="text-[10px] font-semibold bg-red-500/15 text-red-400 px-1.5 py-0.5 rounded">{seriesUpcoming.length} classes</span>
+                        {t("studioClasses.detailModal.cancelConfirm.entireSeries")}
+                        <span className="text-[10px] font-semibold bg-red-500/15 text-red-400 px-1.5 py-0.5 rounded">{t("studioClasses.detailModal.classes", { count: seriesUpcoming.length })}</span>
                       </p>
                       <p className="text-xs text-content-muted">
-                        Cancel all upcoming classes in this series
-                        {seriesTotalEnrolled > 0 && <span> · <span className="text-red-400 font-medium">{seriesTotalEnrolled} total enrollment{seriesTotalEnrolled !== 1 ? "s" : ""} affected</span></span>}
+                        {t("studioClasses.detailModal.cancelConfirm.entireSeriesDesc")}
+                        {seriesTotalEnrolled > 0 && <span> · <span className="text-red-400 font-medium">{t("studioClasses.detailModal.cancelConfirm.totalEnrollments", { count: seriesTotalEnrolled })}</span></span>}
                       </p>
                     </div>
                   </label>
@@ -950,15 +952,15 @@ const ClassDetailModal = ({
 
               {/* Info for non-recurring or single remaining */}
               {(!hasSeries || seriesUpcoming.length <= 1) && enrolled.length > 0 && (
-                <p className="text-xs text-red-400 font-medium">{enrolled.length} enrolled member{enrolled.length !== 1 ? "s" : ""} will be affected</p>
+                <p className="text-xs text-red-400 font-medium">{t("studioClasses.detailModal.cancelConfirm.membersAffected", { count: enrolled.length })}</p>
               )}
 
-              <p className="text-xs text-content-faint">{cancelScope === "series" ? "All classes in the series" : "The class"} will be marked as cancelled and can still be deleted permanently later.</p>
+              <p className="text-xs text-content-faint">{cancelScope === "series" ? t("studioClasses.detailModal.cancelConfirm.willBeMarkedSeries") : t("studioClasses.detailModal.cancelConfirm.willBeMarked")}</p>
             </div>
             <div className="px-6 py-4 border-t border-border flex gap-3">
-              <button onClick={() => setShowCancelConfirm(false)} className="flex-1 py-2.5 text-sm font-medium text-content-muted bg-surface-button hover:bg-surface-button-hover rounded-xl">Keep Class</button>
+              <button onClick={() => setShowCancelConfirm(false)} className="flex-1 py-2.5 text-sm font-medium text-content-muted bg-surface-button hover:bg-surface-button-hover rounded-xl">{t("studioClasses.detailModal.cancelConfirm.keepClass")}</button>
               <button onClick={handleCancelConfirm} className="flex-1 py-2.5 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-xl">
-                {cancelScope === "series" ? `Cancel ${seriesUpcoming.length} Classes` : "Cancel Class"}
+                {cancelScope === "series" ? t("studioClasses.detailModal.cancelConfirm.cancelClasses", { count: seriesUpcoming.length }) : t("studioClasses.detailModal.cancelConfirm.title")}
               </button>
             </div>
           </div>
@@ -970,21 +972,21 @@ const ClassDetailModal = ({
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1001] p-4" onClick={() => setShowDeleteConfirm(false)}>
           <div className="bg-surface-card w-full max-w-md rounded-xl overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-content-primary">Delete Class</h2>
+              <h2 className="text-lg font-semibold text-content-primary">{t("studioClasses.detailModal.deleteConfirm.title")}</h2>
               <button onClick={() => setShowDeleteConfirm(false)} className="p-2 hover:bg-surface-button text-content-muted hover:text-content-primary rounded-lg"><X size={20} /></button>
             </div>
             <div className="p-6">
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center flex-shrink-0"><Trash2 size={20} className="text-red-400" /></div>
                 <div>
-                  <p className="text-sm text-content-primary mb-1">Permanently delete <span className="font-semibold text-primary">{classData.typeName || classData.classType?.name}</span>?</p>
-                  <p className="text-xs text-content-faint">This action cannot be undone.</p>
+                  <p className="text-sm text-content-primary mb-1">{t("studioClasses.detailModal.deleteConfirm.message")} <span className="font-semibold text-primary">{classData.typeName || classData.classType?.name}</span>?</p>
+                  <p className="text-xs text-content-faint">{t("studioClasses.detailModal.deleteConfirm.cannotUndo")}</p>
                 </div>
               </div>
             </div>
             <div className="px-6 py-4 border-t border-border flex gap-3">
-              <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-2.5 text-sm font-medium text-content-muted bg-surface-button hover:bg-surface-button-hover rounded-xl">Cancel</button>
-              <button onClick={handleDeleteConfirm} className="flex-1 py-2.5 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-xl">Delete</button>
+              <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-2.5 text-sm font-medium text-content-muted bg-surface-button hover:bg-surface-button-hover rounded-xl">{t("studioClasses.detailModal.deleteConfirm.cancel")}</button>
+              <button onClick={handleDeleteConfirm} className="flex-1 py-2.5 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-xl">{t("studioClasses.detailModal.deleteConfirm.delete")}</button>
             </div>
           </div>
         </div>
@@ -995,21 +997,21 @@ const ClassDetailModal = ({
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1001] p-4" onClick={() => setShowUnsavedConfirm(false)}>
           <div className="bg-surface-card w-full max-w-md rounded-xl overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-content-primary">Unsaved Changes</h2>
+              <h2 className="text-lg font-semibold text-content-primary">{t("studioClasses.detailModal.unsavedChanges.title")}</h2>
               <button onClick={() => setShowUnsavedConfirm(false)} className="p-2 hover:bg-surface-button text-content-muted hover:text-content-primary rounded-lg"><X size={20} /></button>
             </div>
             <div className="p-6">
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center flex-shrink-0"><AlertTriangle size={20} className="text-amber-400" /></div>
                 <div>
-                  <p className="text-sm text-content-primary mb-1">You have unsaved changes.</p>
-                  <p className="text-xs text-content-faint">Are you sure you want to close? Your changes will be lost.</p>
+                  <p className="text-sm text-content-primary mb-1">{t("studioClasses.detailModal.unsavedChanges.message")}</p>
+                  <p className="text-xs text-content-faint">{t("studioClasses.detailModal.unsavedChanges.description")}</p>
                 </div>
               </div>
             </div>
             <div className="px-6 py-4 border-t border-border flex gap-3">
-              <button onClick={() => setShowUnsavedConfirm(false)} className="flex-1 py-2.5 text-sm font-medium text-content-muted bg-surface-button hover:bg-surface-button-hover rounded-xl">Keep Editing</button>
-              <button onClick={handleDiscardAndClose} className="flex-1 py-2.5 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-xl">Discard Changes</button>
+              <button onClick={() => setShowUnsavedConfirm(false)} className="flex-1 py-2.5 text-sm font-medium text-content-muted bg-surface-button hover:bg-surface-button-hover rounded-xl">{t("studioClasses.detailModal.unsavedChanges.keepEditing")}</button>
+              <button onClick={handleDiscardAndClose} className="flex-1 py-2.5 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-xl">{t("studioClasses.detailModal.unsavedChanges.discard")}</button>
             </div>
           </div>
         </div>

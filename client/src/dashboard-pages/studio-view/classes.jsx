@@ -31,7 +31,7 @@ import { fetchAllStudios } from "../../features/studio/studioSlice"
 import { fetchAllMember } from "../../features/member/memberSlice"
 
 export default function Classes() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const calendarRef = useRef(null);
 
   // Redux state - with safe defaults
@@ -315,7 +315,7 @@ export default function Classes() {
   }, [selectedDate]);
 
   // Format mobile date display
-  const fmtMobileDate = (d) => d.toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" });
+  const fmtMobileDate = (d) => d.toLocaleDateString(i18n.language, { weekday: "short", day: "numeric", month: "short" });
 
   // Navigation helpers
   const navigateMobileDay = (dir) => {
@@ -413,7 +413,7 @@ export default function Classes() {
     }
 
     // Confirm cancellation
-    const confirmCancel = window.confirm("Are you sure you want to cancel this class? This action cannot be undone.");
+    const confirmCancel = window.confirm(t("studioClasses.confirm.cancelClass"));
     if (!confirmCancel) return;
 
     try {
@@ -455,9 +455,7 @@ export default function Classes() {
 
     // Confirm series cancellation
     const confirmCancel = window.confirm(
-      `Are you sure you want to cancel this series?\n\n` +
-      `${classesInSeries.length} upcoming class${classesInSeries.length !== 1 ? "es" : ""} will be cancelled.\n` +
-      `This action cannot be undone.`
+      t("studioClasses.confirm.cancelSeries", { count: classesInSeries.length })
     );
 
     if (!confirmCancel) return;

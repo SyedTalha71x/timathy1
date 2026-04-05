@@ -5,7 +5,9 @@ import { useCallback, useEffect, useMemo, useRef, useState, forwardRef, useImper
 import dayGridPlugin from "@fullcalendar/daygrid"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
+import allLocales from "@fullcalendar/core/locales-all"
 import { useSelector } from "react-redux"
+import { useTranslation } from "react-i18next"
 
 const formatDateLocal = (date) => {
   const d = typeof date === 'string' ? new Date(date) : date;
@@ -63,6 +65,7 @@ const ClassesCalendar = forwardRef(({
   calendarSettings = { calendarStartTime: "06:00", calendarEndTime: "22:00", hideClosedDays: true, fadePastClasses: true },
 }, ref) => {
   const calendarRef = useRef(null);
+  const { t, i18n } = useTranslation();
   const [currentViewType, setCurrentViewType] = useState("timeGridWeek");
   const [currentDateDisplay, setCurrentDateDisplay] = useState("");
   const [tooltip, setTooltip] = useState({ show: false, x: 0, y: 0, content: null });
@@ -105,15 +108,15 @@ const ClassesCalendar = forwardRef(({
     if (vt === "timeGridWeek") {
       const s = new Date(view.currentStart), e = new Date(view.currentEnd);
       e.setDate(e.getDate() - 1);
-      const sm = s.toLocaleDateString("en-US", { month: "short" }), em = e.toLocaleDateString("en-US", { month: "short" }), y = s.getFullYear();
+      const sm = s.toLocaleDateString(i18n.language, { month: "short" }), em = e.toLocaleDateString(i18n.language, { month: "short" }), y = s.getFullYear();
       return sm === em ? `${sm} ${s.getDate()} - ${e.getDate()}, ${y}` : `${sm} ${s.getDate()} - ${em} ${e.getDate()}, ${y}`;
     } else if (vt === "timeGridDay") {
-      return new Date(view.currentStart).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+      return new Date(view.currentStart).toLocaleDateString(i18n.language, { month: "short", day: "numeric", year: "numeric" });
     } else if (vt === "dayGridMonth") {
-      return new Date(view.currentStart).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+      return new Date(view.currentStart).toLocaleDateString(i18n.language, { month: "long", year: "numeric" });
     }
     return currentDateDisplay;
-  }, [currentDateDisplay]);
+  }, [currentDateDisplay, i18n.language]);
 
   const broadcast = useCallback(() => {
     const d = formatDateRange();
@@ -340,7 +343,7 @@ const ClassesCalendar = forwardRef(({
           <div className="bg-surface-dark text-content-primary p-3 rounded-lg shadow-lg border border-border max-w-xs">
             <div className="text-sm font-semibold mb-1">
               {tooltip.content.name}
-              {tooltip.content.isCancelled && <span className="text-red-400 text-xs font-normal ml-1">(Cancelled)</span>}
+              {tooltip.content.isCancelled && <span className="text-red-400 text-xs font-normal ml-1">({t("studioClasses.calendar.cancelled")})</span>}
             </div>
             <div className="text-xs text-content-secondary mb-0.5">{tooltip.content.time}</div>
             <div className="text-xs text-content-secondary mb-0.5">{tooltip.content.trainer} · {tooltip.content.room}</div>
@@ -366,7 +369,8 @@ const ClassesCalendar = forwardRef(({
               events={calendarEvents}
               height="auto"
               contentHeight="auto"
-              locale="en"
+              locale={i18n.language}
+              locales={allLocales}
               selectable
               headerToolbar={false}
               editable={false}
@@ -445,7 +449,7 @@ const ClassesCalendar = forwardRef(({
                     return (
                       <div style={{ textAlign: 'center', lineHeight: '1.1', userSelect: 'none' }}>
                         <div style={{ fontSize: '11px' }}>
-                          {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][d.getDay()]} {d.getDate()}
+                          {t("studioClasses.detailModal.dayNames." + d.getDay())} {d.getDate()}
                         </div>
                         {isHoliday && <div className="closed-label">{closedInfo.reason}</div>}
                       </div>
@@ -458,11 +462,11 @@ const ClassesCalendar = forwardRef(({
                     const dateStr = formatDateLocal(d);
                     const closedInfo = isDateClosed(dateStr, studioConfig);
                     const isClosed = closedInfo.closed;
-                    const closedLabel = closedInfo.isWeekend ? 'Closed' : closedInfo.reason;
+                    const closedLabel = closedInfo.isWeekend ? t("studioClasses.calendar.closed") : closedInfo.reason;
                     return (
                       <div style={{ textAlign: 'center', lineHeight: '1.1', userSelect: 'none' }}>
                         <div style={{ fontSize: '11px' }}>
-                          {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][d.getDay()]} {d.getDate()}
+                          {t("studioClasses.detailModal.dayNames." + d.getDay())} {d.getDate()}
                         </div>
                         {isClosed && <div className="closed-label">{closedLabel}</div>}
                       </div>
@@ -472,9 +476,8 @@ const ClassesCalendar = forwardRef(({
                 dayGridMonth: {
                   dayHeaderContent: (a) => {
                     const d = new Date(a.date);
-                    const i = d.getDay();
                     return <span style={{ userSelect: 'none' }}>
-                      {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][i === 0 ? 6 : i - 1]}
+                      {d.toLocaleDateString(i18n.language, { weekday: 'long' })}
                     </span>;
                   }
                 }
@@ -520,7 +523,7 @@ const ClassesCalendar = forwardRef(({
                   return end < new Date();
                 })();
 
-                const closedLabel = closedInfo.isWeekend ? 'Closed' : closedInfo.reason;
+                const closedLabel = closedInfo.isWeekend ? t("studioClasses.calendar.closed") : closedInfo.reason;
 
                 return (
                   <div style={{
